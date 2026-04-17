@@ -25,7 +25,8 @@
     "noFallthroughCasesInSwitch": false,
     "types": [
       "node",
-      "jest"
+      "jest",
+      "pg"
     ]
   }
 }

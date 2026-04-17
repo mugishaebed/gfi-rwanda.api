@@ -1,0 +1,155 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                    String       @id @default(uuid())
+  provider              AuthProvider @default(MICROSOFT)
+  providerUserId        String
+  tenantId              String?
+  name                  String
+  email                 String       @unique
+  role                  UserRole     @default(LOAN_OFFICER)
+  refreshTokenHash      String?
+  refreshTokenExpiresAt DateTime?
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+  loans                 Loan[]
+
+  @@unique([provider, providerUserId])
+}
+
+model Client {
+  id            String            @id @default(uuid())
+  type          ClientType
+  email         String            @unique
+  phoneNumber   String
+  address       String
+  accountNumber String            @unique
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  business      BusinessClient?
+  individual    IndividualClient?
+  loans         Loan[]
+}
+
+model IndividualClient {
+  id                String   @id @default(uuid())
+  clientId          String   @unique
+  fullName          String
+  nationalId        String   @unique
+  gender            String
+  dateOfBirth       DateTime
+  nationality       String?
+  maritalStatus     String?
+  employerName      String?
+  occupation        String?
+  monthlyIncome     String?
+  bankName          String?
+  bankAccountNumber String?
+  pep               Boolean?
+  referenceName     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  client            Client   @relation(fields: [clientId], references: [id])
+}
+
+model BusinessClient {
+  id                             String       @id @default(uuid())
+  clientId                       String       @unique
+  businessName                   String
+  businessWebsite                String?
+  pep                            Boolean
+  registrationNumber             String       @unique
+  businessType                   BusinessType
+  incorporationDate              DateTime
+  businessShareholders           Json
+  bankName                       String?
+  bankAccountNumber              String?
+  authorizedSignatory            String?
+  authorizedSignatoryDesignation String?
+  annualRevenue                  String?
+  createdAt                      DateTime     @default(now())
+  updatedAt                      DateTime     @updatedAt
+  client                         Client       @relation(fields: [clientId], references: [id])
+}
+
+model Loan {
+  id             String          @id @default(uuid())
+  clientId       String
+  amount         Float
+  purpose        String
+  repaymentTerms Json
+  guarantorInfo  Json?
+  comments       String?
+  status         LoanStatus      @default(PENDING)
+  activatedAt    DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  userId         String?
+  client         Client          @relation(fields: [clientId], references: [id])
+  user           User?           @relation(fields: [userId], references: [id])
+  statusLogs     LoanStatusLog[]
+  repayments     Repayment[]
+}
+
+model LoanStatusLog {
+  id         String     @id @default(uuid())
+  loanId     String
+  fromStatus LoanStatus
+  toStatus   LoanStatus
+  changedBy  String
+  note       String?
+  createdAt  DateTime   @default(now())
+  loan       Loan       @relation(fields: [loanId], references: [id])
+}
+
+model Repayment {
+  id          String          @id @default(uuid())
+  loanId      String
+  amountPaid  Float
+  paymentDate DateTime
+  notes       String?
+  status      RepaymentStatus @default(PENDING)
+  approvedAt  DateTime?
+  createdAt   DateTime        @default(now())
+  loan        Loan            @relation(fields: [loanId], references: [id])
+}
+
+enum UserRole {
+  LOAN_OFFICER
+  GENERAL_MANAGER
+}
+
+enum AuthProvider {
+  MICROSOFT
+}
+
+enum ClientType {
+  INDIVIDUAL
+  BUSINESS
+}
+
+enum LoanStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum RepaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum BusinessType {
+  SOLE_PROPRIETORSHIP
+  PARTNERSHIP
+  LLC
+}
