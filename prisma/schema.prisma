@@ -122,6 +122,22 @@ model Repayment {
   loan        Loan            @relation(fields: [loanId], references: [id])
 }
 
+model Document {
+  id               String            @id @default(uuid())
+  ownerType        DocumentOwnerType
+  ownerId          String
+  label            String
+  originalFileName String
+  mimeType         String
+  size             Int
+  storageDriver    String
+  storageKey       String
+  uploadedByUserId String
+  createdAt        DateTime          @default(now())
+
+  @@index([ownerType, ownerId])
+}
+
 enum UserRole {
   LOAN_OFFICER
   GENERAL_MANAGER
@@ -146,6 +162,12 @@ enum RepaymentStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+enum DocumentOwnerType {
+  CLIENT
+  LOAN
+  REPAYMENT
 }
 
 enum BusinessType {

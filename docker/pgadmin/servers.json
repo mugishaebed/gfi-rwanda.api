@@ -1,0 +1,13 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "GFI Rwanda Postgres",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "gfi_rwanda_api",
+      "Username": "postgres",
+      "SSLMode": "prefer"
+    }
+  }
+}

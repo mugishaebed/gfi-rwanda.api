@@ -8,6 +8,7 @@ import { RepaymentsModule } from './repayments/repayments.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { UsersModule } from './users/users.module';
 import { ConfigModule } from '@nestjs/config';
+import { DocumentsModule } from './documents/documents.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ConfigModule } from '@nestjs/config';
     RepaymentsModule,
     NotificationsModule,
     UsersModule,
+    DocumentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

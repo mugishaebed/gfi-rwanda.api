@@ -6,7 +6,12 @@ jest.mock('../notifications/notifications.service', () => ({
   NotificationsService: class NotificationsService {},
 }));
 
+jest.mock('../documents/documents.service', () => ({
+  DocumentsService: class DocumentsService {},
+}));
+
 import { Test, TestingModule } from '@nestjs/testing';
+import { DocumentsService } from '../documents/documents.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { RepaymentsService } from './repayments.service';
 import { PrismaService } from '../prisma.service';
@@ -30,6 +35,15 @@ describe('RepaymentsService', () => {
           useValue: {
             notifyGeneralManagersRepaymentPendingApproval: jest.fn(),
             notifyLoanOfficerRepaymentApproved: jest.fn(),
+          },
+        },
+        {
+          provide: DocumentsService,
+          useValue: {
+            attachDocuments: jest.fn(),
+            prepareDocuments: jest.fn(),
+            createMany: jest.fn(),
+            cleanupPreparedDocuments: jest.fn(),
           },
         },
       ],

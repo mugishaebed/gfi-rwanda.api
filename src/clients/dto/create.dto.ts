@@ -13,7 +13,14 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { BusinessType, ClientType } from 'src/generated/prisma/enums';
+import { BusinessType, ClientType } from '../../generated/prisma/enums';
+import {
+  ParseBoolean,
+  ParseDate,
+  ParseJson,
+  ParseNumber,
+  ParseStringArray,
+} from '../../common/dto-transforms';
 
 export class BusinessShareholderDto {
   @ApiProperty({
@@ -27,6 +34,7 @@ export class BusinessShareholderDto {
     example: 40,
     description: 'Ownership percentage held by the shareholder.',
   })
+  @ParseNumber()
   @IsNumber()
   ownershipPercentage!: number;
 }
@@ -93,6 +101,7 @@ export class CreateIndividualClientDto {
     example: '1995-05-20T00:00:00.000Z',
     description: 'Date of birth of the client.',
   })
+  @ParseDate()
   @Type(() => Date)
   @IsDate()
   dateOfBirth!: Date;
@@ -158,6 +167,7 @@ export class CreateIndividualClientDto {
     description: 'Whether the client is a politically exposed person.',
   })
   @IsOptional()
+  @ParseBoolean()
   @IsBoolean()
   pep?: boolean;
 
@@ -168,6 +178,17 @@ export class CreateIndividualClientDto {
   @IsOptional()
   @IsString()
   referenceName?: string;
+
+  @ApiPropertyOptional({
+    type: [String],
+    description: 'Optional labels matching the uploaded client documents.',
+    example: ['National ID', 'Payslip'],
+  })
+  @IsOptional()
+  @ParseStringArray()
+  @IsArray()
+  @IsString({ each: true })
+  documentLabels?: string[];
 }
 
 export class CreateBusinessClientDto {
@@ -226,6 +247,7 @@ export class CreateBusinessClientDto {
     example: false,
     description: 'Whether the business is politically exposed.',
   })
+  @ParseBoolean()
   @IsBoolean()
   pep!: boolean;
 
@@ -248,6 +270,7 @@ export class CreateBusinessClientDto {
     example: '2020-01-10T00:00:00.000Z',
     description: 'Date the business was incorporated.',
   })
+  @ParseDate()
   @Type(() => Date)
   @IsDate()
   incorporationDate!: Date;
@@ -258,6 +281,7 @@ export class CreateBusinessClientDto {
   })
   @IsArray()
   @ValidateNested({ each: true })
+  @ParseJson()
   @Type(() => BusinessShareholderDto)
   businessShareholders!: BusinessShareholderDto[];
 
@@ -300,4 +324,15 @@ export class CreateBusinessClientDto {
   @IsOptional()
   @IsString()
   annualRevenue?: string;
+
+  @ApiPropertyOptional({
+    type: [String],
+    description: 'Optional labels matching the uploaded business client documents.',
+    example: ['Certificate of Incorporation', 'Tax Clearance'],
+  })
+  @IsOptional()
+  @ParseStringArray()
+  @IsArray()
+  @IsString({ each: true })
+  documentLabels?: string[];
 }

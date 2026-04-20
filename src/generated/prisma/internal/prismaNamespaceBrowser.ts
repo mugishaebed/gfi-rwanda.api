@@ -57,7 +57,8 @@ export const ModelName = {
   BusinessClient: 'BusinessClient',
   Loan: 'Loan',
   LoanStatusLog: 'LoanStatusLog',
-  Repayment: 'Repayment'
+  Repayment: 'Repayment',
+  Document: 'Document'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -195,6 +196,23 @@ export const RepaymentScalarFieldEnum = {
 } as const
 
 export type RepaymentScalarFieldEnum = (typeof RepaymentScalarFieldEnum)[keyof typeof RepaymentScalarFieldEnum]
+
+
+export const DocumentScalarFieldEnum = {
+  id: 'id',
+  ownerType: 'ownerType',
+  ownerId: 'ownerId',
+  label: 'label',
+  originalFileName: 'originalFileName',
+  mimeType: 'mimeType',
+  size: 'size',
+  storageDriver: 'storageDriver',
+  storageKey: 'storageKey',
+  uploadedByUserId: 'uploadedByUserId',
+  createdAt: 'createdAt'
+} as const
+
+export type DocumentScalarFieldEnum = (typeof DocumentScalarFieldEnum)[keyof typeof DocumentScalarFieldEnum]
 
 
 export const SortOrder = {

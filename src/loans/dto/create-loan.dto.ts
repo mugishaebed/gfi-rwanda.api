@@ -11,6 +11,11 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
+import {
+  ParseJson,
+  ParseNumber,
+  ParseStringArray,
+} from '../../common/dto-transforms';
 
 class RepaymentTermItemDto {
   @ApiProperty({ example: '2026-05-01' })
@@ -19,6 +24,7 @@ class RepaymentTermItemDto {
   dueDate!: string;
 
   @ApiProperty({ example: 50000 })
+  @ParseNumber()
   @IsNumber()
   @Min(0)
   amount!: number;
@@ -33,6 +39,7 @@ export class CreateLoanDto {
   clientId!: string;
 
   @ApiProperty({ example: 500000 })
+  @ParseNumber()
   @IsNumber()
   @Min(0.01)
   amount!: number;
@@ -48,6 +55,7 @@ export class CreateLoanDto {
   })
   @IsArray()
   @ValidateNested({ each: true })
+  @ParseJson()
   @Type(() => RepaymentTermItemDto)
   repaymentTerms!: RepaymentTermItemDto[];
 
@@ -60,6 +68,7 @@ export class CreateLoanDto {
     },
   })
   @IsOptional()
+  @ParseJson()
   @IsObject()
   guarantorInfo?: Record<string, unknown>;
 
@@ -70,4 +79,15 @@ export class CreateLoanDto {
   @IsOptional()
   @IsString()
   comments?: string;
+
+  @ApiPropertyOptional({
+    type: [String],
+    description: 'Optional labels matching the uploaded loan documents.',
+    example: ['Loan Application Form', 'Collateral Photo'],
+  })
+  @IsOptional()
+  @ParseStringArray()
+  @IsArray()
+  @IsString({ each: true })
+  documentLabels?: string[];
 }

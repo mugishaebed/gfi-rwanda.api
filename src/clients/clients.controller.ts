@@ -8,15 +8,20 @@ import {
   Post,
   Query,
   ParseIntPipe,
+  Req,
   Put,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiConsumes,
   ApiOperation,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { ClientsService } from './clients.service';
 import {
   CreateIndividualClientDto,
@@ -26,9 +31,16 @@ import {
   UpdateBusinessClientDto,
   UpdateIndividualClientDto,
 } from './dto/update.dto';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
-import { Roles } from 'src/auth/decorators/roles.decorator';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { createDocumentUploadOptions } from '../documents/document-upload';
+
+type AuthenticatedRequest = {
+  user: {
+    userId: string;
+  };
+};
 
 @ApiTags('Clients')
 @ApiBearerAuth()
@@ -64,16 +76,42 @@ export class ClientsController {
 
   @Roles('LOAN_OFFICER')
   @Post('individual')
+  @UseInterceptors(
+    FilesInterceptor('documents', 10, createDocumentUploadOptions(10 * 1024 * 1024)),
+  )
+  @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Create an individual client' })
-  createIndividualClient(@Body() dto: CreateIndividualClientDto) {
-    return this.clientsService.createIndividualClient(dto);
+  createIndividualClient(
+    @Body() dto: CreateIndividualClientDto,
+    @UploadedFiles() files: Array<{
+      buffer: Buffer;
+      originalname: string;
+      mimetype: string;
+      size: number;
+    }>,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.clientsService.createIndividualClient(dto, files, req.user.userId);
   }
 
   @Roles('LOAN_OFFICER')
   @Post('business')
+  @UseInterceptors(
+    FilesInterceptor('documents', 10, createDocumentUploadOptions(10 * 1024 * 1024)),
+  )
+  @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Create a business client' })
-  createBusinessClient(@Body() dto: CreateBusinessClientDto) {
-    return this.clientsService.createBusinessClient(dto);
+  createBusinessClient(
+    @Body() dto: CreateBusinessClientDto,
+    @UploadedFiles() files: Array<{
+      buffer: Buffer;
+      originalname: string;
+      mimetype: string;
+      size: number;
+    }>,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.clientsService.createBusinessClient(dto, files, req.user.userId);
   }
 
   @Roles('LOAN_OFFICER')

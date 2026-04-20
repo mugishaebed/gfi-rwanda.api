@@ -1,0 +1,81 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gfi-rwanda-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - '${PORT:-3000}:3000'
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: 'postgresql://postgres:postgres@postgres:5432/gfi_rwanda_api?schema=public'
+      DIRECT_URL: 'postgresql://postgres:postgres@postgres:5432/gfi_rwanda_api?schema=public'
+      SHADOW_DATABASE_URL: 'postgresql://postgres:postgres@postgres:5432/gfi_rwanda_api_shadow?schema=public'
+      MICROSOFT_CLIENT_ID: '${MICROSOFT_CLIENT_ID:-}'
+      MICROSOFT_CLIENT_SECRET: '${MICROSOFT_CLIENT_SECRET:-}'
+      MICROSOFT_TENANT_ID: '${MICROSOFT_TENANT_ID:-}'
+      MICROSOFT_REDIRECT_URI: '${MICROSOFT_REDIRECT_URI:-http://localhost:3000/auth/microsoft/callback}'
+      JWT_SECRET: '${JWT_SECRET:-change-me}'
+      JWT_EXPIRES_IN: '${JWT_EXPIRES_IN:-1d}'
+      REFRESH_TOKEN_EXPIRES_IN_DAYS: '${REFRESH_TOKEN_EXPIRES_IN_DAYS:-30}'
+      FRONTEND_URL: '${FRONTEND_URL:-http://localhost:3000}'
+      SMTP_HOST: '${SMTP_HOST:-}'
+      SMTP_PORT: '${SMTP_PORT:-}'
+      SMTP_USER: '${SMTP_USER:-}'
+      SMTP_PASS: '${SMTP_PASS:-}'
+      SMTP_FROM_EMAIL: '${SMTP_FROM_EMAIL:-}'
+      SMTP_FROM_NAME: '${SMTP_FROM_NAME:-GFI Rwanda}'
+      SMTP_SECURE: '${SMTP_SECURE:-false}'
+      DOCUMENT_STORAGE_DRIVER: '${DOCUMENT_STORAGE_DRIVER:-local}'
+      DOCUMENT_STORAGE_ROOT: '${DOCUMENT_STORAGE_ROOT:-/app/storage}'
+      DOCUMENT_STORAGE_PUBLIC_BASE_URL: '${DOCUMENT_STORAGE_PUBLIC_BASE_URL:-}'
+      DOCUMENT_MAX_FILE_SIZE_BYTES: '${DOCUMENT_MAX_FILE_SIZE_BYTES:-10485760}'
+    volumes:
+      - ./certificates:/app/certificates:ro
+      - documents_data:/app/storage
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: gfi-rwanda-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: gfi_rwanda_api
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d gfi_rwanda_api']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4:9
+    container_name: gfi-rwanda-pgadmin
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - '5050:80'
+    environment:
+      PGADMIN_DEFAULT_EMAIL: '${PGADMIN_DEFAULT_EMAIL:-admin@gfi-rwanda.com}'
+      PGADMIN_DEFAULT_PASSWORD: '${PGADMIN_DEFAULT_PASSWORD:-admin123}'
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./docker/pgadmin/servers.json:/pgadmin4/servers.json:ro
+
+volumes:
+  documents_data:
+  postgres_data:
+  pgadmin_data:

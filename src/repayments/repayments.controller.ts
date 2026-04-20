@@ -8,14 +8,19 @@ import {
   ParseIntPipe,
   Post,
   Query,
+  Req,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiConsumes,
   ApiOperation,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -23,6 +28,13 @@ import { RepaymentStatus } from '../generated/prisma/enums';
 import { RepaymentsService } from './repayments.service';
 import { CreateRepaymentDto } from './dto/create-repayment.dto';
 import { ReviewRepaymentDto } from './dto/review-repayment.dto';
+import { createDocumentUploadOptions } from '../documents/document-upload';
+
+type AuthenticatedRequest = {
+  user: {
+    userId: string;
+  };
+};
 
 @ApiTags('Repayments')
 @ApiBearerAuth()
@@ -70,11 +82,28 @@ export class RepaymentsController {
 
   @Roles('LOAN_OFFICER')
   @Post()
+  @UseInterceptors(
+    FilesInterceptor('documents', 10, createDocumentUploadOptions(10 * 1024 * 1024)),
+  )
+  @ApiConsumes('multipart/form-data')
   @ApiOperation({
     summary: 'Record a manual repayment as loan officer with pending status',
   })
-  createManualRepayment(@Body() dto: CreateRepaymentDto) {
-    return this.repaymentsService.createManualRepayment(dto);
+  createManualRepayment(
+    @Body() dto: CreateRepaymentDto,
+    @UploadedFiles() files: Array<{
+      buffer: Buffer;
+      originalname: string;
+      mimetype: string;
+      size: number;
+    }>,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.repaymentsService.createManualRepayment(
+      dto,
+      req.user.userId,
+      files,
+    );
   }
 
   @Roles('GENERAL_MANAGER')

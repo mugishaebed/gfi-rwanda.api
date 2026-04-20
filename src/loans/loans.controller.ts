@@ -9,14 +9,18 @@ import {
   Post,
   Query,
   Req,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiConsumes,
   ApiOperation,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -24,6 +28,7 @@ import { LoanStatus } from '../generated/prisma/enums';
 import { LoansService } from './loans.service';
 import { CreateLoanDto } from './dto/create-loan.dto';
 import { ReviewLoanDto } from './dto/review-loan.dto';
+import { createDocumentUploadOptions } from '../documents/document-upload';
 
 type AuthenticatedRequest = {
   user: {
@@ -79,11 +84,24 @@ export class LoansController {
 
   @Roles('LOAN_OFFICER')
   @Post()
+  @UseInterceptors(
+    FilesInterceptor('documents', 10, createDocumentUploadOptions(10 * 1024 * 1024)),
+  )
+  @ApiConsumes('multipart/form-data')
   @ApiOperation({
     summary: 'Create a loan request as a loan officer with pending status',
   })
-  createLoan(@Body() dto: CreateLoanDto, @Req() req: AuthenticatedRequest) {
-    return this.loansService.createLoan(dto, req.user.userId);
+  createLoan(
+    @Body() dto: CreateLoanDto,
+    @UploadedFiles() files: Array<{
+      buffer: Buffer;
+      originalname: string;
+      mimetype: string;
+      size: number;
+    }>,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.loansService.createLoan(dto, req.user.userId, files);
   }
 
   @Roles('GENERAL_MANAGER')

@@ -3,7 +3,13 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { LoanStatus, RepaymentStatus } from '../generated/prisma/enums';
+import { randomUUID } from 'crypto';
+import {
+  DocumentOwnerType,
+  LoanStatus,
+  RepaymentStatus,
+} from '../generated/prisma/enums';
+import { DocumentsService } from '../documents/documents.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../prisma.service';
 import { CreateRepaymentDto } from './dto/create-repayment.dto';
@@ -14,6 +20,7 @@ export class RepaymentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
+    private readonly documentsService: DocumentsService,
   ) {}
 
   async findAll(page = 1, limit = 10, status?: RepaymentStatus) {
@@ -48,7 +55,10 @@ export class RepaymentsService {
     ]);
 
     return {
-      data: repayments,
+      data: await this.documentsService.attachDocuments(
+        DocumentOwnerType.REPAYMENT,
+        repayments,
+      ),
       meta: {
         page: safePage,
         limit: safeLimit,
@@ -80,10 +90,18 @@ export class RepaymentsService {
       throw new NotFoundException('Repayment not found');
     }
 
-    return repayment;
+    return (
+      await this.documentsService.attachDocuments(DocumentOwnerType.REPAYMENT, [
+        repayment,
+      ])
+    )[0];
   }
 
-  async createManualRepayment(data: CreateRepaymentDto) {
+  async createManualRepayment(
+    data: CreateRepaymentDto,
+    uploadedByUserId: string,
+    files: Array<{ buffer: Buffer; originalname: string; mimetype: string; size: number }> = [],
+  ) {
     const loan = await this.prisma.loan.findUnique({
       where: { id: data.loanId },
     });
@@ -98,40 +116,66 @@ export class RepaymentsService {
       );
     }
 
-    const repayment = await this.prisma.repayment.create({
-      data: {
-        loanId: data.loanId,
-        amountPaid: data.amountPaid,
-        paymentDate: data.paymentDate,
-        notes: data.notes,
-        status: RepaymentStatus.PENDING,
-      },
-      include: {
-        loan: {
+    const repaymentId = randomUUID();
+    const preparedDocuments = await this.documentsService.prepareDocuments({
+      ownerType: DocumentOwnerType.REPAYMENT,
+      ownerId: repaymentId,
+      labels: data.documentLabels,
+      files,
+      uploadedByUserId,
+    });
+
+    try {
+      const repayment = await this.prisma.$transaction(async (tx) => {
+        const createdRepayment = await tx.repayment.create({
+          data: {
+            id: repaymentId,
+            loanId: data.loanId,
+            amountPaid: data.amountPaid,
+            paymentDate: data.paymentDate,
+            notes: data.notes,
+            status: RepaymentStatus.PENDING,
+          },
           include: {
-            user: true,
-            client: {
+            loan: {
               include: {
-                individual: true,
-                business: true,
+                user: true,
+                client: {
+                  include: {
+                    individual: true,
+                    business: true,
+                  },
+                },
               },
             },
           },
+        });
+
+        await this.documentsService.createMany(preparedDocuments, tx);
+
+        return createdRepayment;
+      });
+
+      await this.notificationsService.notifyGeneralManagersRepaymentPendingApproval(
+        {
+          repaymentId: repayment.id,
+          loanId: repayment.loanId,
+          amountPaid: repayment.amountPaid,
+          paymentDate: repayment.paymentDate,
+          clientName: this.getClientDisplayName(repayment.loan.client),
         },
-      },
-    });
+      );
 
-    await this.notificationsService.notifyGeneralManagersRepaymentPendingApproval(
-      {
-        repaymentId: repayment.id,
-        loanId: repayment.loanId,
-        amountPaid: repayment.amountPaid,
-        paymentDate: repayment.paymentDate,
-        clientName: this.getClientDisplayName(repayment.loan.client),
-      },
-    );
-
-    return repayment;
+      return (
+        await this.documentsService.attachDocuments(
+          DocumentOwnerType.REPAYMENT,
+          [repayment],
+        )
+      )[0];
+    } catch (error) {
+      await this.documentsService.cleanupPreparedDocuments(preparedDocuments);
+      throw error;
+    }
   }
 
   async approveRepayment(id: string, review: ReviewRepaymentDto) {
@@ -210,7 +254,12 @@ export class RepaymentsService {
       });
     }
 
-    return updatedRepayment;
+    return (
+      await this.documentsService.attachDocuments(
+        DocumentOwnerType.REPAYMENT,
+        [updatedRepayment],
+      )
+    )[0];
   }
 
   private getClientDisplayName(client: {

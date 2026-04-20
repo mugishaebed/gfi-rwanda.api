@@ -44,9 +44,6 @@ importers:
       '@scalar/nestjs-api-reference':
         specifier: ^1.1.7
         version: 1.1.7
-      '@types/nodemailer':
-        specifier: ^8.0.0
-        version: 8.0.0
       class-transformer:
         specifier: ^0.5.1
         version: 0.5.1
@@ -99,6 +96,9 @@ importers:
       '@types/node':
         specifier: ^25.6.0
         version: 25.6.0
+      '@types/nodemailer':
+        specifier: ^8.0.0
+        version: 8.0.0
       '@types/passport-jwt':
         specifier: ^4.0.1
         version: 4.0.1

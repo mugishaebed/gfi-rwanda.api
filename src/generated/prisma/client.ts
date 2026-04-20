@@ -74,3 +74,8 @@ export type LoanStatusLog = Prisma.LoanStatusLogModel
  * 
  */
 export type Repayment = Prisma.RepaymentModel
+/**
+ * Model Document
+ * 
+ */
+export type Document = Prisma.DocumentModel

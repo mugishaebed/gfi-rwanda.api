@@ -3,8 +3,10 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ClientType } from 'src/generated/prisma/enums';
-import { PrismaService } from 'src/prisma.service';
+import { randomUUID } from 'crypto';
+import { ClientType, DocumentOwnerType } from '../generated/prisma/enums';
+import { DocumentsService } from '../documents/documents.service';
+import { PrismaService } from '../prisma.service';
 import {
   CreateBusinessClientDto,
   CreateIndividualClientDto,
@@ -16,7 +18,10 @@ import {
 
 @Injectable()
 export class ClientsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly documentsService: DocumentsService,
+  ) {}
 
   async getClients(page = 1, limit = 10) {
     const safePage = Math.max(page, 1);
@@ -39,7 +44,10 @@ export class ClientsService {
     ]);
 
     return {
-      data: clients,
+      data: await this.documentsService.attachDocuments(
+        DocumentOwnerType.CLIENT,
+        clients,
+      ),
       meta: {
         page: safePage,
         limit: safeLimit,
@@ -49,89 +57,153 @@ export class ClientsService {
     };
   }
 
-  async createIndividualClient(data: CreateIndividualClientDto) {
+  async createIndividualClient(
+    data: CreateIndividualClientDto,
+    files: Array<{
+      buffer: Buffer;
+      originalname: string;
+      mimetype: string;
+      size: number;
+    }> = [],
+    uploadedByUserId: string,
+  ) {
     if (data.type !== ClientType.INDIVIDUAL) {
       throw new BadRequestException('Invalid client type');
     }
 
+    const clientId = randomUUID();
+    const preparedDocuments = await this.documentsService.prepareDocuments({
+      ownerType: DocumentOwnerType.CLIENT,
+      ownerId: clientId,
+      labels: data.documentLabels,
+      files,
+      uploadedByUserId,
+    });
+
     try {
-      return this.prisma.client.create({
-        data: {
-          type: data.type,
-          email: data.email,
-          phoneNumber: data.phone,
-          address: data.address,
-          accountNumber: data.accountNumber,
-          individual: {
-            create: {
-              fullName: data.fullName,
-              nationalId: data.nationalId,
-              gender: data.gender,
-              dateOfBirth: data.dateOfBirth,
-              nationality: data.nationality,
-              maritalStatus: data.maritalStatus,
-              employerName: data.employerName,
-              occupation: data.occupation,
-              monthlyIncome: data.monthlyIncome,
-              bankName: data.bankName,
-              bankAccountNumber: data.bankAccountNumber,
-              pep: data.pep,
-              referenceName: data.referenceName,
+      const client = await this.prisma.$transaction(async (tx) => {
+        const createdClient = await tx.client.create({
+          data: {
+            id: clientId,
+            type: data.type,
+            email: data.email,
+            phoneNumber: data.phone,
+            address: data.address,
+            accountNumber: data.accountNumber,
+            individual: {
+              create: {
+                fullName: data.fullName,
+                nationalId: data.nationalId,
+                gender: data.gender,
+                dateOfBirth: data.dateOfBirth,
+                nationality: data.nationality,
+                maritalStatus: data.maritalStatus,
+                employerName: data.employerName,
+                occupation: data.occupation,
+                monthlyIncome: data.monthlyIncome,
+                bankName: data.bankName,
+                bankAccountNumber: data.bankAccountNumber,
+                pep: data.pep,
+                referenceName: data.referenceName,
+              },
             },
           },
-        },
-        include: {
-          individual: true,
-        },
+          include: {
+            individual: true,
+          },
+        });
+
+        await this.documentsService.createMany(preparedDocuments, tx);
+
+        return createdClient;
       });
+
+      return (
+        await this.documentsService.attachDocuments(DocumentOwnerType.CLIENT, [
+          client,
+        ])
+      )[0];
     } catch (error: unknown) {
+      await this.documentsService.cleanupPreparedDocuments(preparedDocuments);
       const message =
         error instanceof Error ? error.message : 'Failed to create client';
       throw new BadRequestException(message);
     }
   }
 
-  async createBusinessClient(data: CreateBusinessClientDto) {
+  async createBusinessClient(
+    data: CreateBusinessClientDto,
+    files: Array<{
+      buffer: Buffer;
+      originalname: string;
+      mimetype: string;
+      size: number;
+    }> = [],
+    uploadedByUserId: string,
+  ) {
     if (data.type !== ClientType.BUSINESS) {
       throw new BadRequestException('Invalid client type');
     }
 
+    const clientId = randomUUID();
+    const preparedDocuments = await this.documentsService.prepareDocuments({
+      ownerType: DocumentOwnerType.CLIENT,
+      ownerId: clientId,
+      labels: data.documentLabels,
+      files,
+      uploadedByUserId,
+    });
+
     try {
-      return this.prisma.client.create({
-        data: {
-          type: data.type,
-          email: data.email,
-          phoneNumber: data.phone,
-          address: data.address,
-          accountNumber: data.accountNumber,
-          business: {
-            create: {
-              businessName: data.businessName,
-              businessWebsite: data.businessWebsite,
-              pep: data.pep,
-              registrationNumber: data.registrationNumber,
-              businessType: data.businessType,
-              incorporationDate: data.incorporationDate,
-              businessShareholders: data.businessShareholders.map(
-                (shareholder) => ({
-                  name: shareholder.name,
-                  ownershipPercentage: shareholder.ownershipPercentage,
-                }),
-              ),
-              bankName: data.bankName,
-              bankAccountNumber: data.bankAccountNumber,
-              authorizedSignatory: data.authorizedSignatory,
-              authorizedSignatoryDesignation:
-                data.authorizedSignatoryDesignation,
-              annualRevenue: data.annualRevenue,
+      const client = await this.prisma.$transaction(async (tx) => {
+        const createdClient = await tx.client.create({
+          data: {
+            id: clientId,
+            type: data.type,
+            email: data.email,
+            phoneNumber: data.phone,
+            address: data.address,
+            accountNumber: data.accountNumber,
+            business: {
+              create: {
+                businessName: data.businessName,
+                businessWebsite: data.businessWebsite,
+                pep: data.pep,
+                registrationNumber: data.registrationNumber,
+                businessType: data.businessType,
+                incorporationDate: data.incorporationDate,
+                businessShareholders: data.businessShareholders.map(
+                  (shareholder) => ({
+                    name: shareholder.name,
+                    ownershipPercentage: shareholder.ownershipPercentage,
+                  }),
+                ),
+                bankName: data.bankName,
+                bankAccountNumber: data.bankAccountNumber,
+                authorizedSignatory: data.authorizedSignatory,
+                authorizedSignatoryDesignation:
+                  data.authorizedSignatoryDesignation,
+                annualRevenue: data.annualRevenue,
+              },
             },
           },
-        },
-        include: {
-          business: true,
-        },
+          include: {
+            business: true,
+          },
+        });
+
+        await this.documentsService.createMany(preparedDocuments, tx);
+
+        return createdClient;
       });
+
+      return (
+        await this.documentsService.attachDocuments(DocumentOwnerType.CLIENT, [
+          client,
+        ])
+      )[0];
     } catch (error: unknown) {
+      await this.documentsService.cleanupPreparedDocuments(preparedDocuments);
       const message =
         error instanceof Error ? error.message : 'Failed to create client';
       throw new BadRequestException(message);
@@ -189,10 +261,20 @@ export class ClientsService {
         });
       });
 
-      return this.prisma.client.findUnique({
+      const client = await this.prisma.client.findUnique({
         where: { id },
         include: { individual: true },
       });
+
+      if (!client) {
+        throw new NotFoundException('Individual client not found');
+      }
+
+      return (
+        await this.documentsService.attachDocuments(DocumentOwnerType.CLIENT, [
+          client,
+        ])
+      )[0];
     } catch (error: unknown) {
       if (
         error instanceof BadRequestException ||
@@ -262,10 +344,20 @@ export class ClientsService {
         });
       });
 
-      return this.prisma.client.findUnique({
+      const client = await this.prisma.client.findUnique({
         where: { id },
         include: { business: true },
       });
+
+      if (!client) {
+        throw new NotFoundException('Business client not found');
+      }
+
+      return (
+        await this.documentsService.attachDocuments(DocumentOwnerType.CLIENT, [
+          client,
+        ])
+      )[0];
     } catch (error: unknown) {
       if (
         error instanceof BadRequestException ||

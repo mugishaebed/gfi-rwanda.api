@@ -50,6 +50,15 @@ export const RepaymentStatus = {
 export type RepaymentStatus = (typeof RepaymentStatus)[keyof typeof RepaymentStatus]
 
 
+export const DocumentOwnerType = {
+  CLIENT: 'CLIENT',
+  LOAN: 'LOAN',
+  REPAYMENT: 'REPAYMENT'
+} as const
+
+export type DocumentOwnerType = (typeof DocumentOwnerType)[keyof typeof DocumentOwnerType]
+
+
 export const BusinessType = {
   SOLE_PROPRIETORSHIP: 'SOLE_PROPRIETORSHIP',
   PARTNERSHIP: 'PARTNERSHIP',
