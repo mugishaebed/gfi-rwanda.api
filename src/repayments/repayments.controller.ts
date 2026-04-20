@@ -83,7 +83,11 @@ export class RepaymentsController {
   @Roles('LOAN_OFFICER')
   @Post()
   @UseInterceptors(
-    FilesInterceptor('documents', 10, createDocumentUploadOptions(10 * 1024 * 1024)),
+    FilesInterceptor(
+      'documents',
+      10,
+      createDocumentUploadOptions(10 * 1024 * 1024),
+    ),
   )
   @ApiConsumes('multipart/form-data')
   @ApiOperation({
@@ -91,7 +95,8 @@ export class RepaymentsController {
   })
   createManualRepayment(
     @Body() dto: CreateRepaymentDto,
-    @UploadedFiles() files: Array<{
+    @UploadedFiles()
+    files: Array<{
       buffer: Buffer;
       originalname: string;
       mimetype: string;

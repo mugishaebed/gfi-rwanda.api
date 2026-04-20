@@ -58,4 +58,15 @@ export class CreateRepaymentDto {
   @IsArray()
   @IsString({ each: true })
   documentLabels?: string[];
+
+  @ApiPropertyOptional({
+    type: 'array',
+    items: {
+      type: 'string',
+      format: 'binary',
+    },
+    description:
+      'Supporting document files. Pass each file under the field name "documents".',
+  })
+  documents?: any[];
 }

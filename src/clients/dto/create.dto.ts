@@ -189,6 +189,17 @@ export class CreateIndividualClientDto {
   @IsArray()
   @IsString({ each: true })
   documentLabels?: string[];
+
+  @ApiPropertyOptional({
+    type: 'array',
+    items: {
+      type: 'string',
+      format: 'binary',
+    },
+    description:
+      'Supporting document files. Pass each file under the field name "documents".',
+  })
+  documents?: any[];
 }
 
 export class CreateBusinessClientDto {
@@ -327,7 +338,8 @@ export class CreateBusinessClientDto {
 
   @ApiPropertyOptional({
     type: [String],
-    description: 'Optional labels matching the uploaded business client documents.',
+    description:
+      'Optional labels matching the uploaded business client documents.',
     example: ['Certificate of Incorporation', 'Tax Clearance'],
   })
   @IsOptional()
@@ -335,4 +347,15 @@ export class CreateBusinessClientDto {
   @IsArray()
   @IsString({ each: true })
   documentLabels?: string[];
+
+  @ApiPropertyOptional({
+    type: 'array',
+    items: {
+      type: 'string',
+      format: 'binary',
+    },
+    description:
+      'Supporting document files. Pass each file under the field name "documents".',
+  })
+  documents?: any[];
 }

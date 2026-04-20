@@ -77,13 +77,18 @@ export class ClientsController {
   @Roles('LOAN_OFFICER')
   @Post('individual')
   @UseInterceptors(
-    FilesInterceptor('documents', 10, createDocumentUploadOptions(10 * 1024 * 1024)),
+    FilesInterceptor(
+      'documents',
+      10,
+      createDocumentUploadOptions(10 * 1024 * 1024),
+    ),
   )
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Create an individual client' })
   createIndividualClient(
     @Body() dto: CreateIndividualClientDto,
-    @UploadedFiles() files: Array<{
+    @UploadedFiles()
+    files: Array<{
       buffer: Buffer;
       originalname: string;
       mimetype: string;
@@ -91,19 +96,28 @@ export class ClientsController {
     }>,
     @Req() req: AuthenticatedRequest,
   ) {
-    return this.clientsService.createIndividualClient(dto, files, req.user.userId);
+    return this.clientsService.createIndividualClient(
+      dto,
+      files,
+      req.user.userId,
+    );
   }
 
   @Roles('LOAN_OFFICER')
   @Post('business')
   @UseInterceptors(
-    FilesInterceptor('documents', 10, createDocumentUploadOptions(10 * 1024 * 1024)),
+    FilesInterceptor(
+      'documents',
+      10,
+      createDocumentUploadOptions(10 * 1024 * 1024),
+    ),
   )
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Create a business client' })
   createBusinessClient(
     @Body() dto: CreateBusinessClientDto,
-    @UploadedFiles() files: Array<{
+    @UploadedFiles()
+    files: Array<{
       buffer: Buffer;
       originalname: string;
       mimetype: string;
@@ -111,7 +125,11 @@ export class ClientsController {
     }>,
     @Req() req: AuthenticatedRequest,
   ) {
-    return this.clientsService.createBusinessClient(dto, files, req.user.userId);
+    return this.clientsService.createBusinessClient(
+      dto,
+      files,
+      req.user.userId,
+    );
   }
 
   @Roles('LOAN_OFFICER')
