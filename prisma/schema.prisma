@@ -92,7 +92,7 @@ model Loan {
   activatedAt    DateTime?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
-  userId         String?
+  userId         String?//Created by user, can be null if created by system or imported
   client         Client          @relation(fields: [clientId], references: [id])
   user           User?           @relation(fields: [userId], references: [id])
   statusLogs     LoanStatusLog[]

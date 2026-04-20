@@ -1,3 +1,11 @@
+jest.mock('./notifications.service', () => ({
+  NotificationsService: class NotificationsService {},
+}));
+
+jest.mock('../prisma.service', () => ({
+  PrismaService: class PrismaService {},
+}));
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotificationsController } from './notifications.controller';
 import { NotificationsService } from './notifications.service';
@@ -8,7 +16,12 @@ describe('NotificationsController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [NotificationsController],
-      providers: [NotificationsService],
+      providers: [
+        {
+          provide: NotificationsService,
+          useValue: {},
+        },
+      ],
     }).compile();
 
     controller = module.get<NotificationsController>(NotificationsController);
