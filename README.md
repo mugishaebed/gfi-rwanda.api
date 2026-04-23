@@ -185,6 +185,7 @@ Create a `.env` file with values for the following:
 
 ```env
 NODE_ENV=development
+PORT=4000
 
 DATABASE_URL=
 DIRECT_URL=
@@ -200,7 +201,7 @@ JWT_EXPIRES_IN=1d
 REFRESH_TOKEN_EXPIRES_IN_DAYS=30
 
 FRONTEND_URL=
-PORT=3000
+
 
 SMTP_HOST=
 SMTP_PORT=
