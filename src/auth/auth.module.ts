@@ -3,6 +3,7 @@ import { AuthController } from './auth.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { MsalAuthService } from './msal-auth.service';
+import { GoogleAuthService } from './google-auth.service';
 import { UsersModule } from '../users/users.module';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategy/jwt.strategy';
@@ -25,7 +26,7 @@ import { JwtStrategy } from './strategy/jwt.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [MsalAuthService, JwtStrategy],
+  providers: [MsalAuthService, GoogleAuthService, JwtStrategy],
   exports: [PassportModule],
 })
 export class AuthModule {}

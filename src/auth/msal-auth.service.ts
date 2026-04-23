@@ -203,13 +203,18 @@ export class MsalAuthService {
       );
       action = 'signup';
     } else {
-      if (!existingUser) {
+      let resolvedUser: User | null =
+        existingUser ??
+        (await this.usersService.linkMicrosoftIdentityByEmail(profile));
+
+      if (!resolvedUser) {
         throw new NotFoundException(
           'No user is registered for this Microsoft account. Use signup first.',
         );
       }
 
-      user = await this.usersService.updateMicrosoftUser(profile);
+      resolvedUser = await this.usersService.updateMicrosoftUser(profile);
+      user = resolvedUser;
       action = 'login';
     }
 

@@ -18,7 +18,8 @@ export type UserRole = (typeof UserRole)[keyof typeof UserRole]
 
 
 export const AuthProvider = {
-  MICROSOFT: 'MICROSOFT'
+  MICROSOFT: 'MICROSOFT',
+  GOOGLE: 'GOOGLE'
 } as const
 
 export type AuthProvider = (typeof AuthProvider)[keyof typeof AuthProvider]

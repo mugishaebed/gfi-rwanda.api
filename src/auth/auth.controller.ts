@@ -17,6 +17,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { MsalAuthService } from './msal-auth.service';
+import { GoogleAuthService } from './google-auth.service';
 import { UserRole } from '../generated/prisma/enums';
 import { LogoutDto, RefreshTokenDto } from './dto/token.dto';
 
@@ -26,7 +27,10 @@ import { LogoutDto, RefreshTokenDto } from './dto/token.dto';
   version: VERSION_NEUTRAL,
 })
 export class AuthController {
-  constructor(private readonly authService: MsalAuthService) {}
+  constructor(
+    private readonly authService: MsalAuthService,
+    private readonly googleAuthService: GoogleAuthService,
+  ) {}
 
   @Get('test')
   @ApiExcludeEndpoint()
@@ -319,6 +323,9 @@ export class AuthController {
         <span class="route-chip">GET /auth/microsoft/login</span>
         <span class="route-chip">GET /auth/microsoft/signup</span>
         <span class="route-chip">GET /auth/microsoft/callback</span>
+        <span class="route-chip">GET /auth/google/login</span>
+        <span class="route-chip">GET /auth/google/signup</span>
+        <span class="route-chip">GET /auth/google/callback</span>
         <span class="route-chip">GET /auth/microsoft/logout</span>
       </div>
 
@@ -338,14 +345,22 @@ export class AuthController {
             </div>
           </div>
           <div class="field">
+            <label for="login-provider">Provider</label>
+            <div class="field-hint">Choose which OAuth provider to test.</div>
+            <select id="login-provider">
+              <option value="microsoft" selected>Microsoft</option>
+              <option value="google">Google</option>
+            </select>
+          </div>
+          <div class="field">
             <label for="login-state">State <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
-            <div class="field-hint">Echoed back by Microsoft — use to verify round-trip integrity.</div>
+            <div class="field-hint">Echoed back by provider — use to verify round-trip integrity.</div>
             <input id="login-state" placeholder="e.g. frontend-route-/dashboard" />
           </div>
           <div class="actions">
             <button type="button" onclick="startLogin()">
               <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-              Sign in with Microsoft
+              Start login
             </button>
           </div>
         </section>
@@ -360,6 +375,14 @@ export class AuthController {
               <div class="card-title">Sign Up</div>
               <div class="card-desc">New user — creates account with selected role.</div>
             </div>
+          </div>
+          <div class="field">
+            <label for="signup-provider">Provider</label>
+            <div class="field-hint">Choose which OAuth provider to test.</div>
+            <select id="signup-provider">
+              <option value="microsoft" selected>Microsoft</option>
+              <option value="google">Google</option>
+            </select>
           </div>
           <div class="field">
             <label for="signup-role">Role <span style="font-weight:400;color:var(--red-600)">*required</span></label>
@@ -377,7 +400,7 @@ export class AuthController {
           <div class="actions">
             <button type="button" onclick="startSignup()">
               <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-              Create account
+              Start signup
             </button>
           </div>
         </section>
@@ -396,7 +419,7 @@ export class AuthController {
             </div>
             <div>
               <div class="card-title">Logout</div>
-              <div class="card-desc">Ends the session and redirects via Microsoft.</div>
+              <div class="card-desc">Ends the session and redirects via Microsoft (Google logout route not implemented).</div>
             </div>
           </div>
           <div class="field">
@@ -428,13 +451,15 @@ export class AuthController {
 
     <script>
       function startLogin() {
+        const provider = document.getElementById('login-provider').value;
         const state = document.getElementById('login-state').value.trim();
-        const url = new URL('/auth/microsoft/login', window.location.origin);
+        const url = new URL('/auth/' + provider + '/login', window.location.origin);
         if (state) url.searchParams.set('state', state);
         window.location.href = url.toString();
       }
 
       function startSignup() {
+        const provider = document.getElementById('signup-provider').value;
         const role = document.getElementById('signup-role').value;
         const select = document.getElementById('signup-role');
         if (!role) {
@@ -443,7 +468,7 @@ export class AuthController {
           return;
         }
         const state = document.getElementById('signup-state').value.trim();
-        const url = new URL('/auth/microsoft/signup', window.location.origin);
+        const url = new URL('/auth/' + provider + '/signup', window.location.origin);
         url.searchParams.set('role', role);
         if (state) url.searchParams.set('state', state);
         window.location.href = url.toString();
@@ -529,6 +554,76 @@ export class AuthController {
     }
 
     return this.authService.handleMicrosoftCallback(code, state);
+  }
+
+  @Get('google/login')
+  @Redirect()
+  @ApiOperation({
+    summary: 'Redirect to Google login',
+    description: 'Starts the Google login flow.',
+  })
+  @ApiQuery({
+    name: 'state',
+    required: false,
+    description: 'Optional state value preserved through the auth flow.',
+  })
+  googleLogin(@Query('state') state?: string) {
+    const url = this.googleAuthService.getLoginUrl(state);
+    return { url };
+  }
+
+  @Get('google/signup')
+  @Redirect()
+  @ApiOperation({
+    summary: 'Redirect to Google signup',
+    description: 'Starts Google signup and assigns the selected role.',
+  })
+  @ApiQuery({
+    name: 'role',
+    required: true,
+    enum: UserRole,
+    description: 'Role to assign during signup.',
+  })
+  @ApiQuery({
+    name: 'state',
+    required: false,
+    description: 'Optional state value preserved through the auth flow.',
+  })
+  googleSignup(@Query('role') role?: string, @Query('state') state?: string) {
+    if (role !== UserRole.LOAN_OFFICER && role !== UserRole.GENERAL_MANAGER) {
+      throw new BadRequestException(
+        'Role must be LOAN_OFFICER or GENERAL_MANAGER.',
+      );
+    }
+
+    const url = this.googleAuthService.getSignupUrl(role, state);
+    return { url };
+  }
+
+  @Get('google/callback')
+  @ApiOperation({
+    summary: 'Handle Google auth callback',
+    description: 'Completes Google authentication and returns app tokens.',
+  })
+  @ApiQuery({
+    name: 'code',
+    required: true,
+    description: 'Authorization code returned by Google.',
+  })
+  @ApiQuery({
+    name: 'state',
+    required: false,
+    description: 'Optional state returned by Google.',
+  })
+  async googleCallback(
+    @Query('code') code?: string,
+    @Query('state') state?: string,
+  ) {
+    if (!code) {
+      throw new BadRequestException('Missing authorization code');
+    }
+
+    return this.googleAuthService.handleGoogleCallback(code, state);
   }
 
   @Post('refresh')
