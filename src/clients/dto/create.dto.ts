@@ -70,13 +70,6 @@ export class CreateIndividualClientDto {
   address!: string;
 
   @ApiProperty({
-    example: '1234567890',
-    description: 'Bank account number linked to the client.',
-  })
-  @IsString()
-  accountNumber!: string;
-
-  @ApiProperty({
     example: 'Jean Claude',
     description: 'Full legal name of the client.',
   })
@@ -231,13 +224,6 @@ export class CreateBusinessClientDto {
   })
   @IsString()
   address!: string;
-
-  @ApiProperty({
-    example: '9876543210',
-    description: 'Bank account number linked to the business.',
-  })
-  @IsString()
-  accountNumber!: string;
 
   @ApiProperty({
     example: 'GFI Rwanda Ltd',

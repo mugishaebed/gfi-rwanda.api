@@ -9,10 +9,10 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - '${PORT:-3000}:3000'
+      - '${PORT:-4000}:4000'
     environment:
       NODE_ENV: production
-      PORT: 3000
+      PORT: 4000
       DATABASE_URL: 'postgresql://postgres:postgres@postgres:5432/gfi_rwanda_api?schema=public'
       DIRECT_URL: 'postgresql://postgres:postgres@postgres:5432/gfi_rwanda_api?schema=public'
       SHADOW_DATABASE_URL: 'postgresql://postgres:postgres@postgres:5432/gfi_rwanda_api_shadow?schema=public'

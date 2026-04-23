@@ -22,6 +22,6 @@ COPY certificates ./certificates
 RUN pnpm exec prisma generate
 RUN pnpm build
 
-EXPOSE 3000
+EXPOSE 4000
 
 CMD ["sh", "/app/docker/start.sh"]

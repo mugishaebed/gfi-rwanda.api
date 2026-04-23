@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'crypto';
 import { ClientType, DocumentOwnerType } from '../generated/prisma/enums';
 import { DocumentsService } from '../documents/documents.service';
@@ -21,6 +22,7 @@ export class ClientsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly documentsService: DocumentsService,
+    private readonly configService: ConfigService,
   ) {}
 
   async getClients(page = 1, limit = 10) {
@@ -57,6 +59,23 @@ export class ClientsService {
     };
   }
 
+  private async generateAccountNumber(): Promise<string> {
+    const prefix = this.configService.get<string>(
+      'ACCOUNT_NUMBER_PREFIX',
+      'GFI',
+    );
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const suffix = Math.random().toString(36).slice(2, 7).toUpperCase();
+      const accountNumber = `${prefix}-${suffix}`;
+      const existing = await this.prisma.client.findUnique({
+        where: { accountNumber },
+        select: { id: true },
+      });
+      if (!existing) return accountNumber;
+    }
+    throw new BadRequestException('Failed to generate a unique account number');
+  }
+
   async createIndividualClient(
     data: CreateIndividualClientDto,
     files: Array<{
@@ -71,6 +90,7 @@ export class ClientsService {
       throw new BadRequestException('Invalid client type');
     }
 
+    const accountNumber = await this.generateAccountNumber();
     const clientId = randomUUID();
     const preparedDocuments = await this.documentsService.prepareDocuments({
       ownerType: DocumentOwnerType.CLIENT,
@@ -89,7 +109,7 @@ export class ClientsService {
             email: data.email,
             phoneNumber: data.phone,
             address: data.address,
-            accountNumber: data.accountNumber,
+            accountNumber,
             individual: {
               create: {
                 fullName: data.fullName,
@@ -145,6 +165,7 @@ export class ClientsService {
       throw new BadRequestException('Invalid client type');
     }
 
+    const accountNumber = await this.generateAccountNumber();
     const clientId = randomUUID();
     const preparedDocuments = await this.documentsService.prepareDocuments({
       ownerType: DocumentOwnerType.CLIENT,
@@ -163,7 +184,7 @@ export class ClientsService {
             email: data.email,
             phoneNumber: data.phone,
             address: data.address,
-            accountNumber: data.accountNumber,
+            accountNumber,
             business: {
               create: {
                 businessName: data.businessName,
@@ -237,7 +258,6 @@ export class ClientsService {
             email: data.email,
             phoneNumber: data.phone,
             address: data.address,
-            accountNumber: data.accountNumber,
           },
         });
 
@@ -316,7 +336,6 @@ export class ClientsService {
             email: data.email,
             phoneNumber: data.phone,
             address: data.address,
-            accountNumber: data.accountNumber,
           },
         });
 
