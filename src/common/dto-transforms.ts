@@ -1,4 +1,8 @@
-import { Transform } from 'class-transformer';
+import {
+  plainToInstance,
+  Transform,
+  type ClassConstructor,
+} from 'class-transformer';
 
 function parseJsonValue(value: unknown) {
   if (typeof value !== 'string') {
@@ -10,17 +14,23 @@ function parseJsonValue(value: unknown) {
     return undefined;
   }
 
-  return JSON.parse(trimmed);
+  return JSON.parse(trimmed) as unknown;
 }
 
 export const ParseBoolean = () =>
   Transform(({ value }) => {
-    if (typeof value === 'boolean' || value === undefined || value === null) {
-      return value;
+    const rawValue: unknown = value;
+
+    if (
+      typeof rawValue === 'boolean' ||
+      rawValue === undefined ||
+      rawValue === null
+    ) {
+      return rawValue;
     }
 
-    if (typeof value === 'string') {
-      const normalized = value.trim().toLowerCase();
+    if (typeof rawValue === 'string') {
+      const normalized = rawValue.trim().toLowerCase();
       if (normalized === 'true') {
         return true;
       }
@@ -30,52 +40,79 @@ export const ParseBoolean = () =>
       }
     }
 
-    return value;
+    return rawValue;
   });
 
 export const ParseNumber = () =>
   Transform(({ value }) => {
-    if (typeof value === 'number' || value === undefined || value === null) {
-      return value;
+    const rawValue: unknown = value;
+
+    if (
+      typeof rawValue === 'number' ||
+      rawValue === undefined ||
+      rawValue === null
+    ) {
+      return rawValue;
     }
 
-    if (typeof value === 'string' && value.trim() !== '') {
-      return Number(value);
+    if (typeof rawValue === 'string' && rawValue.trim() !== '') {
+      return Number(rawValue);
     }
 
-    return value;
+    return rawValue;
   });
 
 export const ParseDate = () =>
   Transform(({ value }) => {
-    if (value instanceof Date || value === undefined || value === null) {
-      return value;
+    const rawValue: unknown = value;
+
+    if (
+      rawValue instanceof Date ||
+      rawValue === undefined ||
+      rawValue === null
+    ) {
+      return rawValue;
     }
 
-    if (typeof value === 'string' && value.trim() !== '') {
-      return new Date(value);
+    if (typeof rawValue === 'string' && rawValue.trim() !== '') {
+      return new Date(rawValue);
     }
 
-    return value;
+    return rawValue;
   });
 
-export const ParseJson = () =>
-  Transform(({ value }) => parseJsonValue(value));
+export const ParseJson = () => Transform(({ value }) => parseJsonValue(value));
+
+export function ParseJsonArrayOf<T extends object>(
+  classType: ClassConstructor<T>,
+): PropertyDecorator {
+  return Transform(({ value }) => {
+    const parsed = parseJsonValue(value);
+
+    if (!Array.isArray(parsed)) {
+      return parsed;
+    }
+
+    return parsed.map((item) => plainToInstance(classType, item));
+  });
+}
 
 export const ParseStringArray = () =>
   Transform(({ value }) => {
-    if (value === undefined || value === null || value === '') {
+    const rawValue: unknown = value;
+
+    if (rawValue === undefined || rawValue === null || rawValue === '') {
       return undefined;
     }
 
-    if (Array.isArray(value)) {
-      return value.map((item) => String(item));
+    if (Array.isArray(rawValue)) {
+      return rawValue.map((item) => String(item));
     }
 
-    if (typeof value === 'string') {
-      const trimmed = value.trim();
+    if (typeof rawValue === 'string') {
+      const trimmed = rawValue.trim();
       if (trimmed.startsWith('[')) {
-        const parsed = JSON.parse(trimmed);
+        const parsed = JSON.parse(trimmed) as unknown;
         return Array.isArray(parsed)
           ? parsed.map((item) => String(item))
           : undefined;
@@ -84,5 +121,5 @@ export const ParseStringArray = () =>
       return [trimmed];
     }
 
-    return value;
+    return rawValue;
   });

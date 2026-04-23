@@ -17,7 +17,7 @@ import { BusinessType, ClientType } from '../../generated/prisma/enums';
 import {
   ParseBoolean,
   ParseDate,
-  ParseJson,
+  ParseJsonArrayOf,
   ParseNumber,
   ParseStringArray,
 } from '../../common/dto-transforms';
@@ -278,7 +278,7 @@ export class CreateBusinessClientDto {
   })
   @IsArray()
   @ValidateNested({ each: true })
-  @ParseJson()
+  @ParseJsonArrayOf(BusinessShareholderDto)
   @Type(() => BusinessShareholderDto)
   businessShareholders!: BusinessShareholderDto[];
 
