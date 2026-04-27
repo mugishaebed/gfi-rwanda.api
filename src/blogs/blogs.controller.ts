@@ -42,14 +42,14 @@ type File = {
 };
 
 @ApiTags('Blogs')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('BLOG_EDITOR')
 @Controller('blogs')
 export class BlogsController {
   constructor(private readonly blogsService: BlogsService) {}
 
   @Post()
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('BLOG_EDITOR')
   @ApiBody({
     description:
       'Create a blog using ordered content chunks. Thumbnail and chunk images are optional base64 data URLs.',

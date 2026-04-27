@@ -419,7 +419,7 @@ export class BlogsService {
       return `${publicBaseUrl}/${storageKey.replace(/\\/g, '/')}`;
     }
 
-    return `/${fallbackPathParts.join('/')}`;
+    return `/v1/${fallbackPathParts.join('/')}`;
   }
 
   private getBlogImageMaxFileSizeBytes() {

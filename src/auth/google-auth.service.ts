@@ -122,6 +122,19 @@ export class GoogleAuthService {
     );
   }
 
+  buildFrontendRedirectUrl(result: GoogleCallbackResult): string | null {
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+    if (!frontendUrl) return null;
+
+    const fragment = new URLSearchParams({
+      token: result.appAccessToken,
+      refresh: result.refreshToken,
+      action: result.action,
+    }).toString();
+
+    return `${frontendUrl}/auth/callback#${fragment}`;
+  }
+
   async handleGoogleCallback(
     code: string,
     rawState?: string,

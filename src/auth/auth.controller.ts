@@ -8,8 +8,10 @@ import {
   Post,
   Query,
   Redirect,
+  Res,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import {
   ApiExcludeEndpoint,
   ApiOperation,
@@ -617,12 +619,23 @@ export class AuthController {
   async googleCallback(
     @Query('code') code?: string,
     @Query('state') state?: string,
+    @Res() res?: Response,
   ) {
     if (!code) {
       throw new BadRequestException('Missing authorization code');
     }
 
-    return this.googleAuthService.handleGoogleCallback(code, state);
+    const result = await this.googleAuthService.handleGoogleCallback(
+      code,
+      state,
+    );
+    const redirectUrl = this.googleAuthService.buildFrontendRedirectUrl(result);
+
+    if (redirectUrl && res) {
+      return res.redirect(redirectUrl);
+    }
+
+    return res?.json(result) ?? result;
   }
 
   @Post('refresh')
