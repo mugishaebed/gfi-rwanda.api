@@ -15,6 +15,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import {
+  ApiBody,
   ApiBearerAuth,
   ApiConsumes,
   ApiOperation,
@@ -60,6 +61,35 @@ export class BlogsController {
     ),
   )
   @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description:
+      'Create a blog with rich HTML content and an optional thumbnail image.',
+    schema: {
+      type: 'object',
+      required: ['title', 'content'],
+      properties: {
+        title: {
+          type: 'string',
+          maxLength: 200,
+          example: 'How We Disburse Loans Faster in 2026',
+          description: 'Blog title.',
+        },
+        content: {
+          type: 'string',
+          example:
+            '<h2 style="font-family:Poppins">Welcome</h2><p style="font-size:16px">Styled paragraph.</p>',
+          description:
+            'Rich HTML content. Inline styles and font declarations are allowed.',
+        },
+        thumbnail: {
+          type: 'string',
+          format: 'binary',
+          description:
+            'Optional thumbnail image stored in local storage. Allowed formats: JPEG, PNG, WEBP. Max size: 5MB.',
+        },
+      },
+    },
+  })
   @ApiOperation({
     summary: 'Create a blog post with rich HTML content and optional thumbnail',
   })

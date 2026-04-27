@@ -83,12 +83,6 @@ export const UserScalarFieldEnum = {
   id: 'id',
   name: 'name',
   email: 'email',
-<<<<<<< HEAD
-  roles: 'roles',
-  refreshTokenHash: 'refreshTokenHash',
-  refreshTokenExpiresAt: 'refreshTokenExpiresAt',
-=======
->>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   refreshTokenExpiresAt: 'refreshTokenExpiresAt',

@@ -1196,12 +1196,6 @@ export const UserScalarFieldEnum = {
   id: 'id',
   name: 'name',
   email: 'email',
-<<<<<<< HEAD
-  roles: 'roles',
-  refreshTokenHash: 'refreshTokenHash',
-  refreshTokenExpiresAt: 'refreshTokenExpiresAt',
-=======
->>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   refreshTokenExpiresAt: 'refreshTokenExpiresAt',
@@ -1432,11 +1426,6 @@ export type ListStringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMod
 
 
 /**
-<<<<<<< HEAD
- * Reference to a field of type 'UserRole[]'
- */
-export type ListEnumUserRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserRole[]'>
-=======
  * Reference to a field of type 'DateTime'
  */
 export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
@@ -1447,14 +1436,13 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
  * Reference to a field of type 'DateTime[]'
  */
 export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
->>>>>>> 990b9e9 (feat: Blogs feature)
     
 
 
 /**
- * Reference to a field of type 'UserRole'
+ * Reference to a field of type 'UserRole[]'
  */
-export type EnumUserRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserRole'>
+export type ListEnumUserRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserRole[]'>
     
 
 

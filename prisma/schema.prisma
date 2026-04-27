@@ -12,12 +12,6 @@ model User {
   id                    String         @id @default(uuid())
   name                  String
   email                 String         @unique
-<<<<<<< HEAD
-  roles                 UserRole[]     @default([LOAN_OFFICER])
-  refreshTokenHash      String?
-  refreshTokenExpiresAt DateTime?
-=======
->>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
   refreshTokenExpiresAt DateTime?
