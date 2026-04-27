@@ -44,7 +44,7 @@ export type MicrosoftCallbackResult = {
     id: string;
     email: string;
     name: string;
-    role: string;
+    roles: string[];
   };
   appAccessToken: string;
   refreshToken: string;
@@ -63,7 +63,7 @@ export type RefreshTokenResult = {
     id: string;
     email: string;
     name: string;
-    role: string;
+    roles: string[];
   };
 };
 
@@ -226,7 +226,7 @@ export class MsalAuthService {
         id: user.id,
         email: user.email,
         name: user.name,
-        role: user.role,
+        roles: user.roles,
       },
       appAccessToken,
       refreshToken,
@@ -278,7 +278,7 @@ export class MsalAuthService {
         id: user.id,
         email: user.email,
         name: user.name,
-        role: user.role,
+        roles: user.roles,
       },
     };
   }
@@ -389,7 +389,7 @@ export class MsalAuthService {
     return this.jwtService.signAsync({
       sub: user.id,
       email: user.email,
-      role: user.role,
+      roles: user.roles,
     });
   }
 

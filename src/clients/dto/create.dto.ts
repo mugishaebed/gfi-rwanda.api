@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import {
+  Allow,
   IsArray,
   IsBoolean,
   IsDate,
@@ -192,6 +193,8 @@ export class CreateIndividualClientDto {
     description:
       'Supporting document files. Pass each file under the field name "documents".',
   })
+  @IsOptional()
+  @Allow()
   documents?: any[];
 }
 
@@ -343,5 +346,7 @@ export class CreateBusinessClientDto {
     description:
       'Supporting document files. Pass each file under the field name "documents".',
   })
+  @IsOptional()
+  @Allow()
   documents?: any[];
 }

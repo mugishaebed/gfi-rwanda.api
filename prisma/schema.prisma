@@ -12,7 +12,7 @@ model User {
   id                    String         @id @default(uuid())
   name                  String
   email                 String         @unique
-  role                  UserRole       @default(LOAN_OFFICER)
+  roles                 UserRole[]     @default([LOAN_OFFICER])
   refreshTokenHash      String?
   refreshTokenExpiresAt DateTime?
   createdAt             DateTime       @default(now())

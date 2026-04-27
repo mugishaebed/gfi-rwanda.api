@@ -167,7 +167,11 @@ export class NotificationsService {
 
   private async getRecipientEmails(role: UserRole) {
     const users = await this.prisma.user.findMany({
-      where: { role },
+      where: {
+        roles: {
+          has: role,
+        },
+      },
       select: {
         email: true,
       },

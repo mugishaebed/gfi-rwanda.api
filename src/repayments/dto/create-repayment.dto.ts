@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
+  Allow,
   IsDate,
   IsArray,
   IsNotEmpty,
@@ -68,5 +69,7 @@ export class CreateRepaymentDto {
     description:
       'Supporting document files. Pass each file under the field name "documents".',
   })
+  @IsOptional()
+  @Allow()
   documents?: any[];
 }

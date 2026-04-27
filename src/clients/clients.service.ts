@@ -136,7 +136,7 @@ export class ClientsService {
         await this.documentsService.createMany(preparedDocuments, tx);
 
         return createdClient;
-      });
+      }, { timeout: 20000, maxWait: 10000 });
 
       return (
         await this.documentsService.attachDocuments(DocumentOwnerType.CLIENT, [
@@ -216,7 +216,7 @@ export class ClientsService {
         await this.documentsService.createMany(preparedDocuments, tx);
 
         return createdClient;
-      });
+      }, { timeout: 20000, maxWait: 10000 });
 
       return (
         await this.documentsService.attachDocuments(DocumentOwnerType.CLIENT, [
@@ -406,9 +406,14 @@ export class ClientsService {
     }
 
     try {
-      await this.prisma.client.delete({
-        where: { id },
-      });
+      await this.prisma.$transaction([
+        this.prisma.individualClient.delete({
+          where: { clientId: id },
+        }),
+        this.prisma.client.delete({
+          where: { id },
+        }),
+      ]);
 
       return {
         message: 'Individual client deleted successfully',
@@ -435,9 +440,14 @@ export class ClientsService {
     }
 
     try {
-      await this.prisma.client.delete({
-        where: { id },
-      });
+      await this.prisma.$transaction([
+        this.prisma.businessClient.delete({
+          where: { clientId: id },
+        }),
+        this.prisma.client.delete({
+          where: { id },
+        }),
+      ]);
 
       return {
         message: 'Business client deleted successfully',

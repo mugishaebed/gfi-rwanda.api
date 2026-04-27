@@ -66,7 +66,7 @@ export type GoogleCallbackResult = {
     id: string;
     email: string;
     name: string;
-    role: string;
+    roles: string[];
   };
   appAccessToken: string;
   refreshToken: string;
@@ -193,7 +193,7 @@ export class GoogleAuthService {
         id: user.id,
         email: user.email,
         name: user.name,
-        role: user.role,
+        roles: user.roles,
       },
       appAccessToken,
       refreshToken,
@@ -359,7 +359,7 @@ export class GoogleAuthService {
     return this.jwtService.signAsync({
       sub: user.id,
       email: user.email,
-      role: user.role,
+      roles: user.roles,
     });
   }
 

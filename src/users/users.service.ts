@@ -67,7 +67,7 @@ export class UsersService {
       tenantId: profile.tenantId,
       email: profile.email,
       displayName: displayName || profile.email,
-      roleForNewUser: role,
+      rolesForNewUser: [role],
     });
   }
 
@@ -147,7 +147,7 @@ export class UsersService {
       providerUserId: profile.sub,
       email: profile.email,
       displayName: displayName || profile.email,
-      roleForNewUser: role,
+      rolesForNewUser: [role],
     });
   }
 
@@ -246,7 +246,7 @@ export class UsersService {
     tenantId?: string | null;
     email: string;
     displayName: string;
-    roleForNewUser: UserRoleValue;
+    rolesForNewUser: UserRoleValue[];
   }) {
     return this.prisma.$transaction(async (tx) => {
       const existingIdentity = await tx.authIdentity.findUnique({
@@ -284,7 +284,7 @@ export class UsersService {
             data: {
               email: params.email,
               name: params.displayName,
-              role: params.roleForNewUser,
+              roles: params.rolesForNewUser,
             },
           });
 

@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 import {
+  Allow,
   IsArray,
   IsNotEmpty,
   IsNumber,
@@ -13,6 +13,7 @@ import {
 } from 'class-validator';
 import {
   ParseJson,
+  ParseJsonArrayOf,
   ParseNumber,
   ParseStringArray,
 } from '../../common/dto-transforms';
@@ -55,8 +56,7 @@ export class CreateLoanDto {
   })
   @IsArray()
   @ValidateNested({ each: true })
-  @ParseJson()
-  @Type(() => RepaymentTermItemDto)
+  @ParseJsonArrayOf(RepaymentTermItemDto)
   repaymentTerms!: RepaymentTermItemDto[];
 
   @ApiPropertyOptional({
@@ -100,5 +100,7 @@ export class CreateLoanDto {
     description:
       'Supporting document files. Pass each file under the field name "documents".',
   })
+  @IsOptional()
+  @Allow()
   documents?: any[];
 }
