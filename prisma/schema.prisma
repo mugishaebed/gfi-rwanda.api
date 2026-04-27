@@ -166,7 +166,7 @@ model BlogContent {
   id                    String   @id @default(uuid())
   blogId                String
   position              Int      @default(0)
-  header                String
+  header                String?
   body                  String
   imageStorageDriver    String?
   imageStorageKey       String?

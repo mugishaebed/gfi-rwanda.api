@@ -32,7 +32,7 @@ type SerializedBlogContent = {
   id: string;
   blogId: string;
   position: number;
-  header: string;
+  header: string | null;
   body: string;
   imageStorageDriver: string | null;
   imageStorageKey: string | null;
@@ -103,7 +103,7 @@ export class BlogsService {
           contents: {
             create: data.contents.map((content, index) => ({
               position: index,
-              header: content.header,
+              header: content.header ?? null,
               body: sanitizeBlogHtml(content.body),
               imageStorageDriver: preparedContentImages[index]?.storageDriver,
               imageStorageKey: preparedContentImages[index]?.storageKey,
@@ -367,7 +367,7 @@ export class BlogsService {
       id: string;
       blogId: string;
       position: number;
-      header: string;
+      header: string | null;
       body: string;
       imageStorageDriver: string | null;
       imageStorageKey: string | null;

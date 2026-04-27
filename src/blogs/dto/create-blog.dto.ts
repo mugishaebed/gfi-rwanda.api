@@ -11,14 +11,14 @@ import {
 } from 'class-validator';
 
 class BlogContentChunkDto {
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 'Introduction',
     maxLength: 200,
   })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
   @MaxLength(200)
-  header!: string;
+  header?: string;
 
   @ApiProperty({
     description:

@@ -71,7 +71,7 @@ export class BlogsController {
           type: 'array',
           items: {
             type: 'object',
-            required: ['header', 'body'],
+            required: ['body'],
             properties: {
               header: {
                 type: 'string',

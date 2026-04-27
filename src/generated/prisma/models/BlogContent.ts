@@ -229,7 +229,7 @@ export type BlogContentGroupByOutputType = {
   id: string
   blogId: string
   position: number
-  header: string
+  header: string | null
   body: string
   imageStorageDriver: string | null
   imageStorageKey: string | null
@@ -267,7 +267,7 @@ export type BlogContentWhereInput = {
   id?: Prisma.StringFilter<"BlogContent"> | string
   blogId?: Prisma.StringFilter<"BlogContent"> | string
   position?: Prisma.IntFilter<"BlogContent"> | number
-  header?: Prisma.StringFilter<"BlogContent"> | string
+  header?: Prisma.StringNullableFilter<"BlogContent"> | string | null
   body?: Prisma.StringFilter<"BlogContent"> | string
   imageStorageDriver?: Prisma.StringNullableFilter<"BlogContent"> | string | null
   imageStorageKey?: Prisma.StringNullableFilter<"BlogContent"> | string | null
@@ -283,7 +283,7 @@ export type BlogContentOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   blogId?: Prisma.SortOrder
   position?: Prisma.SortOrder
-  header?: Prisma.SortOrder
+  header?: Prisma.SortOrderInput | Prisma.SortOrder
   body?: Prisma.SortOrder
   imageStorageDriver?: Prisma.SortOrderInput | Prisma.SortOrder
   imageStorageKey?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -302,7 +302,7 @@ export type BlogContentWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.BlogContentWhereInput | Prisma.BlogContentWhereInput[]
   blogId?: Prisma.StringFilter<"BlogContent"> | string
   position?: Prisma.IntFilter<"BlogContent"> | number
-  header?: Prisma.StringFilter<"BlogContent"> | string
+  header?: Prisma.StringNullableFilter<"BlogContent"> | string | null
   body?: Prisma.StringFilter<"BlogContent"> | string
   imageStorageDriver?: Prisma.StringNullableFilter<"BlogContent"> | string | null
   imageStorageKey?: Prisma.StringNullableFilter<"BlogContent"> | string | null
@@ -318,7 +318,7 @@ export type BlogContentOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   blogId?: Prisma.SortOrder
   position?: Prisma.SortOrder
-  header?: Prisma.SortOrder
+  header?: Prisma.SortOrderInput | Prisma.SortOrder
   body?: Prisma.SortOrder
   imageStorageDriver?: Prisma.SortOrderInput | Prisma.SortOrder
   imageStorageKey?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -341,7 +341,7 @@ export type BlogContentScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"BlogContent"> | string
   blogId?: Prisma.StringWithAggregatesFilter<"BlogContent"> | string
   position?: Prisma.IntWithAggregatesFilter<"BlogContent"> | number
-  header?: Prisma.StringWithAggregatesFilter<"BlogContent"> | string
+  header?: Prisma.StringNullableWithAggregatesFilter<"BlogContent"> | string | null
   body?: Prisma.StringWithAggregatesFilter<"BlogContent"> | string
   imageStorageDriver?: Prisma.StringNullableWithAggregatesFilter<"BlogContent"> | string | null
   imageStorageKey?: Prisma.StringNullableWithAggregatesFilter<"BlogContent"> | string | null
@@ -355,7 +355,7 @@ export type BlogContentScalarWhereWithAggregatesInput = {
 export type BlogContentCreateInput = {
   id?: string
   position?: number
-  header: string
+  header?: string | null
   body: string
   imageStorageDriver?: string | null
   imageStorageKey?: string | null
@@ -371,7 +371,7 @@ export type BlogContentUncheckedCreateInput = {
   id?: string
   blogId: string
   position?: number
-  header: string
+  header?: string | null
   body: string
   imageStorageDriver?: string | null
   imageStorageKey?: string | null
@@ -385,7 +385,7 @@ export type BlogContentUncheckedCreateInput = {
 export type BlogContentUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   position?: Prisma.IntFieldUpdateOperationsInput | number
-  header?: Prisma.StringFieldUpdateOperationsInput | string
+  header?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   body?: Prisma.StringFieldUpdateOperationsInput | string
   imageStorageDriver?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageStorageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -401,7 +401,7 @@ export type BlogContentUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   blogId?: Prisma.StringFieldUpdateOperationsInput | string
   position?: Prisma.IntFieldUpdateOperationsInput | number
-  header?: Prisma.StringFieldUpdateOperationsInput | string
+  header?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   body?: Prisma.StringFieldUpdateOperationsInput | string
   imageStorageDriver?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageStorageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -416,7 +416,7 @@ export type BlogContentCreateManyInput = {
   id?: string
   blogId: string
   position?: number
-  header: string
+  header?: string | null
   body: string
   imageStorageDriver?: string | null
   imageStorageKey?: string | null
@@ -430,7 +430,7 @@ export type BlogContentCreateManyInput = {
 export type BlogContentUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   position?: Prisma.IntFieldUpdateOperationsInput | number
-  header?: Prisma.StringFieldUpdateOperationsInput | string
+  header?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   body?: Prisma.StringFieldUpdateOperationsInput | string
   imageStorageDriver?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageStorageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -445,7 +445,7 @@ export type BlogContentUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   blogId?: Prisma.StringFieldUpdateOperationsInput | string
   position?: Prisma.IntFieldUpdateOperationsInput | number
-  header?: Prisma.StringFieldUpdateOperationsInput | string
+  header?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   body?: Prisma.StringFieldUpdateOperationsInput | string
   imageStorageDriver?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageStorageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -566,7 +566,7 @@ export type BlogContentUncheckedUpdateManyWithoutBlogNestedInput = {
 export type BlogContentCreateWithoutBlogInput = {
   id?: string
   position?: number
-  header: string
+  header?: string | null
   body: string
   imageStorageDriver?: string | null
   imageStorageKey?: string | null
@@ -580,7 +580,7 @@ export type BlogContentCreateWithoutBlogInput = {
 export type BlogContentUncheckedCreateWithoutBlogInput = {
   id?: string
   position?: number
-  header: string
+  header?: string | null
   body: string
   imageStorageDriver?: string | null
   imageStorageKey?: string | null
@@ -624,7 +624,7 @@ export type BlogContentScalarWhereInput = {
   id?: Prisma.StringFilter<"BlogContent"> | string
   blogId?: Prisma.StringFilter<"BlogContent"> | string
   position?: Prisma.IntFilter<"BlogContent"> | number
-  header?: Prisma.StringFilter<"BlogContent"> | string
+  header?: Prisma.StringNullableFilter<"BlogContent"> | string | null
   body?: Prisma.StringFilter<"BlogContent"> | string
   imageStorageDriver?: Prisma.StringNullableFilter<"BlogContent"> | string | null
   imageStorageKey?: Prisma.StringNullableFilter<"BlogContent"> | string | null
@@ -638,7 +638,7 @@ export type BlogContentScalarWhereInput = {
 export type BlogContentCreateManyBlogInput = {
   id?: string
   position?: number
-  header: string
+  header?: string | null
   body: string
   imageStorageDriver?: string | null
   imageStorageKey?: string | null
@@ -652,7 +652,7 @@ export type BlogContentCreateManyBlogInput = {
 export type BlogContentUpdateWithoutBlogInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   position?: Prisma.IntFieldUpdateOperationsInput | number
-  header?: Prisma.StringFieldUpdateOperationsInput | string
+  header?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   body?: Prisma.StringFieldUpdateOperationsInput | string
   imageStorageDriver?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageStorageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -666,7 +666,7 @@ export type BlogContentUpdateWithoutBlogInput = {
 export type BlogContentUncheckedUpdateWithoutBlogInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   position?: Prisma.IntFieldUpdateOperationsInput | number
-  header?: Prisma.StringFieldUpdateOperationsInput | string
+  header?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   body?: Prisma.StringFieldUpdateOperationsInput | string
   imageStorageDriver?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageStorageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -680,7 +680,7 @@ export type BlogContentUncheckedUpdateWithoutBlogInput = {
 export type BlogContentUncheckedUpdateManyWithoutBlogInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   position?: Prisma.IntFieldUpdateOperationsInput | number
-  header?: Prisma.StringFieldUpdateOperationsInput | string
+  header?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   body?: Prisma.StringFieldUpdateOperationsInput | string
   imageStorageDriver?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageStorageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -776,7 +776,7 @@ export type $BlogContentPayload<ExtArgs extends runtime.Types.Extensions.Interna
     id: string
     blogId: string
     position: number
-    header: string
+    header: string | null
     body: string
     imageStorageDriver: string | null
     imageStorageKey: string | null
