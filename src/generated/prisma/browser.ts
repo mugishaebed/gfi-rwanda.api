@@ -67,3 +67,8 @@ export type Document = Prisma.DocumentModel
  * 
  */
 export type Blog = Prisma.BlogModel
+/**
+ * Model BlogContent
+ * 
+ */
+export type BlogContent = Prisma.BlogContentModel

@@ -1,5 +1,45 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import {
+  ArrayMinSize,
+  IsArray,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+  ValidateNested,
+} from 'class-validator';
+
+class BlogContentChunkDto {
+  @ApiProperty({
+    example: 'Introduction',
+    maxLength: 200,
+  })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(200)
+  header!: string;
+
+  @ApiProperty({
+    description:
+      'Rich HTML content for the chunk body. Inline styles and font declarations are allowed.',
+    example:
+      '<p style="font-size:16px;font-family:Poppins">Styled paragraph body.</p>',
+  })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(1000000)
+  body!: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Optional base64 data URL image (JPEG/PNG/WEBP), for example data:image/png;base64,....',
+    example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...',
+  })
+  @IsOptional()
+  @IsString()
+  image?: string;
+}
 
 export class CreateBlogDto {
   @ApiProperty({
@@ -11,14 +51,23 @@ export class CreateBlogDto {
   @MaxLength(200)
   title!: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description:
-      'Rich HTML content. Inline styles and font declarations are allowed.',
-    example:
-      '<h2 style="font-family:Poppins">Welcome</h2><p style="font-size:16px">Styled paragraph.</p>',
+      'Optional blog cover image as base64 data URL (JPEG/PNG/WEBP), for example data:image/png;base64,....',
+    example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...',
   })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  @MaxLength(1000000)
-  content!: string;
+  thumbnail?: string;
+
+  @ApiProperty({
+    type: [BlogContentChunkDto],
+    description:
+      'Ordered blog chunks. Order is preserved exactly as provided in this array.',
+  })
+  @IsArray()
+  @ArrayMinSize(1)
+  @ValidateNested({ each: true })
+  @Type(() => BlogContentChunkDto)
+  contents!: BlogContentChunkDto[];
 }

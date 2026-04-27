@@ -391,6 +391,7 @@ export class AuthController {
               <option value="" disabled selected>Select a role…</option>
               <option value="LOAN_OFFICER">Loan Officer</option>
               <option value="GENERAL_MANAGER">General Manager</option>
+              <option value="BLOG_EDITOR">Blog Editor</option>
             </select>
           </div>
           <div class="field">
@@ -525,7 +526,7 @@ export class AuthController {
   async signup(@Query('role') role?: string, @Query('state') state?: string) {
     if (role !== UserRole.LOAN_OFFICER && role !== UserRole.GENERAL_MANAGER) {
       throw new BadRequestException(
-        'Role must be LOAN_OFFICER or GENERAL_MANAGER.',
+        'Role must be LOAN_OFFICER or GENERAL_MANAGER',
       );
     }
 
@@ -590,10 +591,8 @@ export class AuthController {
     description: 'Optional state value preserved through the auth flow.',
   })
   googleSignup(@Query('role') role?: string, @Query('state') state?: string) {
-    if (role !== UserRole.LOAN_OFFICER && role !== UserRole.GENERAL_MANAGER) {
-      throw new BadRequestException(
-        'Role must be LOAN_OFFICER or GENERAL_MANAGER.',
-      );
+    if (role !== UserRole.BLOG_EDITOR) {
+      throw new BadRequestException('Role must be BLOG_EDITOR.');
     }
 
     const url = this.googleAuthService.getSignupUrl(role, state);

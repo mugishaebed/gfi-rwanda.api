@@ -10,33 +10,28 @@ import {
   Req,
   Res,
   StreamableFile,
-  UploadedFile,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import {
-  ApiBody,
   ApiBearerAuth,
-  ApiConsumes,
+  ApiBody,
   ApiOperation,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import type { Readable } from 'stream';
-// import { Roles } from '../auth/decorators/roles.decorator';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { createBlogThumbnailUploadOptions } from './blog-upload';
-import { BlogsService } from './blogs.service';
 import { CreateBlogDto } from './dto/create-blog.dto';
+import { BlogsService } from './blogs.service';
 
 type AuthenticatedRequest = {
   user: {
     userId: string;
     email: string;
-    role: string;
+    roles: string[];
   };
 };
 
@@ -49,66 +44,64 @@ type File = {
 @ApiTags('Blogs')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('BLOG_EDITOR')
 @Controller('blogs')
 export class BlogsController {
   constructor(private readonly blogsService: BlogsService) {}
 
   @Post()
-  @UseInterceptors(
-    FileInterceptor(
-      'thumbnail',
-      createBlogThumbnailUploadOptions(5 * 1024 * 1024),
-    ),
-  )
-  @ApiConsumes('multipart/form-data')
   @ApiBody({
     description:
-      'Create a blog with rich HTML content and an optional thumbnail image.',
+      'Create a blog using ordered content chunks. Thumbnail and chunk images are optional base64 data URLs.',
     schema: {
       type: 'object',
-      required: ['title', 'content'],
+      required: ['title', 'contents'],
       properties: {
         title: {
           type: 'string',
           maxLength: 200,
           example: 'How We Disburse Loans Faster in 2026',
-          description: 'Blog title.',
-        },
-        content: {
-          type: 'string',
-          example:
-            '<h2 style="font-family:Poppins">Welcome</h2><p style="font-size:16px">Styled paragraph.</p>',
-          description:
-            'Rich HTML content. Inline styles and font declarations are allowed.',
         },
         thumbnail: {
           type: 'string',
-          format: 'binary',
-          description:
-            'Optional thumbnail image stored in local storage. Allowed formats: JPEG, PNG, WEBP. Max size: 5MB.',
+          description: 'Optional base64 data URL cover image (JPEG/PNG/WEBP).',
+          example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...',
+        },
+        contents: {
+          type: 'array',
+          items: {
+            type: 'object',
+            required: ['header', 'body'],
+            properties: {
+              header: {
+                type: 'string',
+                maxLength: 200,
+                example: 'Introduction',
+              },
+              body: {
+                type: 'string',
+                description: 'HTML body for this chunk.',
+                example:
+                  '<p style="font-family:Poppins;font-size:16px">Styled paragraph body.</p>',
+              },
+              image: {
+                type: 'string',
+                description:
+                  'Optional base64 data URL chunk image (JPEG/PNG/WEBP).',
+                example: 'data:image/webp;base64,UklGRiIAAABXRUJQVlA4...',
+              },
+            },
+          },
         },
       },
     },
   })
   @ApiOperation({
-    summary: 'Create a blog post with rich HTML content and optional thumbnail',
+    summary:
+      'Create a blog post with ordered HTML chunks and optional local images',
   })
-  create(
-    @Body() dto: CreateBlogDto,
-    @UploadedFile()
-    thumbnail?: {
-      buffer: Buffer;
-      originalname: string;
-      mimetype: string;
-      size: number;
-    },
-    @Req() req?: AuthenticatedRequest,
-  ) {
-    return this.blogsService.create(
-      dto,
-      req?.user.email ?? 'Unknown',
-      thumbnail,
-    );
+  create(@Body() dto: CreateBlogDto, @Req() req?: AuthenticatedRequest) {
+    return this.blogsService.create(dto, req?.user.email ?? 'Unknown');
   }
 
   @Get()
@@ -145,6 +138,29 @@ export class BlogsController {
     @Res({ passthrough: true }) response: Response,
   ) {
     const file: File = await this.blogsService.getThumbnailForDownload(id);
+
+    response.setHeader('Content-Type', file.mimeType);
+    response.setHeader(
+      'Content-Disposition',
+      `inline; filename="${file.originalFileName}"`,
+    );
+
+    return new StreamableFile(file.stream);
+  }
+
+  @Get(':id/contents/:contentId/image')
+  @ApiOperation({
+    summary: 'Download an image attached to a blog content chunk',
+  })
+  async downloadContentImage(
+    @Param('id') id: string,
+    @Param('contentId') contentId: string,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const file: File = await this.blogsService.getContentImageForDownload(
+      id,
+      contentId,
+    );
 
     response.setHeader('Content-Type', file.mimeType);
     response.setHeader(

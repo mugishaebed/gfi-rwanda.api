@@ -160,7 +160,7 @@ export class GoogleAuthService {
 
       if (!authState.role) {
         throw new BadRequestException(
-          'Signup requires a role of LOAN_OFFICER or GENERAL_MANAGER.',
+          'Signup requires a role of LOAN_OFFICER, GENERAL_MANAGER, or BLOG_EDITOR.',
         );
       }
 

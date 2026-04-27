@@ -60,7 +60,8 @@ export const ModelName = {
   LoanStatusLog: 'LoanStatusLog',
   Repayment: 'Repayment',
   Document: 'Document',
-  Blog: 'Blog'
+  Blog: 'Blog',
+  BlogContent: 'BlogContent'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -230,7 +231,6 @@ export type DocumentScalarFieldEnum = (typeof DocumentScalarFieldEnum)[keyof typ
 export const BlogScalarFieldEnum = {
   id: 'id',
   title: 'title',
-  content: 'content',
   author: 'author',
   thumbnailStorageDriver: 'thumbnailStorageDriver',
   thumbnailStorageKey: 'thumbnailStorageKey',
@@ -242,6 +242,24 @@ export const BlogScalarFieldEnum = {
 } as const
 
 export type BlogScalarFieldEnum = (typeof BlogScalarFieldEnum)[keyof typeof BlogScalarFieldEnum]
+
+
+export const BlogContentScalarFieldEnum = {
+  id: 'id',
+  blogId: 'blogId',
+  position: 'position',
+  header: 'header',
+  body: 'body',
+  imageStorageDriver: 'imageStorageDriver',
+  imageStorageKey: 'imageStorageKey',
+  imageOriginalFileName: 'imageOriginalFileName',
+  imageMimeType: 'imageMimeType',
+  imageSize: 'imageSize',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BlogContentScalarFieldEnum = (typeof BlogContentScalarFieldEnum)[keyof typeof BlogContentScalarFieldEnum]
 
 
 export const SortOrder = {

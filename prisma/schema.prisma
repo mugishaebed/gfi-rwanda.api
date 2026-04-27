@@ -149,22 +149,42 @@ model Document {
 }
 
 model Blog {
-  id                        String   @id @default(uuid())
+  id                        String        @id @default(uuid())
   title                     String
-  content                   String
   author                    String
+  contents                  BlogContent[]
   thumbnailStorageDriver    String?
   thumbnailStorageKey       String?
   thumbnailOriginalFileName String?
   thumbnailMimeType         String?
   thumbnailSize             Int?
-  createdAt                 DateTime @default(now())
-  updatedAt                 DateTime @updatedAt
+  createdAt                 DateTime      @default(now())
+  updatedAt                 DateTime      @updatedAt
+}
+
+model BlogContent {
+  id                    String   @id @default(uuid())
+  blogId                String
+  position              Int      @default(0)
+  header                String
+  body                  String
+  imageStorageDriver    String?
+  imageStorageKey       String?
+  imageOriginalFileName String?
+  imageMimeType         String?
+  imageSize             Int?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  blog Blog @relation(fields: [blogId], references: [id], onDelete: Cascade)
+
+  @@index([blogId, position])
 }
 
 enum UserRole {
   LOAN_OFFICER
   GENERAL_MANAGER
+  BLOG_EDITOR
 }
 
 enum AuthProvider {

@@ -220,7 +220,11 @@ export class UsersService {
   }
 
   isAllowedRole(role: string): role is UserRoleValue {
-    return role === UserRole.LOAN_OFFICER || role === UserRole.GENERAL_MANAGER;
+    return (
+      role === UserRole.LOAN_OFFICER ||
+      role === UserRole.GENERAL_MANAGER ||
+      role === UserRole.BLOG_EDITOR
+    );
   }
 
   private async findByIdentity(
