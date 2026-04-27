@@ -28,31 +28,47 @@ export type UserMinAggregateOutputType = {
   id: string | null
   name: string | null
   email: string | null
+<<<<<<< HEAD
   refreshTokenHash: string | null
   refreshTokenExpiresAt: Date | null
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt: Date | null
   updatedAt: Date | null
+  refreshTokenExpiresAt: Date | null
+  refreshTokenHash: string | null
 }
 
 export type UserMaxAggregateOutputType = {
   id: string | null
   name: string | null
   email: string | null
+<<<<<<< HEAD
   refreshTokenHash: string | null
   refreshTokenExpiresAt: Date | null
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt: Date | null
   updatedAt: Date | null
+  refreshTokenExpiresAt: Date | null
+  refreshTokenHash: string | null
 }
 
 export type UserCountAggregateOutputType = {
   id: number
   name: number
   email: number
+<<<<<<< HEAD
   roles: number
   refreshTokenHash: number
   refreshTokenExpiresAt: number
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt: number
   updatedAt: number
+  refreshTokenExpiresAt: number
+  refreshTokenHash: number
+  roles: number
   _all: number
 }
 
@@ -61,31 +77,47 @@ export type UserMinAggregateInputType = {
   id?: true
   name?: true
   email?: true
+<<<<<<< HEAD
   refreshTokenHash?: true
   refreshTokenExpiresAt?: true
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: true
   updatedAt?: true
+  refreshTokenExpiresAt?: true
+  refreshTokenHash?: true
 }
 
 export type UserMaxAggregateInputType = {
   id?: true
   name?: true
   email?: true
+<<<<<<< HEAD
   refreshTokenHash?: true
   refreshTokenExpiresAt?: true
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: true
   updatedAt?: true
+  refreshTokenExpiresAt?: true
+  refreshTokenHash?: true
 }
 
 export type UserCountAggregateInputType = {
   id?: true
   name?: true
   email?: true
+<<<<<<< HEAD
   roles?: true
   refreshTokenHash?: true
   refreshTokenExpiresAt?: true
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: true
   updatedAt?: true
+  refreshTokenExpiresAt?: true
+  refreshTokenHash?: true
+  roles?: true
   _all?: true
 }
 
@@ -165,11 +197,17 @@ export type UserGroupByOutputType = {
   id: string
   name: string
   email: string
+<<<<<<< HEAD
   roles: $Enums.UserRole[]
   refreshTokenHash: string | null
   refreshTokenExpiresAt: Date | null
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt: Date
   updatedAt: Date
+  refreshTokenExpiresAt: Date | null
+  refreshTokenHash: string | null
+  roles: $Enums.UserRole[]
   _count: UserCountAggregateOutputType | null
   _min: UserMinAggregateOutputType | null
   _max: UserMaxAggregateOutputType | null
@@ -197,11 +235,17 @@ export type UserWhereInput = {
   id?: Prisma.StringFilter<"User"> | string
   name?: Prisma.StringFilter<"User"> | string
   email?: Prisma.StringFilter<"User"> | string
+<<<<<<< HEAD
   roles?: Prisma.EnumUserRoleNullableListFilter<"User">
   refreshTokenHash?: Prisma.StringNullableFilter<"User"> | string | null
   refreshTokenExpiresAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  refreshTokenExpiresAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  refreshTokenHash?: Prisma.StringNullableFilter<"User"> | string | null
+  roles?: Prisma.EnumUserRoleNullableListFilter<"User">
   identities?: Prisma.AuthIdentityListRelationFilter
   loans?: Prisma.LoanListRelationFilter
 }
@@ -210,11 +254,17 @@ export type UserOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   email?: Prisma.SortOrder
+<<<<<<< HEAD
   roles?: Prisma.SortOrder
   refreshTokenHash?: Prisma.SortOrderInput | Prisma.SortOrder
   refreshTokenExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  refreshTokenExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  refreshTokenHash?: Prisma.SortOrderInput | Prisma.SortOrder
+  roles?: Prisma.SortOrder
   identities?: Prisma.AuthIdentityOrderByRelationAggregateInput
   loans?: Prisma.LoanOrderByRelationAggregateInput
 }
@@ -226,11 +276,17 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.UserWhereInput[]
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   name?: Prisma.StringFilter<"User"> | string
+<<<<<<< HEAD
   roles?: Prisma.EnumUserRoleNullableListFilter<"User">
   refreshTokenHash?: Prisma.StringNullableFilter<"User"> | string | null
   refreshTokenExpiresAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  refreshTokenExpiresAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  refreshTokenHash?: Prisma.StringNullableFilter<"User"> | string | null
+  roles?: Prisma.EnumUserRoleNullableListFilter<"User">
   identities?: Prisma.AuthIdentityListRelationFilter
   loans?: Prisma.LoanListRelationFilter
 }, "id" | "email">
@@ -239,11 +295,17 @@ export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   email?: Prisma.SortOrder
+<<<<<<< HEAD
   roles?: Prisma.SortOrder
   refreshTokenHash?: Prisma.SortOrderInput | Prisma.SortOrder
   refreshTokenExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  refreshTokenExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  refreshTokenHash?: Prisma.SortOrderInput | Prisma.SortOrder
+  roles?: Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
   _max?: Prisma.UserMaxOrderByAggregateInput
   _min?: Prisma.UserMinOrderByAggregateInput
@@ -256,22 +318,34 @@ export type UserScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"User"> | string
   name?: Prisma.StringWithAggregatesFilter<"User"> | string
   email?: Prisma.StringWithAggregatesFilter<"User"> | string
+<<<<<<< HEAD
   roles?: Prisma.EnumUserRoleNullableListFilter<"User">
   refreshTokenHash?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   refreshTokenExpiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
+  refreshTokenExpiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+  refreshTokenHash?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  roles?: Prisma.EnumUserRoleNullableListFilter<"User">
 }
 
 export type UserCreateInput = {
   id?: string
   name: string
   email: string
+<<<<<<< HEAD
   roles?: Prisma.UserCreaterolesInput | $Enums.UserRole[]
   refreshTokenHash?: string | null
   refreshTokenExpiresAt?: Date | string | null
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: Date | string
   updatedAt?: Date | string
+  refreshTokenExpiresAt?: Date | string | null
+  refreshTokenHash?: string | null
+  roles?: Prisma.UserCreaterolesInput | $Enums.UserRole[]
   identities?: Prisma.AuthIdentityCreateNestedManyWithoutUserInput
   loans?: Prisma.LoanCreateNestedManyWithoutUserInput
 }
@@ -280,11 +354,17 @@ export type UserUncheckedCreateInput = {
   id?: string
   name: string
   email: string
+<<<<<<< HEAD
   roles?: Prisma.UserCreaterolesInput | $Enums.UserRole[]
   refreshTokenHash?: string | null
   refreshTokenExpiresAt?: Date | string | null
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: Date | string
   updatedAt?: Date | string
+  refreshTokenExpiresAt?: Date | string | null
+  refreshTokenHash?: string | null
+  roles?: Prisma.UserCreaterolesInput | $Enums.UserRole[]
   identities?: Prisma.AuthIdentityUncheckedCreateNestedManyWithoutUserInput
   loans?: Prisma.LoanUncheckedCreateNestedManyWithoutUserInput
 }
@@ -293,11 +373,17 @@ export type UserUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+<<<<<<< HEAD
   roles?: Prisma.UserUpdaterolesInput | $Enums.UserRole[]
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refreshTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roles?: Prisma.UserUpdaterolesInput | $Enums.UserRole[]
   identities?: Prisma.AuthIdentityUpdateManyWithoutUserNestedInput
   loans?: Prisma.LoanUpdateManyWithoutUserNestedInput
 }
@@ -306,11 +392,17 @@ export type UserUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+<<<<<<< HEAD
   roles?: Prisma.UserUpdaterolesInput | $Enums.UserRole[]
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refreshTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roles?: Prisma.UserUpdaterolesInput | $Enums.UserRole[]
   identities?: Prisma.AuthIdentityUncheckedUpdateManyWithoutUserNestedInput
   loans?: Prisma.LoanUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -319,33 +411,59 @@ export type UserCreateManyInput = {
   id?: string
   name: string
   email: string
+<<<<<<< HEAD
   roles?: Prisma.UserCreaterolesInput | $Enums.UserRole[]
   refreshTokenHash?: string | null
   refreshTokenExpiresAt?: Date | string | null
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: Date | string
   updatedAt?: Date | string
+  refreshTokenExpiresAt?: Date | string | null
+  refreshTokenHash?: string | null
+  roles?: Prisma.UserCreaterolesInput | $Enums.UserRole[]
 }
 
 export type UserUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+<<<<<<< HEAD
   roles?: Prisma.UserUpdaterolesInput | $Enums.UserRole[]
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refreshTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roles?: Prisma.UserUpdaterolesInput | $Enums.UserRole[]
 }
 
 export type UserUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+<<<<<<< HEAD
   roles?: Prisma.UserUpdaterolesInput | $Enums.UserRole[]
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refreshTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roles?: Prisma.UserUpdaterolesInput | $Enums.UserRole[]
+}
+
+export type EnumUserRoleNullableListFilter<$PrismaModel = never> = {
+  equals?: $Enums.UserRole[] | Prisma.ListEnumUserRoleFieldRefInput<$PrismaModel> | null
+  has?: $Enums.UserRole | Prisma.EnumUserRoleFieldRefInput<$PrismaModel> | null
+  hasEvery?: $Enums.UserRole[] | Prisma.ListEnumUserRoleFieldRefInput<$PrismaModel>
+  hasSome?: $Enums.UserRole[] | Prisma.ListEnumUserRoleFieldRefInput<$PrismaModel>
+  isEmpty?: boolean
 }
 
 export type EnumUserRoleNullableListFilter<$PrismaModel = never> = {
@@ -360,31 +478,47 @@ export type UserCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   email?: Prisma.SortOrder
+<<<<<<< HEAD
   roles?: Prisma.SortOrder
   refreshTokenHash?: Prisma.SortOrder
   refreshTokenExpiresAt?: Prisma.SortOrder
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  refreshTokenExpiresAt?: Prisma.SortOrder
+  refreshTokenHash?: Prisma.SortOrder
+  roles?: Prisma.SortOrder
 }
 
 export type UserMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   email?: Prisma.SortOrder
+<<<<<<< HEAD
   refreshTokenHash?: Prisma.SortOrder
   refreshTokenExpiresAt?: Prisma.SortOrder
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  refreshTokenExpiresAt?: Prisma.SortOrder
+  refreshTokenHash?: Prisma.SortOrder
 }
 
 export type UserMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   email?: Prisma.SortOrder
+<<<<<<< HEAD
   refreshTokenHash?: Prisma.SortOrder
   refreshTokenExpiresAt?: Prisma.SortOrder
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  refreshTokenExpiresAt?: Prisma.SortOrder
+  refreshTokenHash?: Prisma.SortOrder
 }
 
 export type UserScalarRelationFilter = {
@@ -405,6 +539,7 @@ export type StringFieldUpdateOperationsInput = {
   set?: string
 }
 
+<<<<<<< HEAD
 export type UserUpdaterolesInput = {
   set?: $Enums.UserRole[]
   push?: $Enums.UserRole | $Enums.UserRole[]
@@ -412,14 +547,23 @@ export type UserUpdaterolesInput = {
 
 export type NullableStringFieldUpdateOperationsInput = {
   set?: string | null
+=======
+export type DateTimeFieldUpdateOperationsInput = {
+  set?: Date | string
+>>>>>>> 990b9e9 (feat: Blogs feature)
 }
 
 export type NullableDateTimeFieldUpdateOperationsInput = {
   set?: Date | string | null
 }
 
-export type DateTimeFieldUpdateOperationsInput = {
-  set?: Date | string
+export type NullableStringFieldUpdateOperationsInput = {
+  set?: string | null
+}
+
+export type UserUpdaterolesInput = {
+  set?: $Enums.UserRole[]
+  push?: $Enums.UserRole | $Enums.UserRole[]
 }
 
 export type UserCreateNestedOneWithoutIdentitiesInput = {
@@ -456,11 +600,17 @@ export type UserCreateWithoutIdentitiesInput = {
   id?: string
   name: string
   email: string
+<<<<<<< HEAD
   roles?: Prisma.UserCreaterolesInput | $Enums.UserRole[]
   refreshTokenHash?: string | null
   refreshTokenExpiresAt?: Date | string | null
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: Date | string
   updatedAt?: Date | string
+  refreshTokenExpiresAt?: Date | string | null
+  refreshTokenHash?: string | null
+  roles?: Prisma.UserCreaterolesInput | $Enums.UserRole[]
   loans?: Prisma.LoanCreateNestedManyWithoutUserInput
 }
 
@@ -468,11 +618,17 @@ export type UserUncheckedCreateWithoutIdentitiesInput = {
   id?: string
   name: string
   email: string
+<<<<<<< HEAD
   roles?: Prisma.UserCreaterolesInput | $Enums.UserRole[]
   refreshTokenHash?: string | null
   refreshTokenExpiresAt?: Date | string | null
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: Date | string
   updatedAt?: Date | string
+  refreshTokenExpiresAt?: Date | string | null
+  refreshTokenHash?: string | null
+  roles?: Prisma.UserCreaterolesInput | $Enums.UserRole[]
   loans?: Prisma.LoanUncheckedCreateNestedManyWithoutUserInput
 }
 
@@ -496,11 +652,17 @@ export type UserUpdateWithoutIdentitiesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+<<<<<<< HEAD
   roles?: Prisma.UserUpdaterolesInput | $Enums.UserRole[]
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refreshTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roles?: Prisma.UserUpdaterolesInput | $Enums.UserRole[]
   loans?: Prisma.LoanUpdateManyWithoutUserNestedInput
 }
 
@@ -508,11 +670,17 @@ export type UserUncheckedUpdateWithoutIdentitiesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+<<<<<<< HEAD
   roles?: Prisma.UserUpdaterolesInput | $Enums.UserRole[]
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refreshTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roles?: Prisma.UserUpdaterolesInput | $Enums.UserRole[]
   loans?: Prisma.LoanUncheckedUpdateManyWithoutUserNestedInput
 }
 
@@ -520,11 +688,17 @@ export type UserCreateWithoutLoansInput = {
   id?: string
   name: string
   email: string
+<<<<<<< HEAD
   roles?: Prisma.UserCreaterolesInput | $Enums.UserRole[]
   refreshTokenHash?: string | null
   refreshTokenExpiresAt?: Date | string | null
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: Date | string
   updatedAt?: Date | string
+  refreshTokenExpiresAt?: Date | string | null
+  refreshTokenHash?: string | null
+  roles?: Prisma.UserCreaterolesInput | $Enums.UserRole[]
   identities?: Prisma.AuthIdentityCreateNestedManyWithoutUserInput
 }
 
@@ -532,11 +706,17 @@ export type UserUncheckedCreateWithoutLoansInput = {
   id?: string
   name: string
   email: string
+<<<<<<< HEAD
   roles?: Prisma.UserCreaterolesInput | $Enums.UserRole[]
   refreshTokenHash?: string | null
   refreshTokenExpiresAt?: Date | string | null
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: Date | string
   updatedAt?: Date | string
+  refreshTokenExpiresAt?: Date | string | null
+  refreshTokenHash?: string | null
+  roles?: Prisma.UserCreaterolesInput | $Enums.UserRole[]
   identities?: Prisma.AuthIdentityUncheckedCreateNestedManyWithoutUserInput
 }
 
@@ -560,11 +740,17 @@ export type UserUpdateWithoutLoansInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+<<<<<<< HEAD
   roles?: Prisma.UserUpdaterolesInput | $Enums.UserRole[]
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refreshTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roles?: Prisma.UserUpdaterolesInput | $Enums.UserRole[]
   identities?: Prisma.AuthIdentityUpdateManyWithoutUserNestedInput
 }
 
@@ -572,11 +758,17 @@ export type UserUncheckedUpdateWithoutLoansInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+<<<<<<< HEAD
   roles?: Prisma.UserUpdaterolesInput | $Enums.UserRole[]
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refreshTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roles?: Prisma.UserUpdaterolesInput | $Enums.UserRole[]
   identities?: Prisma.AuthIdentityUncheckedUpdateManyWithoutUserNestedInput
 }
 
@@ -624,11 +816,17 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   id?: boolean
   name?: boolean
   email?: boolean
+<<<<<<< HEAD
   roles?: boolean
   refreshTokenHash?: boolean
   refreshTokenExpiresAt?: boolean
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: boolean
   updatedAt?: boolean
+  refreshTokenExpiresAt?: boolean
+  refreshTokenHash?: boolean
+  roles?: boolean
   identities?: boolean | Prisma.User$identitiesArgs<ExtArgs>
   loans?: boolean | Prisma.User$loansArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
@@ -638,36 +836,58 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   id?: boolean
   name?: boolean
   email?: boolean
+<<<<<<< HEAD
   roles?: boolean
   refreshTokenHash?: boolean
   refreshTokenExpiresAt?: boolean
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: boolean
   updatedAt?: boolean
+  refreshTokenExpiresAt?: boolean
+  refreshTokenHash?: boolean
+  roles?: boolean
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
   email?: boolean
+<<<<<<< HEAD
   roles?: boolean
   refreshTokenHash?: boolean
   refreshTokenExpiresAt?: boolean
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: boolean
   updatedAt?: boolean
+  refreshTokenExpiresAt?: boolean
+  refreshTokenHash?: boolean
+  roles?: boolean
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectScalar = {
   id?: boolean
   name?: boolean
   email?: boolean
+<<<<<<< HEAD
   roles?: boolean
   refreshTokenHash?: boolean
   refreshTokenExpiresAt?: boolean
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt?: boolean
   updatedAt?: boolean
+  refreshTokenExpiresAt?: boolean
+  refreshTokenHash?: boolean
+  roles?: boolean
 }
 
+<<<<<<< HEAD
 export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "roles" | "refreshTokenHash" | "refreshTokenExpiresAt" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+=======
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "createdAt" | "updatedAt" | "refreshTokenExpiresAt" | "refreshTokenHash" | "roles", ExtArgs["result"]["user"]>
+>>>>>>> 990b9e9 (feat: Blogs feature)
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   identities?: boolean | Prisma.User$identitiesArgs<ExtArgs>
   loans?: boolean | Prisma.User$loansArgs<ExtArgs>
@@ -686,11 +906,17 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     id: string
     name: string
     email: string
+<<<<<<< HEAD
     roles: $Enums.UserRole[]
     refreshTokenHash: string | null
     refreshTokenExpiresAt: Date | null
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
     createdAt: Date
     updatedAt: Date
+    refreshTokenExpiresAt: Date | null
+    refreshTokenHash: string | null
+    roles: $Enums.UserRole[]
   }, ExtArgs["result"]["user"]>
   composites: {}
 }
@@ -1119,11 +1345,17 @@ export interface UserFieldRefs {
   readonly id: Prisma.FieldRef<"User", 'String'>
   readonly name: Prisma.FieldRef<"User", 'String'>
   readonly email: Prisma.FieldRef<"User", 'String'>
+<<<<<<< HEAD
   readonly roles: Prisma.FieldRef<"User", 'UserRole[]'>
   readonly refreshTokenHash: Prisma.FieldRef<"User", 'String'>
   readonly refreshTokenExpiresAt: Prisma.FieldRef<"User", 'DateTime'>
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
+  readonly refreshTokenExpiresAt: Prisma.FieldRef<"User", 'DateTime'>
+  readonly refreshTokenHash: Prisma.FieldRef<"User", 'String'>
+  readonly roles: Prisma.FieldRef<"User", 'UserRole[]'>
 }
     
 

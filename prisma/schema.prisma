@@ -12,11 +12,17 @@ model User {
   id                    String         @id @default(uuid())
   name                  String
   email                 String         @unique
+<<<<<<< HEAD
   roles                 UserRole[]     @default([LOAN_OFFICER])
   refreshTokenHash      String?
   refreshTokenExpiresAt DateTime?
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
+  refreshTokenExpiresAt DateTime?
+  refreshTokenHash      String?
+  roles                 UserRole[]     @default([LOAN_OFFICER])
   identities            AuthIdentity[]
   loans                 Loan[]
 }
@@ -102,7 +108,7 @@ model Loan {
   activatedAt    DateTime?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
-  userId         String?//Created by user, can be null if created by system or imported
+  userId         String?
   client         Client          @relation(fields: [clientId], references: [id])
   user           User?           @relation(fields: [userId], references: [id])
   statusLogs     LoanStatusLog[]
@@ -146,6 +152,20 @@ model Document {
   createdAt        DateTime          @default(now())
 
   @@index([ownerType, ownerId])
+}
+
+model Blog {
+  id                        String   @id @default(uuid())
+  title                     String
+  content                   String
+  author                    String
+  thumbnailStorageDriver    String?
+  thumbnailStorageKey       String?
+  thumbnailOriginalFileName String?
+  thumbnailMimeType         String?
+  thumbnailSize             Int?
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
 }
 
 enum UserRole {

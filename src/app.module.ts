@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { BlogsModule } from './blogs/blogs.module';
 import { ClientsModule } from './clients/clients.module';
 import { DocumentsModule } from './documents/documents.module';
 import { LoansModule } from './loans/loans.module';
@@ -16,6 +17,7 @@ import { UsersModule } from './users/users.module';
     ConfigModule.forRoot(),
     PrismaModule,
     AuthModule,
+    BlogsModule,
     ClientsModule,
     LoansModule,
     RepaymentsModule,

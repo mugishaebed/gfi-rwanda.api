@@ -59,7 +59,8 @@ export const ModelName = {
   Loan: 'Loan',
   LoanStatusLog: 'LoanStatusLog',
   Repayment: 'Repayment',
-  Document: 'Document'
+  Document: 'Document',
+  Blog: 'Blog'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -82,11 +83,17 @@ export const UserScalarFieldEnum = {
   id: 'id',
   name: 'name',
   email: 'email',
+<<<<<<< HEAD
   roles: 'roles',
   refreshTokenHash: 'refreshTokenHash',
   refreshTokenExpiresAt: 'refreshTokenExpiresAt',
+=======
+>>>>>>> 990b9e9 (feat: Blogs feature)
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  refreshTokenExpiresAt: 'refreshTokenExpiresAt',
+  refreshTokenHash: 'refreshTokenHash',
+  roles: 'roles'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -224,6 +231,23 @@ export const DocumentScalarFieldEnum = {
 } as const
 
 export type DocumentScalarFieldEnum = (typeof DocumentScalarFieldEnum)[keyof typeof DocumentScalarFieldEnum]
+
+
+export const BlogScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  content: 'content',
+  author: 'author',
+  thumbnailStorageDriver: 'thumbnailStorageDriver',
+  thumbnailStorageKey: 'thumbnailStorageKey',
+  thumbnailOriginalFileName: 'thumbnailOriginalFileName',
+  thumbnailMimeType: 'thumbnailMimeType',
+  thumbnailSize: 'thumbnailSize',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BlogScalarFieldEnum = (typeof BlogScalarFieldEnum)[keyof typeof BlogScalarFieldEnum]
 
 
 export const SortOrder = {

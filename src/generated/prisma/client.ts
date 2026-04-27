@@ -84,3 +84,8 @@ export type Repayment = Prisma.RepaymentModel
  * 
  */
 export type Document = Prisma.DocumentModel
+/**
+ * Model Blog
+ * 
+ */
+export type Blog = Prisma.BlogModel
