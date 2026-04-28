@@ -503,8 +503,17 @@ export class AuthController {
     required: false,
     description: 'Optional state value preserved through the auth flow.',
   })
-  async login(@Query('state') state?: string) {
-    const url = await this.authService.getLoginUrl(state);
+  @ApiQuery({
+    name: 'redirectTo',
+    required: false,
+    description:
+      'Frontend callback URL (must match FRONTEND_URL origin). Defaults to FRONTEND_URL/auth/callback.',
+  })
+  async login(
+    @Query('state') state?: string,
+    @Query('redirectTo') redirectTo?: string,
+  ) {
+    const url = await this.authService.getLoginUrl(state, redirectTo);
     return { url };
   }
 
@@ -525,14 +534,28 @@ export class AuthController {
     required: false,
     description: 'Optional state value preserved through the auth flow.',
   })
-  async signup(@Query('role') role?: string, @Query('state') state?: string) {
-    if (role !== UserRole.LOAN_OFFICER && role !== UserRole.GENERAL_MANAGER) {
+  @ApiQuery({
+    name: 'redirectTo',
+    required: false,
+    description:
+      'Frontend callback URL (must match FRONTEND_URL origin). Defaults to FRONTEND_URL/auth/callback.',
+  })
+  async signup(
+    @Query('role') role?: string,
+    @Query('state') state?: string,
+    @Query('redirectTo') redirectTo?: string,
+  ) {
+    if (
+      role !== UserRole.LOAN_OFFICER &&
+      role !== UserRole.GENERAL_MANAGER &&
+      role !== UserRole.BLOG_EDITOR
+    ) {
       throw new BadRequestException(
-        'Role must be LOAN_OFFICER or GENERAL_MANAGER',
+        'Role must be LOAN_OFFICER, GENERAL_MANAGER, or BLOG_EDITOR.',
       );
     }
 
-    const url = await this.authService.getSignupUrl(role, state);
+    const url = await this.authService.getSignupUrl(role, state, redirectTo);
     return { url };
   }
 
@@ -551,12 +574,25 @@ export class AuthController {
     required: false,
     description: 'Optional state returned by Microsoft.',
   })
-  async callback(@Query('code') code?: string, @Query('state') state?: string) {
+  async callback(
+    @Query('code') code?: string,
+    @Query('state') state?: string,
+    @Res() response?: Response,
+  ) {
     if (!code) {
       throw new BadRequestException('Missing authorization code');
     }
 
-    return this.authService.handleMicrosoftCallback(code, state);
+    const authResult = await this.authService.handleMicrosoftCallback(
+      code,
+      state,
+    );
+    const redirectUrl = this.authService.buildFrontendRedirectUrl(
+      authResult,
+      state,
+    );
+
+    return response?.redirect(302, redirectUrl);
   }
 
   @Get('google/login')

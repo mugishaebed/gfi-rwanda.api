@@ -125,23 +125,51 @@ export class MsalAuthService {
     return this.client.getAuthCodeUrl(request);
   }
 
-  async getLoginUrl(state?: string): Promise<string> {
+  async getLoginUrl(state?: string, redirectTo?: string): Promise<string> {
     return this.getAuthorizationUrl(
       this.encodeState({
         mode: 'login',
+        redirectTo: this.resolveFrontendRedirect(redirectTo),
         nonce: state,
       }),
     );
   }
 
-  async getSignupUrl(role: UserRoleValue, state?: string): Promise<string> {
+  async getSignupUrl(
+    role: UserRoleValue,
+    state?: string,
+    redirectTo?: string,
+  ): Promise<string> {
     return this.getAuthorizationUrl(
       this.encodeState({
         mode: 'signup',
         role,
+        redirectTo: this.resolveFrontendRedirect(redirectTo),
         nonce: state,
       }),
     );
+  }
+
+  buildFrontendRedirectUrl(result: MicrosoftCallbackResult, rawState?: string) {
+    const authState = this.decodeState(rawState);
+    const redirectTo = this.resolveFrontendRedirect(authState.redirectTo);
+    const redirectUrl = new URL(redirectTo);
+
+    redirectUrl.searchParams.set('authStatus', 'success');
+    redirectUrl.searchParams.set('provider', 'microsoft');
+    redirectUrl.searchParams.set('action', result.action);
+    redirectUrl.searchParams.set('appAccessToken', result.appAccessToken);
+    redirectUrl.searchParams.set('refreshToken', result.refreshToken);
+    redirectUrl.searchParams.set('userId', result.user.id);
+    redirectUrl.searchParams.set('email', result.user.email);
+    redirectUrl.searchParams.set('name', result.user.name);
+    redirectUrl.searchParams.set('roles', result.user.roles.join(','));
+
+    if (authState.nonce) {
+      redirectUrl.searchParams.set('state', authState.nonce);
+    }
+
+    return redirectUrl.toString();
   }
 
   async handleMicrosoftCallback(
@@ -365,6 +393,30 @@ export class MsalAuthService {
 
       throw new BadRequestException('Invalid Microsoft auth state');
     }
+  }
+
+  private resolveFrontendRedirect(redirectTo?: string) {
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+
+    if (!frontendUrl) {
+      throw new InternalServerErrorException('FRONTEND_URL is not configured');
+    }
+
+    const frontendOrigin = new URL(frontendUrl).origin;
+    const fallbackUrl = new URL('/auth/callback', frontendOrigin).toString();
+
+    if (!redirectTo) {
+      return fallbackUrl;
+    }
+
+    const parsedRedirect = new URL(redirectTo);
+    if (parsedRedirect.origin !== frontendOrigin) {
+      throw new BadRequestException(
+        'redirectTo must match configured FRONTEND_URL origin',
+      );
+    }
+
+    return parsedRedirect.toString();
   }
 
   private getRequiredEnv(key: string): string {
