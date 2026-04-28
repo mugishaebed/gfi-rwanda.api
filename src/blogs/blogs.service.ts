@@ -94,6 +94,7 @@ export class BlogsService {
         data: {
           id: blogId,
           title: data.title,
+          shortDescription: data.shortDescription ?? null,
           author,
           thumbnailStorageDriver: preparedThumbnail?.storageDriver,
           thumbnailStorageKey: preparedThumbnail?.storageKey,
@@ -355,6 +356,7 @@ export class BlogsService {
   private serializeBlog(blog: {
     id: string;
     title: string;
+    shortDescription: string | null;
     author: string;
     thumbnailStorageDriver: string | null;
     thumbnailStorageKey: string | null;

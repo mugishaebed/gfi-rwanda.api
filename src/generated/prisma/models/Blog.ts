@@ -37,6 +37,7 @@ export type BlogSumAggregateOutputType = {
 export type BlogMinAggregateOutputType = {
   id: string | null
   title: string | null
+  shortDescription: string | null
   author: string | null
   thumbnailStorageDriver: string | null
   thumbnailStorageKey: string | null
@@ -50,6 +51,7 @@ export type BlogMinAggregateOutputType = {
 export type BlogMaxAggregateOutputType = {
   id: string | null
   title: string | null
+  shortDescription: string | null
   author: string | null
   thumbnailStorageDriver: string | null
   thumbnailStorageKey: string | null
@@ -63,6 +65,7 @@ export type BlogMaxAggregateOutputType = {
 export type BlogCountAggregateOutputType = {
   id: number
   title: number
+  shortDescription: number
   author: number
   thumbnailStorageDriver: number
   thumbnailStorageKey: number
@@ -86,6 +89,7 @@ export type BlogSumAggregateInputType = {
 export type BlogMinAggregateInputType = {
   id?: true
   title?: true
+  shortDescription?: true
   author?: true
   thumbnailStorageDriver?: true
   thumbnailStorageKey?: true
@@ -99,6 +103,7 @@ export type BlogMinAggregateInputType = {
 export type BlogMaxAggregateInputType = {
   id?: true
   title?: true
+  shortDescription?: true
   author?: true
   thumbnailStorageDriver?: true
   thumbnailStorageKey?: true
@@ -112,6 +117,7 @@ export type BlogMaxAggregateInputType = {
 export type BlogCountAggregateInputType = {
   id?: true
   title?: true
+  shortDescription?: true
   author?: true
   thumbnailStorageDriver?: true
   thumbnailStorageKey?: true
@@ -212,6 +218,7 @@ export type BlogGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
 export type BlogGroupByOutputType = {
   id: string
   title: string
+  shortDescription: string | null
   author: string
   thumbnailStorageDriver: string | null
   thumbnailStorageKey: string | null
@@ -248,6 +255,7 @@ export type BlogWhereInput = {
   NOT?: Prisma.BlogWhereInput | Prisma.BlogWhereInput[]
   id?: Prisma.StringFilter<"Blog"> | string
   title?: Prisma.StringFilter<"Blog"> | string
+  shortDescription?: Prisma.StringNullableFilter<"Blog"> | string | null
   author?: Prisma.StringFilter<"Blog"> | string
   thumbnailStorageDriver?: Prisma.StringNullableFilter<"Blog"> | string | null
   thumbnailStorageKey?: Prisma.StringNullableFilter<"Blog"> | string | null
@@ -262,6 +270,7 @@ export type BlogWhereInput = {
 export type BlogOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  shortDescription?: Prisma.SortOrderInput | Prisma.SortOrder
   author?: Prisma.SortOrder
   thumbnailStorageDriver?: Prisma.SortOrderInput | Prisma.SortOrder
   thumbnailStorageKey?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -279,6 +288,7 @@ export type BlogWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.BlogWhereInput[]
   NOT?: Prisma.BlogWhereInput | Prisma.BlogWhereInput[]
   title?: Prisma.StringFilter<"Blog"> | string
+  shortDescription?: Prisma.StringNullableFilter<"Blog"> | string | null
   author?: Prisma.StringFilter<"Blog"> | string
   thumbnailStorageDriver?: Prisma.StringNullableFilter<"Blog"> | string | null
   thumbnailStorageKey?: Prisma.StringNullableFilter<"Blog"> | string | null
@@ -293,6 +303,7 @@ export type BlogWhereUniqueInput = Prisma.AtLeast<{
 export type BlogOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  shortDescription?: Prisma.SortOrderInput | Prisma.SortOrder
   author?: Prisma.SortOrder
   thumbnailStorageDriver?: Prisma.SortOrderInput | Prisma.SortOrder
   thumbnailStorageKey?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -314,6 +325,7 @@ export type BlogScalarWhereWithAggregatesInput = {
   NOT?: Prisma.BlogScalarWhereWithAggregatesInput | Prisma.BlogScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Blog"> | string
   title?: Prisma.StringWithAggregatesFilter<"Blog"> | string
+  shortDescription?: Prisma.StringNullableWithAggregatesFilter<"Blog"> | string | null
   author?: Prisma.StringWithAggregatesFilter<"Blog"> | string
   thumbnailStorageDriver?: Prisma.StringNullableWithAggregatesFilter<"Blog"> | string | null
   thumbnailStorageKey?: Prisma.StringNullableWithAggregatesFilter<"Blog"> | string | null
@@ -327,6 +339,7 @@ export type BlogScalarWhereWithAggregatesInput = {
 export type BlogCreateInput = {
   id?: string
   title: string
+  shortDescription?: string | null
   author: string
   thumbnailStorageDriver?: string | null
   thumbnailStorageKey?: string | null
@@ -341,6 +354,7 @@ export type BlogCreateInput = {
 export type BlogUncheckedCreateInput = {
   id?: string
   title: string
+  shortDescription?: string | null
   author: string
   thumbnailStorageDriver?: string | null
   thumbnailStorageKey?: string | null
@@ -355,6 +369,7 @@ export type BlogUncheckedCreateInput = {
 export type BlogUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  shortDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   author?: Prisma.StringFieldUpdateOperationsInput | string
   thumbnailStorageDriver?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   thumbnailStorageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -369,6 +384,7 @@ export type BlogUpdateInput = {
 export type BlogUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  shortDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   author?: Prisma.StringFieldUpdateOperationsInput | string
   thumbnailStorageDriver?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   thumbnailStorageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -383,6 +399,7 @@ export type BlogUncheckedUpdateInput = {
 export type BlogCreateManyInput = {
   id?: string
   title: string
+  shortDescription?: string | null
   author: string
   thumbnailStorageDriver?: string | null
   thumbnailStorageKey?: string | null
@@ -396,6 +413,7 @@ export type BlogCreateManyInput = {
 export type BlogUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  shortDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   author?: Prisma.StringFieldUpdateOperationsInput | string
   thumbnailStorageDriver?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   thumbnailStorageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -409,6 +427,7 @@ export type BlogUpdateManyMutationInput = {
 export type BlogUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  shortDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   author?: Prisma.StringFieldUpdateOperationsInput | string
   thumbnailStorageDriver?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   thumbnailStorageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -422,6 +441,7 @@ export type BlogUncheckedUpdateManyInput = {
 export type BlogCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  shortDescription?: Prisma.SortOrder
   author?: Prisma.SortOrder
   thumbnailStorageDriver?: Prisma.SortOrder
   thumbnailStorageKey?: Prisma.SortOrder
@@ -439,6 +459,7 @@ export type BlogAvgOrderByAggregateInput = {
 export type BlogMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  shortDescription?: Prisma.SortOrder
   author?: Prisma.SortOrder
   thumbnailStorageDriver?: Prisma.SortOrder
   thumbnailStorageKey?: Prisma.SortOrder
@@ -452,6 +473,7 @@ export type BlogMaxOrderByAggregateInput = {
 export type BlogMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  shortDescription?: Prisma.SortOrder
   author?: Prisma.SortOrder
   thumbnailStorageDriver?: Prisma.SortOrder
   thumbnailStorageKey?: Prisma.SortOrder
@@ -496,6 +518,7 @@ export type BlogUpdateOneRequiredWithoutContentsNestedInput = {
 export type BlogCreateWithoutContentsInput = {
   id?: string
   title: string
+  shortDescription?: string | null
   author: string
   thumbnailStorageDriver?: string | null
   thumbnailStorageKey?: string | null
@@ -509,6 +532,7 @@ export type BlogCreateWithoutContentsInput = {
 export type BlogUncheckedCreateWithoutContentsInput = {
   id?: string
   title: string
+  shortDescription?: string | null
   author: string
   thumbnailStorageDriver?: string | null
   thumbnailStorageKey?: string | null
@@ -538,6 +562,7 @@ export type BlogUpdateToOneWithWhereWithoutContentsInput = {
 export type BlogUpdateWithoutContentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  shortDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   author?: Prisma.StringFieldUpdateOperationsInput | string
   thumbnailStorageDriver?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   thumbnailStorageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -551,6 +576,7 @@ export type BlogUpdateWithoutContentsInput = {
 export type BlogUncheckedUpdateWithoutContentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  shortDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   author?: Prisma.StringFieldUpdateOperationsInput | string
   thumbnailStorageDriver?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   thumbnailStorageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -595,6 +621,7 @@ export type BlogCountOutputTypeCountContentsArgs<ExtArgs extends runtime.Types.E
 export type BlogSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   title?: boolean
+  shortDescription?: boolean
   author?: boolean
   thumbnailStorageDriver?: boolean
   thumbnailStorageKey?: boolean
@@ -610,6 +637,7 @@ export type BlogSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
 export type BlogSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   title?: boolean
+  shortDescription?: boolean
   author?: boolean
   thumbnailStorageDriver?: boolean
   thumbnailStorageKey?: boolean
@@ -623,6 +651,7 @@ export type BlogSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
 export type BlogSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   title?: boolean
+  shortDescription?: boolean
   author?: boolean
   thumbnailStorageDriver?: boolean
   thumbnailStorageKey?: boolean
@@ -636,6 +665,7 @@ export type BlogSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
 export type BlogSelectScalar = {
   id?: boolean
   title?: boolean
+  shortDescription?: boolean
   author?: boolean
   thumbnailStorageDriver?: boolean
   thumbnailStorageKey?: boolean
@@ -646,7 +676,7 @@ export type BlogSelectScalar = {
   updatedAt?: boolean
 }
 
-export type BlogOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "author" | "thumbnailStorageDriver" | "thumbnailStorageKey" | "thumbnailOriginalFileName" | "thumbnailMimeType" | "thumbnailSize" | "createdAt" | "updatedAt", ExtArgs["result"]["blog"]>
+export type BlogOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "shortDescription" | "author" | "thumbnailStorageDriver" | "thumbnailStorageKey" | "thumbnailOriginalFileName" | "thumbnailMimeType" | "thumbnailSize" | "createdAt" | "updatedAt", ExtArgs["result"]["blog"]>
 export type BlogInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   contents?: boolean | Prisma.Blog$contentsArgs<ExtArgs>
   _count?: boolean | Prisma.BlogCountOutputTypeDefaultArgs<ExtArgs>
@@ -662,6 +692,7 @@ export type $BlogPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     title: string
+    shortDescription: string | null
     author: string
     thumbnailStorageDriver: string | null
     thumbnailStorageKey: string | null
@@ -1096,6 +1127,7 @@ export interface Prisma__BlogClient<T, Null = never, ExtArgs extends runtime.Typ
 export interface BlogFieldRefs {
   readonly id: Prisma.FieldRef<"Blog", 'String'>
   readonly title: Prisma.FieldRef<"Blog", 'String'>
+  readonly shortDescription: Prisma.FieldRef<"Blog", 'String'>
   readonly author: Prisma.FieldRef<"Blog", 'String'>
   readonly thumbnailStorageDriver: Prisma.FieldRef<"Blog", 'String'>
   readonly thumbnailStorageKey: Prisma.FieldRef<"Blog", 'String'>

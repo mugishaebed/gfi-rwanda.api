@@ -231,6 +231,7 @@ export type DocumentScalarFieldEnum = (typeof DocumentScalarFieldEnum)[keyof typ
 export const BlogScalarFieldEnum = {
   id: 'id',
   title: 'title',
+  shortDescription: 'shortDescription',
   author: 'author',
   thumbnailStorageDriver: 'thumbnailStorageDriver',
   thumbnailStorageKey: 'thumbnailStorageKey',

@@ -151,6 +151,7 @@ model Document {
 model Blog {
   id                        String        @id @default(uuid())
   title                     String
+  shortDescription          String?
   author                    String
   contents                  BlogContent[]
   thumbnailStorageDriver    String?

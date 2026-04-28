@@ -52,6 +52,16 @@ export class CreateBlogDto {
   title!: string;
 
   @ApiPropertyOptional({
+    description: 'Optional short description or excerpt shown in blog listings.',
+    example: 'A quick look at how GFI Rwanda cut loan disbursement time in half.',
+    maxLength: 500,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  shortDescription?: string;
+
+  @ApiPropertyOptional({
     description:
       'Optional blog cover image as base64 data URL (JPEG/PNG/WEBP), for example data:image/png;base64,....',
     example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...',
