@@ -123,7 +123,9 @@ export class GoogleAuthService {
   }
 
   buildFrontendRedirectUrl(result: GoogleCallbackResult): string | null {
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+    const frontendUrl =
+      this.configService.get<string>('MAIN_WEBSITE_URL') ??
+      this.configService.get<string>('FRONTEND_URL');
     if (!frontendUrl) return null;
 
     const fragment = new URLSearchParams({
