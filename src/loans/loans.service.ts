@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { randomUUID } from 'crypto';
+import { join } from 'path';
 import PDFDocument from 'pdfkit';
 import type { Prisma } from '../generated/prisma/client';
 import { DocumentOwnerType, LoanStatus } from '../generated/prisma/enums';
@@ -336,19 +337,30 @@ export class LoansService {
       throw new NotFoundException('Loan not found for contract generation');
     }
 
-    const pdfBuffer = await this.buildContractPdf(loan);
-    const fileName = `loan-contract-${loan.id}.pdf`;
+    const [englishPdfBuffer, kinyarwandaPdfBuffer] = await Promise.all([
+      this.buildContractPdf(loan),
+      this.buildContractPdfKinyarwanda(loan),
+    ]);
 
     const preparedDocuments = await this.documentsService.prepareDocuments({
       ownerType: DocumentOwnerType.LOAN,
       ownerId: loan.id,
-      labels: ['Loan Contract (Generated PDF)'],
+      labels: [
+        'Loan Contract (English PDF)',
+        'Amasezerano y’Inguzanyo (Kinyarwanda PDF)',
+      ],
       files: [
         {
-          buffer: pdfBuffer,
-          originalname: fileName,
+          buffer: englishPdfBuffer,
+          originalname: `loan-contract-en-${loan.id}.pdf`,
           mimetype: 'application/pdf',
-          size: pdfBuffer.length,
+          size: englishPdfBuffer.length,
+        },
+        {
+          buffer: kinyarwandaPdfBuffer,
+          originalname: `loan-contract-rw-${loan.id}.pdf`,
+          mimetype: 'application/pdf',
+          size: kinyarwandaPdfBuffer.length,
         },
       ],
       uploadedByUserId,
@@ -403,15 +415,13 @@ export class LoansService {
       } | null;
     };
   }): Promise<Buffer> {
-    const GFI_GREEN = '#1BC463';
-    const LOGO_GREEN = '#158A48';
     const PAGE_W = 595.28;
     const PAGE_H = 841.89;
     const MARGIN = 50;
-    const HEADER_H = 75;
-    const FOOTER_H = 45;
-    const CONTENT_TOP = HEADER_H + 22;
-    const CONTENT_BOTTOM = PAGE_H - FOOTER_H - 15;
+    const HEADER_H = 100;
+    const FOOTER_H = 100;
+    const CONTENT_TOP = HEADER_H + 12;
+    const CONTENT_BOTTOM = PAGE_H - FOOTER_H - 10;
     const CONTENT_W = PAGE_W - 2 * MARGIN;
 
     return new Promise<Buffer>((resolve, reject) => {
@@ -428,45 +438,10 @@ export class LoansService {
       let y = CONTENT_TOP;
 
       const drawPageChrome = () => {
-        doc.rect(0, 0, PAGE_W, HEADER_H).fill(GFI_GREEN);
-        doc.rect(0, 0, 190, HEADER_H).fill(LOGO_GREEN);
-
-        doc
-          .fillColor('white')
-          .font('Helvetica-Bold')
-          .fontSize(26)
-          .text('GF', 12, 16, { lineBreak: false });
-        doc.rect(48, 10, 1, 55).fill('rgba(255,255,255,0.6)');
-        doc
-          .fillColor('white')
-          .font('Helvetica-Bold')
-          .fontSize(7.5)
-          .text('GREEN', 54, 20, { lineBreak: false });
-        doc.text('FINANCING', 54, 31, { lineBreak: false });
-        doc.text('INCORPORATE Ltd', 54, 42, { lineBreak: false });
-
-        doc
-          .fillColor('white')
-          .font('Helvetica')
-          .fontSize(9)
-          .text('☎  0788306937', 210, 20, { lineBreak: false })
-          .text('●  Kigali, RWANDA', 210, 35, { lineBreak: false })
-          .text('@  info@gfi-rwanda.com', 210, 50, { lineBreak: false });
-
-        doc.rect(0, PAGE_H - FOOTER_H, PAGE_W, FOOTER_H).fill(GFI_GREEN);
-        doc
-          .fillColor('white')
-          .font('Helvetica-BoldOblique')
-          .fontSize(11)
-          .text(
-            'Finance for a Better Planet, Progress for All."',
-            MARGIN,
-            PAGE_H - FOOTER_H + 14,
-            {
-              width: CONTENT_W,
-              lineBreak: false,
-            },
-          );
+        const headerPath = join(process.cwd(), 'assets', 'contract_header.png');
+        const footerPath = join(process.cwd(), 'assets', 'contracy_footer.png');
+        doc.image(headerPath, 0, 0, { width: PAGE_W });
+        doc.image(footerPath, 0, PAGE_H - FOOTER_H, { width: PAGE_W });
         doc.fillColor('black');
       };
 
@@ -510,6 +485,35 @@ export class LoansService {
             underline,
             lineBreak: true,
           });
+        y = doc.y + gap;
+      };
+
+      const writeBoldLabelLine = (
+        label: string,
+        content: string,
+        opts: {
+          fontSize?: number;
+          indent?: number;
+          gap?: number;
+        } = {},
+      ) => {
+        const { fontSize = 10, indent = 0, gap = 5 } = opts;
+        checkBreak(fontSize + gap + 6);
+        const x = MARGIN + indent;
+        const yStart = y;
+        const width = CONTENT_W - indent;
+
+        doc
+          .font('Helvetica-Bold')
+          .fontSize(fontSize)
+          .fillColor('black')
+          .text(label, x, yStart, {
+            width,
+            continued: true,
+          })
+          .font('Helvetica')
+          .text(content, { lineBreak: true });
+
         y = doc.y + gap;
       };
 
@@ -580,11 +584,10 @@ export class LoansService {
         [5, 'Marital Status', maritalStatus],
         [6, 'Occupation', occupation],
         [7, "Employer's Address", employerAddress],
-        [8, "Employer's Address", ''],
-        [9, 'Contact Number', loan.client.phoneNumber],
-        [10, 'Email Address', loan.client.email],
-        [11, 'Identification Number (ID)', borrowerId],
-        [12, 'Passport Number (If applicable)', ''],
+        [8, 'Contact Number', loan.client.phoneNumber],
+        [9, 'Email Address', loan.client.email],
+        [10, 'Identification Number (ID)', borrowerId],
+        [11, 'Passport Number (If applicable)', ''],
       ];
 
       for (const [num, label, value] of idFields) {
@@ -627,24 +630,29 @@ export class LoansService {
       );
 
       sectionHeading('I', 'LOAN DETAILS:');
-      writeLine(
-        `a.  Loan Amount: The lender agrees to lend the client the principal amount of RWF ${this.formatMoney(loan.amount)}`,
+      writeBoldLabelLine(
+        'a.  Loan Amount:',
+        ` The lender agrees to lend the client the principal amount of RWF ${this.formatMoney(loan.amount)}`,
         { indent: 15, gap: 5 },
       );
-      writeLine(
-        `b.  Interest Rate: The loan shall accrue interest at a rate of ${loan.interestRatePercentPerMonth}% per month.`,
+      writeBoldLabelLine(
+        'b.  Interest Rate:',
+        ` The loan shall accrue interest at a rate of ${loan.interestRatePercentPerMonth}% per month.`,
         { indent: 15, gap: 5 },
       );
-      writeLine(
-        `c.  Fees: The borrower will pay a loan processing fee of ${loan.loanProcessingFeePercent ?? 0}%, an administration fee of ${loan.administrativeFeePercent ?? 0}%, and a loan application fee of ${loan.loanApplicationFeePercent ?? 0}% based on the approved amount.`,
+      writeBoldLabelLine(
+        'c.  Fees:',
+        ` The borrower will pay a loan processing fee of ${loan.loanProcessingFeePercent ?? 0}%, an administration fee of ${loan.administrativeFeePercent ?? 0}%, and a loan application fee of ${loan.loanApplicationFeePercent ?? 0}% based on the approved amount.`,
         { indent: 15, gap: 5 },
       );
-      writeLine(
-        `d.  Loan Term: The loan term shall be ${loan.termInMonths} Months, commencing on ${startDate} (Start Date) and ending on ${endDate} (End Date).`,
+      writeBoldLabelLine(
+        'd.  Loan Term:',
+        ` The loan term shall be ${loan.termInMonths} Months, commencing on ${startDate} (Start Date) and ending on ${endDate} (End Date).`,
         { indent: 15, gap: 5 },
       );
-      writeLine(
-        `e.  Purpose of Loan: The Borrower shall use the Loan solely for ${loan.purpose}`,
+      writeBoldLabelLine(
+        'e.  Purpose of Loan:',
+        ` The Borrower shall use the Loan solely for ${loan.purpose}`,
         { indent: 15, gap: 5 },
       );
 
@@ -666,6 +674,7 @@ export class LoansService {
       );
       bullet('Any other documents deemed necessary.');
 
+      newPage();
       sectionHeading('III', 'COLLATERAL DESCRIPTION:');
       writeLine(`a.  Collateral Type: ${loan.collateralType}`, {
         indent: 15,
@@ -680,8 +689,6 @@ export class LoansService {
         gap: 5,
       });
 
-      // ── PAGE 4: REPAYMENT + EARLY REPAYMENT + DEFAULT + GOV LAW ───
-      newPage();
       sectionHeading('IV', 'REPAYMENT');
       writeLine(
         `a.  The loan shall be repaid by the client in ${loan.repaymentInstallmentsCount} installments of`,
@@ -733,6 +740,7 @@ export class LoansService {
         { gap: 5 },
       );
 
+      newPage();
       sectionHeading('IX', 'MISCELLANEOUS');
       writeLine(
         'This agreement constitutes the entire agreement between the parties concerning the subject matter hereof and supersedes all prior agreements and understandings, whether written or oral.',
@@ -743,7 +751,7 @@ export class LoansService {
         .font('Helvetica')
         .fontSize(10)
         .fillColor('black')
-        .text('IN WITNESS WHEREOF, ', MARGIN, y, {
+        .text('IN WITNESS WHEREOF,', MARGIN, y, {
           continued: true,
           underline: false,
         })
@@ -771,8 +779,6 @@ export class LoansService {
       });
       writeLine('Stamp:', { gap: 5 });
 
-      // ── PAGE 6: NOTARY + SPOUSE CONSENT ───────────────────────────
-      newPage();
       writeLine('NOTARY', { bold: true, underline: true, gap: 8 });
       writeLine(
         'Signature: ____________________________                    Date: ...... / ........ / ........',
@@ -795,6 +801,434 @@ export class LoansService {
       );
       writeLine('Signature:', { bold: true, gap: 8 });
       writeLine('Date: ...... / ........ / ..........', { bold: true, gap: 5 });
+
+      doc.end();
+    });
+  }
+
+  private buildContractPdfKinyarwanda(loan: {
+    id: string;
+    amount: number;
+    purpose: string;
+    interestRatePercentPerMonth: number;
+    termInMonths: number;
+    termStartDate: Date;
+    termEndDate: Date;
+    disbursementWithinDays: number;
+    collateralType: string;
+    collateralEstimatedValue: number;
+    collateralLocation: string;
+    repaymentInstallmentsCount: number;
+    repaymentAmountPerMonth: number;
+    repaymentPeriodMonths: number;
+    paymentDayOfMonth?: number;
+    loanProcessingFeePercent?: number;
+    administrativeFeePercent?: number;
+    loanApplicationFeePercent?: number;
+    earlyRepaymentFeePercent: number;
+    defaultPenaltyFeePercentPerDay: number;
+    spouseName: string | null;
+    client: {
+      email: string;
+      phoneNumber: string;
+      address: string;
+      individual?: {
+        fullName: string;
+        nationalId: string;
+        dateOfBirth: Date;
+        nationality: string | null;
+        maritalStatus: string | null;
+        occupation: string | null;
+        employerName: string | null;
+      } | null;
+      business?: {
+        businessName: string;
+        registrationNumber: string;
+      } | null;
+    };
+  }): Promise<Buffer> {
+    const PAGE_W = 595.28;
+    const PAGE_H = 841.89;
+    const MARGIN = 50;
+    const HEADER_H = 100;
+    const FOOTER_H = 100;
+    const CONTENT_TOP = HEADER_H + 12;
+    const CONTENT_BOTTOM = PAGE_H - FOOTER_H - 10;
+    const CONTENT_W = PAGE_W - 2 * MARGIN;
+
+    return new Promise<Buffer>((resolve, reject) => {
+      const doc = new PDFDocument({
+        size: 'A4',
+        margin: 0,
+        autoFirstPage: false,
+      });
+      const chunks: Buffer[] = [];
+      doc.on('data', (c: Buffer) => chunks.push(c));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
+
+      let y = CONTENT_TOP;
+
+      const drawPageChrome = () => {
+        const headerPath = join(process.cwd(), 'assets', 'contract_header.png');
+        const footerPath = join(process.cwd(), 'assets', 'contracy_footer.png');
+        doc.image(headerPath, 0, 0, { width: PAGE_W });
+        doc.image(footerPath, 0, PAGE_H - FOOTER_H, { width: PAGE_W });
+        doc.fillColor('black');
+      };
+
+      const newPage = () => {
+        doc.addPage({ size: 'A4', margin: 0 });
+        drawPageChrome();
+        y = CONTENT_TOP;
+      };
+
+      const checkBreak = (needed = 18) => {
+        if (y + needed > CONTENT_BOTTOM) newPage();
+      };
+
+      const writeLine = (
+        content: string,
+        opts: {
+          bold?: boolean;
+          fontSize?: number;
+          indent?: number;
+          align?: 'left' | 'center' | 'right';
+          underline?: boolean;
+          gap?: number;
+        } = {},
+      ) => {
+        const {
+          bold = false,
+          fontSize = 10,
+          indent = 0,
+          align = 'left',
+          underline = false,
+          gap = 5,
+        } = opts;
+        checkBreak(fontSize + gap + 4);
+        doc
+          .font(bold ? 'Helvetica-Bold' : 'Helvetica')
+          .fontSize(fontSize)
+          .fillColor('black')
+          .text(content, MARGIN + indent, y, {
+            width: CONTENT_W - indent,
+            align,
+            underline,
+            lineBreak: true,
+          });
+        y = doc.y + gap;
+      };
+      const writeBoldLabelLine = (
+        label: string,
+        content: string,
+        opts: {
+          fontSize?: number;
+          indent?: number;
+          gap?: number;
+        } = {},
+      ) => {
+        const { fontSize = 10, indent = 0, gap = 5 } = opts;
+        checkBreak(fontSize + gap + 6);
+        const x = MARGIN + indent;
+        const yStart = y;
+        const width = CONTENT_W - indent;
+
+        doc
+          .font('Helvetica-Bold')
+          .fontSize(fontSize)
+          .fillColor('black')
+          .text(label, x, yStart, {
+            width,
+            continued: true,
+          })
+          .font('Helvetica')
+          .text(content, { lineBreak: true });
+
+        y = doc.y + gap;
+      };
+
+      const gap = (h = 8) => {
+        checkBreak(h);
+        y += h;
+      };
+
+      const sectionHeading = (roman: string, title: string) => {
+        gap(10);
+        checkBreak(22);
+        doc
+          .font('Helvetica-Bold')
+          .fontSize(10)
+          .fillColor('black')
+          .text(`${roman}.   ${title}`, MARGIN, y, { width: CONTENT_W });
+        y = doc.y + 8;
+      };
+
+      const bullet = (content: string, indent = 30) => {
+        checkBreak(18);
+        doc.circle(MARGIN + indent, y + 4, 2).fill('black');
+        doc
+          .font('Helvetica')
+          .fontSize(10)
+          .fillColor('black')
+          .text(content, MARGIN + indent + 8, y, {
+            width: CONTENT_W - indent - 8,
+          });
+        y = doc.y + 4;
+      };
+
+      const today = this.formatDateOnly(new Date());
+      const borrowerName =
+        loan.client.individual?.fullName ??
+        loan.client.business?.businessName ??
+        '................................';
+      const borrowerId =
+        loan.client.individual?.nationalId ??
+        loan.client.business?.registrationNumber ??
+        '................................';
+      const dob = loan.client.individual
+        ? this.formatDateOnly(loan.client.individual.dateOfBirth)
+        : '';
+      const nationality = loan.client.individual?.nationality ?? '';
+      const maritalStatus = loan.client.individual?.maritalStatus ?? '';
+      const occupation = loan.client.individual?.occupation ?? '';
+      const employerAddress = loan.client.individual?.employerName ?? '';
+      const startDate = this.formatDateOnly(loan.termStartDate);
+      const endDate = this.formatDateOnly(loan.termEndDate);
+
+      // ── PAGE 1: CLIENT'S IDENTIFICATION ──────────────────────────
+      newPage();
+      gap(20);
+      writeLine("UMWIRONDORO W'USABA INGUZANYO", {
+        bold: true,
+        fontSize: 12,
+        align: 'center',
+        underline: true,
+        gap: 20,
+      });
+
+      const idFields: [number, string, string][] = [
+        [1, 'Amazina Yombi', borrowerName],
+        [2, 'Itariki wavukiyeho', dob],
+        [3, 'Ubwenegihugu', nationality],
+        [4, 'Aho utuye', loan.client.address],
+        [5, 'Irangamimere', maritalStatus],
+        [6, 'Umwuga', occupation],
+        [7, "Aderesi y'Umukoresha wawe", employerAddress],
+        [8, "Nomero yawe y'Itumanaho", loan.client.phoneNumber],
+        [9, 'Aderesi ya Imeri', loan.client.email],
+        [10, "Nomero y'indangamuntu (ID)", borrowerId],
+        [11, 'Nomero ya Pasiporo (Niba ari ngombwa)', ''],
+      ];
+
+      for (const [num, label, value] of idFields) {
+        writeLine(`${num}.  ${label}: ${value}`, { gap: 8 });
+      }
+
+      // ── PAGE 2: LOAN AGREEMENT ─────────────────────────────────────
+      newPage();
+      gap(12);
+      writeLine("AMASEZERANO Y'INGUZANYO", {
+        bold: true,
+        fontSize: 12,
+        align: 'center',
+        underline: true,
+        gap: 14,
+      });
+
+      writeLine(
+        `Aya masezerano y'inguzanyo ("Amasezerano") yakozwe ku itariki ${today}`,
+        {
+          gap: 12,
+        },
+      );
+      writeLine('HAGATI', { bold: true, align: 'center', gap: 8 });
+      writeLine(
+        `${borrowerName} (Amazina y'usaba inguzanyo), utuye ${loan.client.address}`,
+        { gap: 6 },
+      );
+      writeLine(`Ufite nomero y'indangamuntu: ${borrowerId}`, { gap: 12 });
+      writeLine('NA', { bold: true, align: 'center', gap: 8 });
+      writeLine(
+        `GREEN FINANCING INCORPORATE LTD (GFI LTD), isosiyete yanditswe hakurikijwe amategeko y'u Rwanda, ifite aderesi yayo i Rusororo, GASABO kandi ifite nomero iyiranga 126361983, ihagarariwe muri aya masezerano na ................................................ (Izina ry'uhagarariye GREEN FINANCING INCORPORATE LTD (GFI Ltd)).`,
+        { gap: 12 },
+      );
+
+      writeLine(`Amavu n'amavuko`, { bold: true, gap: 4 });
+      writeLine(
+        `GREEN FINANCING INCORPORATE LTD (GFI Ltd). (“Ugurije”) ni sosiyete itanga serivisi z’imari itakira amafaranga abitswa yiyandikishije kandi ikorera mu Rwanda hakurikijwe amabwiriza No 65/04/2023 yo kuwa 25/04/2023. Ugurijwe yegereye utanze inguzanyo/ugurije asaba inguzanyo kandi uwatanze inguzanyo yemeye kumuguriza ku masezerano nk'uko bigaragara hano.`,
+        { gap: 12 },
+      );
+
+      sectionHeading('I', `IBISOBANURO BY'INGUZANYO:`);
+      writeBoldLabelLine(
+        `a. Umubare w'inguzanyo:`,
+        `Utanze inguzanyo yemeye kuguriza umukiriya inguzanyo ingana na RWF ${this.formatMoney(loan.amount)}`,
+        { indent: 15, gap: 5 },
+      );
+      writeBoldLabelLine(
+        `b. Igipimo cy'inyungu:`,
+        `Inguzanyo izunguka inyungu ku gipimo cya ${loan.interestRatePercentPerMonth}% buri kwezi.`,
+        { indent: 15, gap: 5 },
+      );
+      writeBoldLabelLine(
+        `c. Umufuragiro:`,
+        `Ugurijwe azishyura amafaranga yo gutunganya inguzanyo angana na ${loan.loanProcessingFeePercent ?? 0}%, amafaranga y’ubuyobozi angana na ${loan.administrativeFeePercent ?? 0}%, n’amafaranga yo gusaba inguzanyo angana na ${loan.loanApplicationFeePercent ?? 0}% abarwa hakurikijwe inguzanyo yemejwe.`,
+        { indent: 15, gap: 5 },
+      );
+      writeBoldLabelLine(
+        `d. Igihe cy'inguzanyo:`,
+        `Inguzanyo izamara  amezi ${loan.termInMonths}, guhera ku itariki ${startDate} kugeza ku itariki ${endDate}.`,
+        { indent: 15, gap: 5 },
+      );
+      writeBoldLabelLine(
+        `e. Intego y'inguzanyo:`,
+        `Uwagurikwe azakoresha Inguzanyo gusa mu ${loan.purpose}`,
+        { indent: 15, gap: 5 },
+      );
+
+      sectionHeading('II', 'GUTANGA INGUZANYO');
+      writeLine(
+        `a. Inguzanyo igomba gutangwa k’ugurijwe kuri konti ya banki yagenwe nyuma yo gushyira umukono kuri aya masezerano no kuzuza ibyangombwa byose bisabwa. Inguzanyo izatangwa mu minsi ${loan.disbursementWithinDays} nyuma yo kuzuza ibyangombwa byavuzwe haruguru.`,
+        { indent: 15, gap: 6 },
+      );
+      writeLine(
+        'b. Ugurijwe yemeye gutanga ibyangombwa byose n’amakuru nkuko byasabwe n’ugurije kugirango atange inguzanyo. Ibikubiyemo: ',
+        { indent: 15, gap: 5 },
+      );
+
+      bullet('Ibaruwa isaba inguzanyo');
+      bullet(`Indangamuntu y'igihugu cyangwa pasiporo`);
+      bullet("Icyangombwa cyerekana amakuru k'umyenda (Raporo ya CRB)");
+      bullet(
+        'Inyandiko z’ingwate (niba ari ngombwa): Icyangombwa cy’ubutaka, Icyangombwa cy’ikinyabiziga, Raporo y’agaciro k’ingwate,n’ibindi.',
+      );
+      newPage();
+      bullet('Izindi nyandiko zose zisabwa bibaye ngombwa.');
+
+      sectionHeading('III', `IBISOBANURO BY'INGWATE:`);
+      writeLine(`a. Ubwoko bw'ingwate: ${loan.collateralType}`, {
+        indent: 15,
+        gap: 5,
+      });
+      writeLine(
+        `b. Agaciro kagereranijwe k'ingwate: RWF ${this.formatMoney(loan.collateralEstimatedValue)}`,
+        { indent: 15, gap: 5 },
+      );
+      writeLine(`c. Aho iherereye: ${loan.collateralLocation}`, {
+        indent: 15,
+        gap: 5,
+      });
+
+      sectionHeading('IV', 'KWISHYURWA');
+      writeLine(
+        `a. Inguzanyo izishyurwa n’ugurijwe mu bice ${loan.repaymentInstallmentsCount} bigabanyijwe:`,
+        { indent: 15, gap: 4 },
+      );
+      bullet(
+        `${this.formatMoney(loan.repaymentAmountPerMonth)} RWF (Buri kwezi)`,
+        40,
+      );
+      writeLine(
+        `b. Ubwishyu buzakorwa buri kwezi tariki ${loan.paymentDayOfMonth ? this.toOrdinal(loan.paymentDayOfMonth) : 'N/A'} mugihe cy'amezi ${loan.repaymentPeriodMonths}.`,
+        { indent: 15, gap: 5 },
+      );
+
+      sectionHeading('V', `KWISHYURA MBERE Y'IGIHE`);
+      writeLine(
+        `Uwagurijwe afite uburenganzira bwo kwishyura mbere y’inguzanyo isigaye igihe icyo ari cyo cyose nta gihano cyo kwishyura mbere. Ariko, mugihe inguzanyo yimuriwe mu kindi kigo cy’imari, amafaranga yo kwishyura hakiri kare angana na ${loan.earlyRepaymentFeePercent}% (ku nguzanyo isigaye).`,
+        { gap: 5 },
+      );
+
+      sectionHeading('VI', 'MBURABUZI/KUNANIRWA KWISHYURA');
+      writeLine(
+        `a. Mugihe hatabayeho kwishyurira igihe n’uwagurijwe, azafatwa nk’uwananiwe kwishyura.`,
+        { indent: 15, gap: 5 },
+      );
+      writeLine(`b. Umukiriya arenga ingingo ayo ari yo yose y’amasezerano.`, {
+        indent: 15,
+        gap: 5,
+      });
+      writeLine(
+        `c. Mugihe habaye gutinda kwishyura, umufuragiro ungana na ${loan.defaultPenaltyFeePercentPerDay}% yishyurwa buri munsi k’umafaranga yarengeje igihe.`,
+        { indent: 15, gap: 5 },
+      );
+      writeLine(
+        `d. Iyo bitubahirijwe, uwatanze inguzanyo afite uburenganzira bwo gukurikirana uburyo bwose bwemewe n'amategeko bwo kugaruza amafaranga y’inguzanyo asigaye, harimo kugana bishinzwe gukusanya imyenda, kurega mu nkiko, no gufatira ingwate niba bibaye ngombwa.  n’amafaranga yose ajyanye no kubungabunga, kwishingira, cyangwa kugaruza inguzanyo bizishyurwa n’ugurijwe nta yandi mananiza.`,
+        { indent: 15, gap: 5 },
+      );
+
+      sectionHeading('VII', 'AMATEGEKO AGENGA AMASEZERANO');
+
+      writeLine(
+        `Aya masezerano agengwa kandi agasobanurwa hakurikijwe amategeko ya Repubulika y'u Rwanda.`,
+        { gap: 5 },
+      );
+
+      sectionHeading('VIII', 'GUKEMURA AMAKIMBIRANE');
+      writeLine(
+        `Amakimbirane ayo ari yo yose akomoka cyangwa ajyanye n’amasezerano agomba gukemurwa binyuze mu mishyikirano y’ubwumvikane hagati y’impande zombi. Niba impande zombi zinaniwe gufata umwanzuro, amakimbirane yoherezwa mu bukemurampaka hakurikijwe amategeko y'u Rwanda.`,
+        { gap: 5 },
+      );
+
+      newPage();
+      doc
+        .font('Helvetica')
+        .fontSize(10)
+        .fillColor('black')
+        .text('MU BUHAMYA AHO, ', MARGIN, y, {
+          continued: true,
+          underline: false,
+        })
+        .font('Helvetica')
+        .text(
+          `Uwagurijwe n’ Uwagurije bashyize mu bikorwa aya masezerano guhera ku itariki ${today}`,
+          { lineBreak: true },
+        );
+      y = doc.y + 14;
+
+      writeLine('UGURIJWE', { bold: true, underline: true, gap: 8 });
+      writeLine(
+        "Umukono w'Ugurijwe: ____________________________     Itariki: ...... / ........ / ........",
+        { gap: 8 },
+      );
+      writeLine(`Amazina yose: ${borrowerName}`, { gap: 20 });
+
+      writeLine('UGURIJE', { bold: true, underline: true, gap: 8 });
+      writeLine(
+        "Umukono w'Ugurije: ______________________________     Itariki: ...... / ........ / ........",
+        { gap: 8 },
+      );
+      writeLine("Izina ry'uhagarariye sosiyete: ____________________________", {
+        gap: 8,
+      });
+      writeLine('Kashe:', { gap: 5 });
+
+      writeLine('NOTERI', { bold: true, underline: true, gap: 8 });
+      writeLine(
+        'Umukono: ____________________________                    Itariki: ...... / ........ / ........',
+        { gap: 8 },
+      );
+      writeLine('Amazina: ____________________________', { gap: 25 });
+
+      writeLine(`UMWANZURO W'UBWEMERE KU BANTU BASHYINGIRANYWE`, {
+        bold: true,
+        underline: true,
+        fontSize: 11,
+        align: 'center',
+        gap: 10,
+      });
+      const spouseRef =
+        loan.spouseName ?? '....................................';
+      writeLine(
+        `Nyewe, ${spouseRef} Umugore/Umugabo wa ${borrowerName} (Amazina y'uwo mwashyingiranywe). Ndemeranya kandi nemera gushyira mu bikorwa aya masezerano y’inguzanyo hagati y’uwo twashakanye ariwe ${borrowerName} hamwe na GREEN FINANCING INCORPORATE LTD (GFI Ltd). Ndumva amategeko n'amabwiriza y'inguzanyo nkuko byavuzwe haruguru kandi nemeza ko nta nzitizi mfite kuri ${borrowerName} (Amazina y'uwo mwashyingiranywe) ryinjira muri aya masezerano.`,
+        { gap: 14 },
+      );
+      writeLine('Umukono:', { bold: true, gap: 8 });
+      writeLine('Itariki: ...... / ........ / ..........', {
+        bold: true,
+        gap: 5,
+      });
 
       doc.end();
     });
