@@ -9,7 +9,10 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { createHash, randomBytes } from 'node:crypto';
 import { JwtService } from '@nestjs/jwt';
-import { type UserRole as UserRoleValue } from '../generated/prisma/enums';
+import {
+  UserRole,
+  type UserRole as UserRoleValue,
+} from '../generated/prisma/enums';
 import { type User } from '../generated/prisma/client';
 import { UsersService } from '../users/users.service';
 
@@ -123,18 +126,13 @@ export class GoogleAuthService {
   }
 
   buildFrontendRedirectUrl(result: GoogleCallbackResult): string | null {
-    const frontendUrl =
-      this.configService.get<string>('MAIN_WEBSITE_URL') ??
-      this.configService.get<string>('FRONTEND_URL');
-    if (!frontendUrl) return null;
-
     const fragment = new URLSearchParams({
       token: result.appAccessToken,
       refresh: result.refreshToken,
       userId: result.user.id,
     }).toString();
 
-    return `${frontendUrl}/auth/callback#${fragment}`;
+    return `${this.getDefaultRedirectForRoles(result.user.roles)}#${fragment}`;
   }
 
   async handleGoogleCallback(
@@ -335,6 +333,14 @@ export class GoogleAuthService {
     }
 
     return value;
+  }
+
+  private getDefaultRedirectForRoles(roles: string[]) {
+    const baseUrl = roles.includes(UserRole.BLOG_EDITOR)
+      ? this.getRequiredEnv('MAIN_WEBSITE_URL')
+      : this.getRequiredEnv('FRONTEND_URL');
+
+    return new URL('/auth/callback', new URL(baseUrl).origin).toString();
   }
 
   private encodeState(state: AuthFlowState): string {

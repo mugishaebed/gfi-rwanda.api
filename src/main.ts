@@ -44,8 +44,13 @@ async function bootstrap() {
     });
   }
   if (process.env.NODE_ENV === 'production') {
+    const allowedOrigins = [
+      process.env.FRONTEND_URL,
+      process.env.MAIN_WEBSITE_URL,
+    ].filter((origin): origin is string => Boolean(origin));
+
     app.enableCors({
-      origin: process.env.FRONTEND_URL,
+      origin: Array.from(new Set(allowedOrigins)),
     });
   }
 

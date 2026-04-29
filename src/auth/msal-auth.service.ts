@@ -18,7 +18,10 @@ import {
 } from '@azure/msal-node';
 import { UsersService } from '../users/users.service';
 import { type User } from '../generated/prisma/client';
-import { type UserRole as UserRoleValue } from '../generated/prisma/enums';
+import {
+  UserRole,
+  type UserRole as UserRoleValue,
+} from '../generated/prisma/enums';
 import { JwtService } from '@nestjs/jwt';
 
 type MicrosoftAuthProfile = {
@@ -129,7 +132,7 @@ export class MsalAuthService {
     return this.getAuthorizationUrl(
       this.encodeState({
         mode: 'login',
-        redirectTo: this.resolveFrontendRedirect(redirectTo),
+        redirectTo: this.resolveRequestedRedirect(redirectTo),
         nonce: state,
       }),
     );
@@ -144,7 +147,7 @@ export class MsalAuthService {
       this.encodeState({
         mode: 'signup',
         role,
-        redirectTo: this.resolveFrontendRedirect(redirectTo),
+        redirectTo: this.resolveRequestedRedirect(redirectTo),
         nonce: state,
       }),
     );
@@ -152,7 +155,10 @@ export class MsalAuthService {
 
   buildFrontendRedirectUrl(result: MicrosoftCallbackResult, rawState?: string) {
     const authState = this.decodeState(rawState);
-    const redirectTo = this.resolveFrontendRedirect(authState.redirectTo);
+    const redirectTo = this.resolveFrontendRedirect(
+      authState.redirectTo,
+      result.user.roles,
+    );
     const redirectUrl = new URL(redirectTo);
 
     redirectUrl.searchParams.set('authStatus', 'success');
@@ -395,28 +401,64 @@ export class MsalAuthService {
     }
   }
 
-  private resolveFrontendRedirect(redirectTo?: string) {
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL');
-
-    if (!frontendUrl) {
-      throw new InternalServerErrorException('FRONTEND_URL is not configured');
-    }
-
-    const frontendOrigin = new URL(frontendUrl).origin;
-    const fallbackUrl = new URL('/auth/callback', frontendOrigin).toString();
-
+  private resolveRequestedRedirect(redirectTo?: string) {
     if (!redirectTo) {
-      return fallbackUrl;
+      return undefined;
     }
 
     const parsedRedirect = new URL(redirectTo);
-    if (parsedRedirect.origin !== frontendOrigin) {
+    const allowedOrigins = this.getAllowedFrontendOrigins();
+
+    if (!allowedOrigins.includes(parsedRedirect.origin)) {
       throw new BadRequestException(
-        'redirectTo must match configured FRONTEND_URL origin',
+        'redirectTo must match configured FRONTEND_URL or MAIN_WEBSITE_URL origin',
       );
     }
 
     return parsedRedirect.toString();
+  }
+
+  private resolveFrontendRedirect(
+    redirectTo: string | undefined,
+    roles: string[],
+  ) {
+    const defaultRedirect = this.getDefaultRedirectForRoles(roles);
+
+    if (!redirectTo) {
+      return defaultRedirect;
+    }
+
+    const parsedRedirect = new URL(redirectTo);
+    const expectedOrigin = new URL(defaultRedirect).origin;
+
+    if (parsedRedirect.origin !== expectedOrigin) {
+      return defaultRedirect;
+    }
+
+    return parsedRedirect.toString();
+  }
+
+  private getDefaultRedirectForRoles(roles: string[]) {
+    const baseUrl = roles.includes(UserRole.BLOG_EDITOR)
+      ? this.getRequiredEnv('MAIN_WEBSITE_URL')
+      : this.getRequiredEnv('FRONTEND_URL');
+
+    return new URL('/auth/callback', new URL(baseUrl).origin).toString();
+  }
+
+  private getAllowedFrontendOrigins() {
+    const urls = [
+      this.configService.get<string>('FRONTEND_URL'),
+      this.configService.get<string>('MAIN_WEBSITE_URL'),
+    ].filter((url): url is string => Boolean(url));
+
+    if (urls.length === 0) {
+      throw new InternalServerErrorException(
+        'FRONTEND_URL or MAIN_WEBSITE_URL must be configured',
+      );
+    }
+
+    return Array.from(new Set(urls.map((url) => new URL(url).origin)));
   }
 
   private getRequiredEnv(key: string): string {

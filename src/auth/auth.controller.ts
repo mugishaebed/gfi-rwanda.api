@@ -507,7 +507,7 @@ export class AuthController {
     name: 'redirectTo',
     required: false,
     description:
-      'Frontend callback URL (must match FRONTEND_URL origin). Defaults to FRONTEND_URL/auth/callback.',
+      'Frontend callback URL (must match FRONTEND_URL or MAIN_WEBSITE_URL origin). Defaults by role: BLOG_EDITOR uses MAIN_WEBSITE_URL, others use FRONTEND_URL.',
   })
   async login(
     @Query('state') state?: string,
@@ -538,7 +538,7 @@ export class AuthController {
     name: 'redirectTo',
     required: false,
     description:
-      'Frontend callback URL (must match FRONTEND_URL origin). Defaults to FRONTEND_URL/auth/callback.',
+      'Frontend callback URL (must match FRONTEND_URL or MAIN_WEBSITE_URL origin). Defaults by role: BLOG_EDITOR uses MAIN_WEBSITE_URL, others use FRONTEND_URL.',
   })
   async signup(
     @Query('role') role?: string,
