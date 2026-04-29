@@ -28,18 +28,68 @@ export type AggregateLoan = {
 
 export type LoanAvgAggregateOutputType = {
   amount: number | null
+  totalRepaidAmount: number | null
+  outstandingBalance: number | null
+  interestRatePercentPerMonth: number | null
+  termInMonths: number | null
+  disbursementWithinDays: number | null
+  collateralEstimatedValue: number | null
+  repaymentInstallmentsCount: number | null
+  repaymentAmountPerMonth: number | null
+  repaymentPeriodMonths: number | null
+  paymentDayOfMonth: number | null
+  loanProcessingFeePercent: number | null
+  administrativeFeePercent: number | null
+  loanApplicationFeePercent: number | null
+  earlyRepaymentFeePercent: number | null
+  defaultPenaltyFeePercentPerDay: number | null
 }
 
 export type LoanSumAggregateOutputType = {
   amount: number | null
+  totalRepaidAmount: number | null
+  outstandingBalance: number | null
+  interestRatePercentPerMonth: number | null
+  termInMonths: number | null
+  disbursementWithinDays: number | null
+  collateralEstimatedValue: number | null
+  repaymentInstallmentsCount: number | null
+  repaymentAmountPerMonth: number | null
+  repaymentPeriodMonths: number | null
+  paymentDayOfMonth: number | null
+  loanProcessingFeePercent: number | null
+  administrativeFeePercent: number | null
+  loanApplicationFeePercent: number | null
+  earlyRepaymentFeePercent: number | null
+  defaultPenaltyFeePercentPerDay: number | null
 }
 
 export type LoanMinAggregateOutputType = {
   id: string | null
   clientId: string | null
   amount: number | null
+  totalRepaidAmount: number | null
+  outstandingBalance: number | null
   purpose: string | null
   comments: string | null
+  interestRatePercentPerMonth: number | null
+  termInMonths: number | null
+  termStartDate: Date | null
+  termEndDate: Date | null
+  disbursementWithinDays: number | null
+  collateralType: string | null
+  collateralEstimatedValue: number | null
+  collateralLocation: string | null
+  repaymentInstallmentsCount: number | null
+  repaymentAmountPerMonth: number | null
+  repaymentPeriodMonths: number | null
+  paymentDayOfMonth: number | null
+  loanProcessingFeePercent: number | null
+  administrativeFeePercent: number | null
+  loanApplicationFeePercent: number | null
+  earlyRepaymentFeePercent: number | null
+  defaultPenaltyFeePercentPerDay: number | null
+  spouseName: string | null
   status: $Enums.LoanStatus | null
   activatedAt: Date | null
   createdAt: Date | null
@@ -51,8 +101,28 @@ export type LoanMaxAggregateOutputType = {
   id: string | null
   clientId: string | null
   amount: number | null
+  totalRepaidAmount: number | null
+  outstandingBalance: number | null
   purpose: string | null
   comments: string | null
+  interestRatePercentPerMonth: number | null
+  termInMonths: number | null
+  termStartDate: Date | null
+  termEndDate: Date | null
+  disbursementWithinDays: number | null
+  collateralType: string | null
+  collateralEstimatedValue: number | null
+  collateralLocation: string | null
+  repaymentInstallmentsCount: number | null
+  repaymentAmountPerMonth: number | null
+  repaymentPeriodMonths: number | null
+  paymentDayOfMonth: number | null
+  loanProcessingFeePercent: number | null
+  administrativeFeePercent: number | null
+  loanApplicationFeePercent: number | null
+  earlyRepaymentFeePercent: number | null
+  defaultPenaltyFeePercentPerDay: number | null
+  spouseName: string | null
   status: $Enums.LoanStatus | null
   activatedAt: Date | null
   createdAt: Date | null
@@ -64,10 +134,30 @@ export type LoanCountAggregateOutputType = {
   id: number
   clientId: number
   amount: number
+  totalRepaidAmount: number
+  outstandingBalance: number
   purpose: number
   repaymentTerms: number
   guarantorInfo: number
   comments: number
+  interestRatePercentPerMonth: number
+  termInMonths: number
+  termStartDate: number
+  termEndDate: number
+  disbursementWithinDays: number
+  collateralType: number
+  collateralEstimatedValue: number
+  collateralLocation: number
+  repaymentInstallmentsCount: number
+  repaymentAmountPerMonth: number
+  repaymentPeriodMonths: number
+  paymentDayOfMonth: number
+  loanProcessingFeePercent: number
+  administrativeFeePercent: number
+  loanApplicationFeePercent: number
+  earlyRepaymentFeePercent: number
+  defaultPenaltyFeePercentPerDay: number
+  spouseName: number
   status: number
   activatedAt: number
   createdAt: number
@@ -79,18 +169,68 @@ export type LoanCountAggregateOutputType = {
 
 export type LoanAvgAggregateInputType = {
   amount?: true
+  totalRepaidAmount?: true
+  outstandingBalance?: true
+  interestRatePercentPerMonth?: true
+  termInMonths?: true
+  disbursementWithinDays?: true
+  collateralEstimatedValue?: true
+  repaymentInstallmentsCount?: true
+  repaymentAmountPerMonth?: true
+  repaymentPeriodMonths?: true
+  paymentDayOfMonth?: true
+  loanProcessingFeePercent?: true
+  administrativeFeePercent?: true
+  loanApplicationFeePercent?: true
+  earlyRepaymentFeePercent?: true
+  defaultPenaltyFeePercentPerDay?: true
 }
 
 export type LoanSumAggregateInputType = {
   amount?: true
+  totalRepaidAmount?: true
+  outstandingBalance?: true
+  interestRatePercentPerMonth?: true
+  termInMonths?: true
+  disbursementWithinDays?: true
+  collateralEstimatedValue?: true
+  repaymentInstallmentsCount?: true
+  repaymentAmountPerMonth?: true
+  repaymentPeriodMonths?: true
+  paymentDayOfMonth?: true
+  loanProcessingFeePercent?: true
+  administrativeFeePercent?: true
+  loanApplicationFeePercent?: true
+  earlyRepaymentFeePercent?: true
+  defaultPenaltyFeePercentPerDay?: true
 }
 
 export type LoanMinAggregateInputType = {
   id?: true
   clientId?: true
   amount?: true
+  totalRepaidAmount?: true
+  outstandingBalance?: true
   purpose?: true
   comments?: true
+  interestRatePercentPerMonth?: true
+  termInMonths?: true
+  termStartDate?: true
+  termEndDate?: true
+  disbursementWithinDays?: true
+  collateralType?: true
+  collateralEstimatedValue?: true
+  collateralLocation?: true
+  repaymentInstallmentsCount?: true
+  repaymentAmountPerMonth?: true
+  repaymentPeriodMonths?: true
+  paymentDayOfMonth?: true
+  loanProcessingFeePercent?: true
+  administrativeFeePercent?: true
+  loanApplicationFeePercent?: true
+  earlyRepaymentFeePercent?: true
+  defaultPenaltyFeePercentPerDay?: true
+  spouseName?: true
   status?: true
   activatedAt?: true
   createdAt?: true
@@ -102,8 +242,28 @@ export type LoanMaxAggregateInputType = {
   id?: true
   clientId?: true
   amount?: true
+  totalRepaidAmount?: true
+  outstandingBalance?: true
   purpose?: true
   comments?: true
+  interestRatePercentPerMonth?: true
+  termInMonths?: true
+  termStartDate?: true
+  termEndDate?: true
+  disbursementWithinDays?: true
+  collateralType?: true
+  collateralEstimatedValue?: true
+  collateralLocation?: true
+  repaymentInstallmentsCount?: true
+  repaymentAmountPerMonth?: true
+  repaymentPeriodMonths?: true
+  paymentDayOfMonth?: true
+  loanProcessingFeePercent?: true
+  administrativeFeePercent?: true
+  loanApplicationFeePercent?: true
+  earlyRepaymentFeePercent?: true
+  defaultPenaltyFeePercentPerDay?: true
+  spouseName?: true
   status?: true
   activatedAt?: true
   createdAt?: true
@@ -115,10 +275,30 @@ export type LoanCountAggregateInputType = {
   id?: true
   clientId?: true
   amount?: true
+  totalRepaidAmount?: true
+  outstandingBalance?: true
   purpose?: true
   repaymentTerms?: true
   guarantorInfo?: true
   comments?: true
+  interestRatePercentPerMonth?: true
+  termInMonths?: true
+  termStartDate?: true
+  termEndDate?: true
+  disbursementWithinDays?: true
+  collateralType?: true
+  collateralEstimatedValue?: true
+  collateralLocation?: true
+  repaymentInstallmentsCount?: true
+  repaymentAmountPerMonth?: true
+  repaymentPeriodMonths?: true
+  paymentDayOfMonth?: true
+  loanProcessingFeePercent?: true
+  administrativeFeePercent?: true
+  loanApplicationFeePercent?: true
+  earlyRepaymentFeePercent?: true
+  defaultPenaltyFeePercentPerDay?: true
+  spouseName?: true
   status?: true
   activatedAt?: true
   createdAt?: true
@@ -217,10 +397,30 @@ export type LoanGroupByOutputType = {
   id: string
   clientId: string
   amount: number
+  totalRepaidAmount: number
+  outstandingBalance: number
   purpose: string
   repaymentTerms: runtime.JsonValue
   guarantorInfo: runtime.JsonValue | null
   comments: string | null
+  interestRatePercentPerMonth: number
+  termInMonths: number
+  termStartDate: Date
+  termEndDate: Date
+  disbursementWithinDays: number
+  collateralType: string
+  collateralEstimatedValue: number
+  collateralLocation: string
+  repaymentInstallmentsCount: number
+  repaymentAmountPerMonth: number
+  repaymentPeriodMonths: number
+  paymentDayOfMonth: number
+  loanProcessingFeePercent: number
+  administrativeFeePercent: number
+  loanApplicationFeePercent: number
+  earlyRepaymentFeePercent: number
+  defaultPenaltyFeePercentPerDay: number
+  spouseName: string | null
   status: $Enums.LoanStatus
   activatedAt: Date | null
   createdAt: Date
@@ -255,10 +455,30 @@ export type LoanWhereInput = {
   id?: Prisma.StringFilter<"Loan"> | string
   clientId?: Prisma.StringFilter<"Loan"> | string
   amount?: Prisma.FloatFilter<"Loan"> | number
+  totalRepaidAmount?: Prisma.FloatFilter<"Loan"> | number
+  outstandingBalance?: Prisma.FloatFilter<"Loan"> | number
   purpose?: Prisma.StringFilter<"Loan"> | string
   repaymentTerms?: Prisma.JsonFilter<"Loan">
   guarantorInfo?: Prisma.JsonNullableFilter<"Loan">
   comments?: Prisma.StringNullableFilter<"Loan"> | string | null
+  interestRatePercentPerMonth?: Prisma.FloatFilter<"Loan"> | number
+  termInMonths?: Prisma.IntFilter<"Loan"> | number
+  termStartDate?: Prisma.DateTimeFilter<"Loan"> | Date | string
+  termEndDate?: Prisma.DateTimeFilter<"Loan"> | Date | string
+  disbursementWithinDays?: Prisma.IntFilter<"Loan"> | number
+  collateralType?: Prisma.StringFilter<"Loan"> | string
+  collateralEstimatedValue?: Prisma.FloatFilter<"Loan"> | number
+  collateralLocation?: Prisma.StringFilter<"Loan"> | string
+  repaymentInstallmentsCount?: Prisma.IntFilter<"Loan"> | number
+  repaymentAmountPerMonth?: Prisma.FloatFilter<"Loan"> | number
+  repaymentPeriodMonths?: Prisma.IntFilter<"Loan"> | number
+  paymentDayOfMonth?: Prisma.IntFilter<"Loan"> | number
+  loanProcessingFeePercent?: Prisma.FloatFilter<"Loan"> | number
+  administrativeFeePercent?: Prisma.FloatFilter<"Loan"> | number
+  loanApplicationFeePercent?: Prisma.FloatFilter<"Loan"> | number
+  earlyRepaymentFeePercent?: Prisma.FloatFilter<"Loan"> | number
+  defaultPenaltyFeePercentPerDay?: Prisma.FloatFilter<"Loan"> | number
+  spouseName?: Prisma.StringNullableFilter<"Loan"> | string | null
   status?: Prisma.EnumLoanStatusFilter<"Loan"> | $Enums.LoanStatus
   activatedAt?: Prisma.DateTimeNullableFilter<"Loan"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Loan"> | Date | string
@@ -274,10 +494,30 @@ export type LoanOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   clientId?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  totalRepaidAmount?: Prisma.SortOrder
+  outstandingBalance?: Prisma.SortOrder
   purpose?: Prisma.SortOrder
   repaymentTerms?: Prisma.SortOrder
   guarantorInfo?: Prisma.SortOrderInput | Prisma.SortOrder
   comments?: Prisma.SortOrderInput | Prisma.SortOrder
+  interestRatePercentPerMonth?: Prisma.SortOrder
+  termInMonths?: Prisma.SortOrder
+  termStartDate?: Prisma.SortOrder
+  termEndDate?: Prisma.SortOrder
+  disbursementWithinDays?: Prisma.SortOrder
+  collateralType?: Prisma.SortOrder
+  collateralEstimatedValue?: Prisma.SortOrder
+  collateralLocation?: Prisma.SortOrder
+  repaymentInstallmentsCount?: Prisma.SortOrder
+  repaymentAmountPerMonth?: Prisma.SortOrder
+  repaymentPeriodMonths?: Prisma.SortOrder
+  paymentDayOfMonth?: Prisma.SortOrder
+  loanProcessingFeePercent?: Prisma.SortOrder
+  administrativeFeePercent?: Prisma.SortOrder
+  loanApplicationFeePercent?: Prisma.SortOrder
+  earlyRepaymentFeePercent?: Prisma.SortOrder
+  defaultPenaltyFeePercentPerDay?: Prisma.SortOrder
+  spouseName?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   activatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -296,10 +536,30 @@ export type LoanWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.LoanWhereInput | Prisma.LoanWhereInput[]
   clientId?: Prisma.StringFilter<"Loan"> | string
   amount?: Prisma.FloatFilter<"Loan"> | number
+  totalRepaidAmount?: Prisma.FloatFilter<"Loan"> | number
+  outstandingBalance?: Prisma.FloatFilter<"Loan"> | number
   purpose?: Prisma.StringFilter<"Loan"> | string
   repaymentTerms?: Prisma.JsonFilter<"Loan">
   guarantorInfo?: Prisma.JsonNullableFilter<"Loan">
   comments?: Prisma.StringNullableFilter<"Loan"> | string | null
+  interestRatePercentPerMonth?: Prisma.FloatFilter<"Loan"> | number
+  termInMonths?: Prisma.IntFilter<"Loan"> | number
+  termStartDate?: Prisma.DateTimeFilter<"Loan"> | Date | string
+  termEndDate?: Prisma.DateTimeFilter<"Loan"> | Date | string
+  disbursementWithinDays?: Prisma.IntFilter<"Loan"> | number
+  collateralType?: Prisma.StringFilter<"Loan"> | string
+  collateralEstimatedValue?: Prisma.FloatFilter<"Loan"> | number
+  collateralLocation?: Prisma.StringFilter<"Loan"> | string
+  repaymentInstallmentsCount?: Prisma.IntFilter<"Loan"> | number
+  repaymentAmountPerMonth?: Prisma.FloatFilter<"Loan"> | number
+  repaymentPeriodMonths?: Prisma.IntFilter<"Loan"> | number
+  paymentDayOfMonth?: Prisma.IntFilter<"Loan"> | number
+  loanProcessingFeePercent?: Prisma.FloatFilter<"Loan"> | number
+  administrativeFeePercent?: Prisma.FloatFilter<"Loan"> | number
+  loanApplicationFeePercent?: Prisma.FloatFilter<"Loan"> | number
+  earlyRepaymentFeePercent?: Prisma.FloatFilter<"Loan"> | number
+  defaultPenaltyFeePercentPerDay?: Prisma.FloatFilter<"Loan"> | number
+  spouseName?: Prisma.StringNullableFilter<"Loan"> | string | null
   status?: Prisma.EnumLoanStatusFilter<"Loan"> | $Enums.LoanStatus
   activatedAt?: Prisma.DateTimeNullableFilter<"Loan"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Loan"> | Date | string
@@ -315,10 +575,30 @@ export type LoanOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   clientId?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  totalRepaidAmount?: Prisma.SortOrder
+  outstandingBalance?: Prisma.SortOrder
   purpose?: Prisma.SortOrder
   repaymentTerms?: Prisma.SortOrder
   guarantorInfo?: Prisma.SortOrderInput | Prisma.SortOrder
   comments?: Prisma.SortOrderInput | Prisma.SortOrder
+  interestRatePercentPerMonth?: Prisma.SortOrder
+  termInMonths?: Prisma.SortOrder
+  termStartDate?: Prisma.SortOrder
+  termEndDate?: Prisma.SortOrder
+  disbursementWithinDays?: Prisma.SortOrder
+  collateralType?: Prisma.SortOrder
+  collateralEstimatedValue?: Prisma.SortOrder
+  collateralLocation?: Prisma.SortOrder
+  repaymentInstallmentsCount?: Prisma.SortOrder
+  repaymentAmountPerMonth?: Prisma.SortOrder
+  repaymentPeriodMonths?: Prisma.SortOrder
+  paymentDayOfMonth?: Prisma.SortOrder
+  loanProcessingFeePercent?: Prisma.SortOrder
+  administrativeFeePercent?: Prisma.SortOrder
+  loanApplicationFeePercent?: Prisma.SortOrder
+  earlyRepaymentFeePercent?: Prisma.SortOrder
+  defaultPenaltyFeePercentPerDay?: Prisma.SortOrder
+  spouseName?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   activatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -338,10 +618,30 @@ export type LoanScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Loan"> | string
   clientId?: Prisma.StringWithAggregatesFilter<"Loan"> | string
   amount?: Prisma.FloatWithAggregatesFilter<"Loan"> | number
+  totalRepaidAmount?: Prisma.FloatWithAggregatesFilter<"Loan"> | number
+  outstandingBalance?: Prisma.FloatWithAggregatesFilter<"Loan"> | number
   purpose?: Prisma.StringWithAggregatesFilter<"Loan"> | string
   repaymentTerms?: Prisma.JsonWithAggregatesFilter<"Loan">
   guarantorInfo?: Prisma.JsonNullableWithAggregatesFilter<"Loan">
   comments?: Prisma.StringNullableWithAggregatesFilter<"Loan"> | string | null
+  interestRatePercentPerMonth?: Prisma.FloatWithAggregatesFilter<"Loan"> | number
+  termInMonths?: Prisma.IntWithAggregatesFilter<"Loan"> | number
+  termStartDate?: Prisma.DateTimeWithAggregatesFilter<"Loan"> | Date | string
+  termEndDate?: Prisma.DateTimeWithAggregatesFilter<"Loan"> | Date | string
+  disbursementWithinDays?: Prisma.IntWithAggregatesFilter<"Loan"> | number
+  collateralType?: Prisma.StringWithAggregatesFilter<"Loan"> | string
+  collateralEstimatedValue?: Prisma.FloatWithAggregatesFilter<"Loan"> | number
+  collateralLocation?: Prisma.StringWithAggregatesFilter<"Loan"> | string
+  repaymentInstallmentsCount?: Prisma.IntWithAggregatesFilter<"Loan"> | number
+  repaymentAmountPerMonth?: Prisma.FloatWithAggregatesFilter<"Loan"> | number
+  repaymentPeriodMonths?: Prisma.IntWithAggregatesFilter<"Loan"> | number
+  paymentDayOfMonth?: Prisma.IntWithAggregatesFilter<"Loan"> | number
+  loanProcessingFeePercent?: Prisma.FloatWithAggregatesFilter<"Loan"> | number
+  administrativeFeePercent?: Prisma.FloatWithAggregatesFilter<"Loan"> | number
+  loanApplicationFeePercent?: Prisma.FloatWithAggregatesFilter<"Loan"> | number
+  earlyRepaymentFeePercent?: Prisma.FloatWithAggregatesFilter<"Loan"> | number
+  defaultPenaltyFeePercentPerDay?: Prisma.FloatWithAggregatesFilter<"Loan"> | number
+  spouseName?: Prisma.StringNullableWithAggregatesFilter<"Loan"> | string | null
   status?: Prisma.EnumLoanStatusWithAggregatesFilter<"Loan"> | $Enums.LoanStatus
   activatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Loan"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Loan"> | Date | string
@@ -352,10 +652,30 @@ export type LoanScalarWhereWithAggregatesInput = {
 export type LoanCreateInput = {
   id?: string
   amount: number
+  totalRepaidAmount?: number
+  outstandingBalance: number
   purpose: string
   repaymentTerms: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guarantorInfo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   comments?: string | null
+  interestRatePercentPerMonth: number
+  termInMonths: number
+  termStartDate: Date | string
+  termEndDate: Date | string
+  disbursementWithinDays: number
+  collateralType: string
+  collateralEstimatedValue: number
+  collateralLocation: string
+  repaymentInstallmentsCount: number
+  repaymentAmountPerMonth: number
+  repaymentPeriodMonths: number
+  paymentDayOfMonth: number
+  loanProcessingFeePercent: number
+  administrativeFeePercent: number
+  loanApplicationFeePercent: number
+  earlyRepaymentFeePercent: number
+  defaultPenaltyFeePercentPerDay: number
+  spouseName?: string | null
   status?: $Enums.LoanStatus
   activatedAt?: Date | string | null
   createdAt?: Date | string
@@ -370,10 +690,30 @@ export type LoanUncheckedCreateInput = {
   id?: string
   clientId: string
   amount: number
+  totalRepaidAmount?: number
+  outstandingBalance: number
   purpose: string
   repaymentTerms: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guarantorInfo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   comments?: string | null
+  interestRatePercentPerMonth: number
+  termInMonths: number
+  termStartDate: Date | string
+  termEndDate: Date | string
+  disbursementWithinDays: number
+  collateralType: string
+  collateralEstimatedValue: number
+  collateralLocation: string
+  repaymentInstallmentsCount: number
+  repaymentAmountPerMonth: number
+  repaymentPeriodMonths: number
+  paymentDayOfMonth: number
+  loanProcessingFeePercent: number
+  administrativeFeePercent: number
+  loanApplicationFeePercent: number
+  earlyRepaymentFeePercent: number
+  defaultPenaltyFeePercentPerDay: number
+  spouseName?: string | null
   status?: $Enums.LoanStatus
   activatedAt?: Date | string | null
   createdAt?: Date | string
@@ -386,10 +726,30 @@ export type LoanUncheckedCreateInput = {
 export type LoanUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalRepaidAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  outstandingBalance?: Prisma.FloatFieldUpdateOperationsInput | number
   purpose?: Prisma.StringFieldUpdateOperationsInput | string
   repaymentTerms?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guarantorInfo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   comments?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  interestRatePercentPerMonth?: Prisma.FloatFieldUpdateOperationsInput | number
+  termInMonths?: Prisma.IntFieldUpdateOperationsInput | number
+  termStartDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  termEndDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  disbursementWithinDays?: Prisma.IntFieldUpdateOperationsInput | number
+  collateralType?: Prisma.StringFieldUpdateOperationsInput | string
+  collateralEstimatedValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  collateralLocation?: Prisma.StringFieldUpdateOperationsInput | string
+  repaymentInstallmentsCount?: Prisma.IntFieldUpdateOperationsInput | number
+  repaymentAmountPerMonth?: Prisma.FloatFieldUpdateOperationsInput | number
+  repaymentPeriodMonths?: Prisma.IntFieldUpdateOperationsInput | number
+  paymentDayOfMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  loanProcessingFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  administrativeFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  loanApplicationFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  earlyRepaymentFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  defaultPenaltyFeePercentPerDay?: Prisma.FloatFieldUpdateOperationsInput | number
+  spouseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -404,10 +764,30 @@ export type LoanUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalRepaidAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  outstandingBalance?: Prisma.FloatFieldUpdateOperationsInput | number
   purpose?: Prisma.StringFieldUpdateOperationsInput | string
   repaymentTerms?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guarantorInfo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   comments?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  interestRatePercentPerMonth?: Prisma.FloatFieldUpdateOperationsInput | number
+  termInMonths?: Prisma.IntFieldUpdateOperationsInput | number
+  termStartDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  termEndDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  disbursementWithinDays?: Prisma.IntFieldUpdateOperationsInput | number
+  collateralType?: Prisma.StringFieldUpdateOperationsInput | string
+  collateralEstimatedValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  collateralLocation?: Prisma.StringFieldUpdateOperationsInput | string
+  repaymentInstallmentsCount?: Prisma.IntFieldUpdateOperationsInput | number
+  repaymentAmountPerMonth?: Prisma.FloatFieldUpdateOperationsInput | number
+  repaymentPeriodMonths?: Prisma.IntFieldUpdateOperationsInput | number
+  paymentDayOfMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  loanProcessingFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  administrativeFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  loanApplicationFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  earlyRepaymentFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  defaultPenaltyFeePercentPerDay?: Prisma.FloatFieldUpdateOperationsInput | number
+  spouseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -421,10 +801,30 @@ export type LoanCreateManyInput = {
   id?: string
   clientId: string
   amount: number
+  totalRepaidAmount?: number
+  outstandingBalance: number
   purpose: string
   repaymentTerms: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guarantorInfo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   comments?: string | null
+  interestRatePercentPerMonth: number
+  termInMonths: number
+  termStartDate: Date | string
+  termEndDate: Date | string
+  disbursementWithinDays: number
+  collateralType: string
+  collateralEstimatedValue: number
+  collateralLocation: string
+  repaymentInstallmentsCount: number
+  repaymentAmountPerMonth: number
+  repaymentPeriodMonths: number
+  paymentDayOfMonth: number
+  loanProcessingFeePercent: number
+  administrativeFeePercent: number
+  loanApplicationFeePercent: number
+  earlyRepaymentFeePercent: number
+  defaultPenaltyFeePercentPerDay: number
+  spouseName?: string | null
   status?: $Enums.LoanStatus
   activatedAt?: Date | string | null
   createdAt?: Date | string
@@ -435,10 +835,30 @@ export type LoanCreateManyInput = {
 export type LoanUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalRepaidAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  outstandingBalance?: Prisma.FloatFieldUpdateOperationsInput | number
   purpose?: Prisma.StringFieldUpdateOperationsInput | string
   repaymentTerms?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guarantorInfo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   comments?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  interestRatePercentPerMonth?: Prisma.FloatFieldUpdateOperationsInput | number
+  termInMonths?: Prisma.IntFieldUpdateOperationsInput | number
+  termStartDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  termEndDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  disbursementWithinDays?: Prisma.IntFieldUpdateOperationsInput | number
+  collateralType?: Prisma.StringFieldUpdateOperationsInput | string
+  collateralEstimatedValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  collateralLocation?: Prisma.StringFieldUpdateOperationsInput | string
+  repaymentInstallmentsCount?: Prisma.IntFieldUpdateOperationsInput | number
+  repaymentAmountPerMonth?: Prisma.FloatFieldUpdateOperationsInput | number
+  repaymentPeriodMonths?: Prisma.IntFieldUpdateOperationsInput | number
+  paymentDayOfMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  loanProcessingFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  administrativeFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  loanApplicationFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  earlyRepaymentFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  defaultPenaltyFeePercentPerDay?: Prisma.FloatFieldUpdateOperationsInput | number
+  spouseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -449,10 +869,30 @@ export type LoanUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalRepaidAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  outstandingBalance?: Prisma.FloatFieldUpdateOperationsInput | number
   purpose?: Prisma.StringFieldUpdateOperationsInput | string
   repaymentTerms?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guarantorInfo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   comments?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  interestRatePercentPerMonth?: Prisma.FloatFieldUpdateOperationsInput | number
+  termInMonths?: Prisma.IntFieldUpdateOperationsInput | number
+  termStartDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  termEndDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  disbursementWithinDays?: Prisma.IntFieldUpdateOperationsInput | number
+  collateralType?: Prisma.StringFieldUpdateOperationsInput | string
+  collateralEstimatedValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  collateralLocation?: Prisma.StringFieldUpdateOperationsInput | string
+  repaymentInstallmentsCount?: Prisma.IntFieldUpdateOperationsInput | number
+  repaymentAmountPerMonth?: Prisma.FloatFieldUpdateOperationsInput | number
+  repaymentPeriodMonths?: Prisma.IntFieldUpdateOperationsInput | number
+  paymentDayOfMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  loanProcessingFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  administrativeFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  loanApplicationFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  earlyRepaymentFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  defaultPenaltyFeePercentPerDay?: Prisma.FloatFieldUpdateOperationsInput | number
+  spouseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -474,10 +914,30 @@ export type LoanCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   clientId?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  totalRepaidAmount?: Prisma.SortOrder
+  outstandingBalance?: Prisma.SortOrder
   purpose?: Prisma.SortOrder
   repaymentTerms?: Prisma.SortOrder
   guarantorInfo?: Prisma.SortOrder
   comments?: Prisma.SortOrder
+  interestRatePercentPerMonth?: Prisma.SortOrder
+  termInMonths?: Prisma.SortOrder
+  termStartDate?: Prisma.SortOrder
+  termEndDate?: Prisma.SortOrder
+  disbursementWithinDays?: Prisma.SortOrder
+  collateralType?: Prisma.SortOrder
+  collateralEstimatedValue?: Prisma.SortOrder
+  collateralLocation?: Prisma.SortOrder
+  repaymentInstallmentsCount?: Prisma.SortOrder
+  repaymentAmountPerMonth?: Prisma.SortOrder
+  repaymentPeriodMonths?: Prisma.SortOrder
+  paymentDayOfMonth?: Prisma.SortOrder
+  loanProcessingFeePercent?: Prisma.SortOrder
+  administrativeFeePercent?: Prisma.SortOrder
+  loanApplicationFeePercent?: Prisma.SortOrder
+  earlyRepaymentFeePercent?: Prisma.SortOrder
+  defaultPenaltyFeePercentPerDay?: Prisma.SortOrder
+  spouseName?: Prisma.SortOrder
   status?: Prisma.SortOrder
   activatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -487,14 +947,49 @@ export type LoanCountOrderByAggregateInput = {
 
 export type LoanAvgOrderByAggregateInput = {
   amount?: Prisma.SortOrder
+  totalRepaidAmount?: Prisma.SortOrder
+  outstandingBalance?: Prisma.SortOrder
+  interestRatePercentPerMonth?: Prisma.SortOrder
+  termInMonths?: Prisma.SortOrder
+  disbursementWithinDays?: Prisma.SortOrder
+  collateralEstimatedValue?: Prisma.SortOrder
+  repaymentInstallmentsCount?: Prisma.SortOrder
+  repaymentAmountPerMonth?: Prisma.SortOrder
+  repaymentPeriodMonths?: Prisma.SortOrder
+  paymentDayOfMonth?: Prisma.SortOrder
+  loanProcessingFeePercent?: Prisma.SortOrder
+  administrativeFeePercent?: Prisma.SortOrder
+  loanApplicationFeePercent?: Prisma.SortOrder
+  earlyRepaymentFeePercent?: Prisma.SortOrder
+  defaultPenaltyFeePercentPerDay?: Prisma.SortOrder
 }
 
 export type LoanMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   clientId?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  totalRepaidAmount?: Prisma.SortOrder
+  outstandingBalance?: Prisma.SortOrder
   purpose?: Prisma.SortOrder
   comments?: Prisma.SortOrder
+  interestRatePercentPerMonth?: Prisma.SortOrder
+  termInMonths?: Prisma.SortOrder
+  termStartDate?: Prisma.SortOrder
+  termEndDate?: Prisma.SortOrder
+  disbursementWithinDays?: Prisma.SortOrder
+  collateralType?: Prisma.SortOrder
+  collateralEstimatedValue?: Prisma.SortOrder
+  collateralLocation?: Prisma.SortOrder
+  repaymentInstallmentsCount?: Prisma.SortOrder
+  repaymentAmountPerMonth?: Prisma.SortOrder
+  repaymentPeriodMonths?: Prisma.SortOrder
+  paymentDayOfMonth?: Prisma.SortOrder
+  loanProcessingFeePercent?: Prisma.SortOrder
+  administrativeFeePercent?: Prisma.SortOrder
+  loanApplicationFeePercent?: Prisma.SortOrder
+  earlyRepaymentFeePercent?: Prisma.SortOrder
+  defaultPenaltyFeePercentPerDay?: Prisma.SortOrder
+  spouseName?: Prisma.SortOrder
   status?: Prisma.SortOrder
   activatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -506,8 +1001,28 @@ export type LoanMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   clientId?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  totalRepaidAmount?: Prisma.SortOrder
+  outstandingBalance?: Prisma.SortOrder
   purpose?: Prisma.SortOrder
   comments?: Prisma.SortOrder
+  interestRatePercentPerMonth?: Prisma.SortOrder
+  termInMonths?: Prisma.SortOrder
+  termStartDate?: Prisma.SortOrder
+  termEndDate?: Prisma.SortOrder
+  disbursementWithinDays?: Prisma.SortOrder
+  collateralType?: Prisma.SortOrder
+  collateralEstimatedValue?: Prisma.SortOrder
+  collateralLocation?: Prisma.SortOrder
+  repaymentInstallmentsCount?: Prisma.SortOrder
+  repaymentAmountPerMonth?: Prisma.SortOrder
+  repaymentPeriodMonths?: Prisma.SortOrder
+  paymentDayOfMonth?: Prisma.SortOrder
+  loanProcessingFeePercent?: Prisma.SortOrder
+  administrativeFeePercent?: Prisma.SortOrder
+  loanApplicationFeePercent?: Prisma.SortOrder
+  earlyRepaymentFeePercent?: Prisma.SortOrder
+  defaultPenaltyFeePercentPerDay?: Prisma.SortOrder
+  spouseName?: Prisma.SortOrder
   status?: Prisma.SortOrder
   activatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -517,6 +1032,21 @@ export type LoanMinOrderByAggregateInput = {
 
 export type LoanSumOrderByAggregateInput = {
   amount?: Prisma.SortOrder
+  totalRepaidAmount?: Prisma.SortOrder
+  outstandingBalance?: Prisma.SortOrder
+  interestRatePercentPerMonth?: Prisma.SortOrder
+  termInMonths?: Prisma.SortOrder
+  disbursementWithinDays?: Prisma.SortOrder
+  collateralEstimatedValue?: Prisma.SortOrder
+  repaymentInstallmentsCount?: Prisma.SortOrder
+  repaymentAmountPerMonth?: Prisma.SortOrder
+  repaymentPeriodMonths?: Prisma.SortOrder
+  paymentDayOfMonth?: Prisma.SortOrder
+  loanProcessingFeePercent?: Prisma.SortOrder
+  administrativeFeePercent?: Prisma.SortOrder
+  loanApplicationFeePercent?: Prisma.SortOrder
+  earlyRepaymentFeePercent?: Prisma.SortOrder
+  defaultPenaltyFeePercentPerDay?: Prisma.SortOrder
 }
 
 export type LoanScalarRelationFilter = {
@@ -616,6 +1146,14 @@ export type FloatFieldUpdateOperationsInput = {
   divide?: number
 }
 
+export type IntFieldUpdateOperationsInput = {
+  set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
 export type EnumLoanStatusFieldUpdateOperationsInput = {
   set?: $Enums.LoanStatus
 }
@@ -651,10 +1189,30 @@ export type LoanUpdateOneRequiredWithoutRepaymentsNestedInput = {
 export type LoanCreateWithoutUserInput = {
   id?: string
   amount: number
+  totalRepaidAmount?: number
+  outstandingBalance: number
   purpose: string
   repaymentTerms: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guarantorInfo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   comments?: string | null
+  interestRatePercentPerMonth: number
+  termInMonths: number
+  termStartDate: Date | string
+  termEndDate: Date | string
+  disbursementWithinDays: number
+  collateralType: string
+  collateralEstimatedValue: number
+  collateralLocation: string
+  repaymentInstallmentsCount: number
+  repaymentAmountPerMonth: number
+  repaymentPeriodMonths: number
+  paymentDayOfMonth: number
+  loanProcessingFeePercent: number
+  administrativeFeePercent: number
+  loanApplicationFeePercent: number
+  earlyRepaymentFeePercent: number
+  defaultPenaltyFeePercentPerDay: number
+  spouseName?: string | null
   status?: $Enums.LoanStatus
   activatedAt?: Date | string | null
   createdAt?: Date | string
@@ -668,10 +1226,30 @@ export type LoanUncheckedCreateWithoutUserInput = {
   id?: string
   clientId: string
   amount: number
+  totalRepaidAmount?: number
+  outstandingBalance: number
   purpose: string
   repaymentTerms: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guarantorInfo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   comments?: string | null
+  interestRatePercentPerMonth: number
+  termInMonths: number
+  termStartDate: Date | string
+  termEndDate: Date | string
+  disbursementWithinDays: number
+  collateralType: string
+  collateralEstimatedValue: number
+  collateralLocation: string
+  repaymentInstallmentsCount: number
+  repaymentAmountPerMonth: number
+  repaymentPeriodMonths: number
+  paymentDayOfMonth: number
+  loanProcessingFeePercent: number
+  administrativeFeePercent: number
+  loanApplicationFeePercent: number
+  earlyRepaymentFeePercent: number
+  defaultPenaltyFeePercentPerDay: number
+  spouseName?: string | null
   status?: $Enums.LoanStatus
   activatedAt?: Date | string | null
   createdAt?: Date | string
@@ -713,10 +1291,30 @@ export type LoanScalarWhereInput = {
   id?: Prisma.StringFilter<"Loan"> | string
   clientId?: Prisma.StringFilter<"Loan"> | string
   amount?: Prisma.FloatFilter<"Loan"> | number
+  totalRepaidAmount?: Prisma.FloatFilter<"Loan"> | number
+  outstandingBalance?: Prisma.FloatFilter<"Loan"> | number
   purpose?: Prisma.StringFilter<"Loan"> | string
   repaymentTerms?: Prisma.JsonFilter<"Loan">
   guarantorInfo?: Prisma.JsonNullableFilter<"Loan">
   comments?: Prisma.StringNullableFilter<"Loan"> | string | null
+  interestRatePercentPerMonth?: Prisma.FloatFilter<"Loan"> | number
+  termInMonths?: Prisma.IntFilter<"Loan"> | number
+  termStartDate?: Prisma.DateTimeFilter<"Loan"> | Date | string
+  termEndDate?: Prisma.DateTimeFilter<"Loan"> | Date | string
+  disbursementWithinDays?: Prisma.IntFilter<"Loan"> | number
+  collateralType?: Prisma.StringFilter<"Loan"> | string
+  collateralEstimatedValue?: Prisma.FloatFilter<"Loan"> | number
+  collateralLocation?: Prisma.StringFilter<"Loan"> | string
+  repaymentInstallmentsCount?: Prisma.IntFilter<"Loan"> | number
+  repaymentAmountPerMonth?: Prisma.FloatFilter<"Loan"> | number
+  repaymentPeriodMonths?: Prisma.IntFilter<"Loan"> | number
+  paymentDayOfMonth?: Prisma.IntFilter<"Loan"> | number
+  loanProcessingFeePercent?: Prisma.FloatFilter<"Loan"> | number
+  administrativeFeePercent?: Prisma.FloatFilter<"Loan"> | number
+  loanApplicationFeePercent?: Prisma.FloatFilter<"Loan"> | number
+  earlyRepaymentFeePercent?: Prisma.FloatFilter<"Loan"> | number
+  defaultPenaltyFeePercentPerDay?: Prisma.FloatFilter<"Loan"> | number
+  spouseName?: Prisma.StringNullableFilter<"Loan"> | string | null
   status?: Prisma.EnumLoanStatusFilter<"Loan"> | $Enums.LoanStatus
   activatedAt?: Prisma.DateTimeNullableFilter<"Loan"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Loan"> | Date | string
@@ -727,10 +1325,30 @@ export type LoanScalarWhereInput = {
 export type LoanCreateWithoutClientInput = {
   id?: string
   amount: number
+  totalRepaidAmount?: number
+  outstandingBalance: number
   purpose: string
   repaymentTerms: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guarantorInfo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   comments?: string | null
+  interestRatePercentPerMonth: number
+  termInMonths: number
+  termStartDate: Date | string
+  termEndDate: Date | string
+  disbursementWithinDays: number
+  collateralType: string
+  collateralEstimatedValue: number
+  collateralLocation: string
+  repaymentInstallmentsCount: number
+  repaymentAmountPerMonth: number
+  repaymentPeriodMonths: number
+  paymentDayOfMonth: number
+  loanProcessingFeePercent: number
+  administrativeFeePercent: number
+  loanApplicationFeePercent: number
+  earlyRepaymentFeePercent: number
+  defaultPenaltyFeePercentPerDay: number
+  spouseName?: string | null
   status?: $Enums.LoanStatus
   activatedAt?: Date | string | null
   createdAt?: Date | string
@@ -743,10 +1361,30 @@ export type LoanCreateWithoutClientInput = {
 export type LoanUncheckedCreateWithoutClientInput = {
   id?: string
   amount: number
+  totalRepaidAmount?: number
+  outstandingBalance: number
   purpose: string
   repaymentTerms: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guarantorInfo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   comments?: string | null
+  interestRatePercentPerMonth: number
+  termInMonths: number
+  termStartDate: Date | string
+  termEndDate: Date | string
+  disbursementWithinDays: number
+  collateralType: string
+  collateralEstimatedValue: number
+  collateralLocation: string
+  repaymentInstallmentsCount: number
+  repaymentAmountPerMonth: number
+  repaymentPeriodMonths: number
+  paymentDayOfMonth: number
+  loanProcessingFeePercent: number
+  administrativeFeePercent: number
+  loanApplicationFeePercent: number
+  earlyRepaymentFeePercent: number
+  defaultPenaltyFeePercentPerDay: number
+  spouseName?: string | null
   status?: $Enums.LoanStatus
   activatedAt?: Date | string | null
   createdAt?: Date | string
@@ -785,10 +1423,30 @@ export type LoanUpdateManyWithWhereWithoutClientInput = {
 export type LoanCreateWithoutStatusLogsInput = {
   id?: string
   amount: number
+  totalRepaidAmount?: number
+  outstandingBalance: number
   purpose: string
   repaymentTerms: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guarantorInfo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   comments?: string | null
+  interestRatePercentPerMonth: number
+  termInMonths: number
+  termStartDate: Date | string
+  termEndDate: Date | string
+  disbursementWithinDays: number
+  collateralType: string
+  collateralEstimatedValue: number
+  collateralLocation: string
+  repaymentInstallmentsCount: number
+  repaymentAmountPerMonth: number
+  repaymentPeriodMonths: number
+  paymentDayOfMonth: number
+  loanProcessingFeePercent: number
+  administrativeFeePercent: number
+  loanApplicationFeePercent: number
+  earlyRepaymentFeePercent: number
+  defaultPenaltyFeePercentPerDay: number
+  spouseName?: string | null
   status?: $Enums.LoanStatus
   activatedAt?: Date | string | null
   createdAt?: Date | string
@@ -802,10 +1460,30 @@ export type LoanUncheckedCreateWithoutStatusLogsInput = {
   id?: string
   clientId: string
   amount: number
+  totalRepaidAmount?: number
+  outstandingBalance: number
   purpose: string
   repaymentTerms: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guarantorInfo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   comments?: string | null
+  interestRatePercentPerMonth: number
+  termInMonths: number
+  termStartDate: Date | string
+  termEndDate: Date | string
+  disbursementWithinDays: number
+  collateralType: string
+  collateralEstimatedValue: number
+  collateralLocation: string
+  repaymentInstallmentsCount: number
+  repaymentAmountPerMonth: number
+  repaymentPeriodMonths: number
+  paymentDayOfMonth: number
+  loanProcessingFeePercent: number
+  administrativeFeePercent: number
+  loanApplicationFeePercent: number
+  earlyRepaymentFeePercent: number
+  defaultPenaltyFeePercentPerDay: number
+  spouseName?: string | null
   status?: $Enums.LoanStatus
   activatedAt?: Date | string | null
   createdAt?: Date | string
@@ -833,10 +1511,30 @@ export type LoanUpdateToOneWithWhereWithoutStatusLogsInput = {
 export type LoanUpdateWithoutStatusLogsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalRepaidAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  outstandingBalance?: Prisma.FloatFieldUpdateOperationsInput | number
   purpose?: Prisma.StringFieldUpdateOperationsInput | string
   repaymentTerms?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guarantorInfo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   comments?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  interestRatePercentPerMonth?: Prisma.FloatFieldUpdateOperationsInput | number
+  termInMonths?: Prisma.IntFieldUpdateOperationsInput | number
+  termStartDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  termEndDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  disbursementWithinDays?: Prisma.IntFieldUpdateOperationsInput | number
+  collateralType?: Prisma.StringFieldUpdateOperationsInput | string
+  collateralEstimatedValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  collateralLocation?: Prisma.StringFieldUpdateOperationsInput | string
+  repaymentInstallmentsCount?: Prisma.IntFieldUpdateOperationsInput | number
+  repaymentAmountPerMonth?: Prisma.FloatFieldUpdateOperationsInput | number
+  repaymentPeriodMonths?: Prisma.IntFieldUpdateOperationsInput | number
+  paymentDayOfMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  loanProcessingFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  administrativeFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  loanApplicationFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  earlyRepaymentFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  defaultPenaltyFeePercentPerDay?: Prisma.FloatFieldUpdateOperationsInput | number
+  spouseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -850,10 +1548,30 @@ export type LoanUncheckedUpdateWithoutStatusLogsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalRepaidAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  outstandingBalance?: Prisma.FloatFieldUpdateOperationsInput | number
   purpose?: Prisma.StringFieldUpdateOperationsInput | string
   repaymentTerms?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guarantorInfo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   comments?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  interestRatePercentPerMonth?: Prisma.FloatFieldUpdateOperationsInput | number
+  termInMonths?: Prisma.IntFieldUpdateOperationsInput | number
+  termStartDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  termEndDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  disbursementWithinDays?: Prisma.IntFieldUpdateOperationsInput | number
+  collateralType?: Prisma.StringFieldUpdateOperationsInput | string
+  collateralEstimatedValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  collateralLocation?: Prisma.StringFieldUpdateOperationsInput | string
+  repaymentInstallmentsCount?: Prisma.IntFieldUpdateOperationsInput | number
+  repaymentAmountPerMonth?: Prisma.FloatFieldUpdateOperationsInput | number
+  repaymentPeriodMonths?: Prisma.IntFieldUpdateOperationsInput | number
+  paymentDayOfMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  loanProcessingFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  administrativeFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  loanApplicationFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  earlyRepaymentFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  defaultPenaltyFeePercentPerDay?: Prisma.FloatFieldUpdateOperationsInput | number
+  spouseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -865,10 +1583,30 @@ export type LoanUncheckedUpdateWithoutStatusLogsInput = {
 export type LoanCreateWithoutRepaymentsInput = {
   id?: string
   amount: number
+  totalRepaidAmount?: number
+  outstandingBalance: number
   purpose: string
   repaymentTerms: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guarantorInfo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   comments?: string | null
+  interestRatePercentPerMonth: number
+  termInMonths: number
+  termStartDate: Date | string
+  termEndDate: Date | string
+  disbursementWithinDays: number
+  collateralType: string
+  collateralEstimatedValue: number
+  collateralLocation: string
+  repaymentInstallmentsCount: number
+  repaymentAmountPerMonth: number
+  repaymentPeriodMonths: number
+  paymentDayOfMonth: number
+  loanProcessingFeePercent: number
+  administrativeFeePercent: number
+  loanApplicationFeePercent: number
+  earlyRepaymentFeePercent: number
+  defaultPenaltyFeePercentPerDay: number
+  spouseName?: string | null
   status?: $Enums.LoanStatus
   activatedAt?: Date | string | null
   createdAt?: Date | string
@@ -882,10 +1620,30 @@ export type LoanUncheckedCreateWithoutRepaymentsInput = {
   id?: string
   clientId: string
   amount: number
+  totalRepaidAmount?: number
+  outstandingBalance: number
   purpose: string
   repaymentTerms: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guarantorInfo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   comments?: string | null
+  interestRatePercentPerMonth: number
+  termInMonths: number
+  termStartDate: Date | string
+  termEndDate: Date | string
+  disbursementWithinDays: number
+  collateralType: string
+  collateralEstimatedValue: number
+  collateralLocation: string
+  repaymentInstallmentsCount: number
+  repaymentAmountPerMonth: number
+  repaymentPeriodMonths: number
+  paymentDayOfMonth: number
+  loanProcessingFeePercent: number
+  administrativeFeePercent: number
+  loanApplicationFeePercent: number
+  earlyRepaymentFeePercent: number
+  defaultPenaltyFeePercentPerDay: number
+  spouseName?: string | null
   status?: $Enums.LoanStatus
   activatedAt?: Date | string | null
   createdAt?: Date | string
@@ -913,10 +1671,30 @@ export type LoanUpdateToOneWithWhereWithoutRepaymentsInput = {
 export type LoanUpdateWithoutRepaymentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalRepaidAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  outstandingBalance?: Prisma.FloatFieldUpdateOperationsInput | number
   purpose?: Prisma.StringFieldUpdateOperationsInput | string
   repaymentTerms?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guarantorInfo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   comments?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  interestRatePercentPerMonth?: Prisma.FloatFieldUpdateOperationsInput | number
+  termInMonths?: Prisma.IntFieldUpdateOperationsInput | number
+  termStartDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  termEndDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  disbursementWithinDays?: Prisma.IntFieldUpdateOperationsInput | number
+  collateralType?: Prisma.StringFieldUpdateOperationsInput | string
+  collateralEstimatedValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  collateralLocation?: Prisma.StringFieldUpdateOperationsInput | string
+  repaymentInstallmentsCount?: Prisma.IntFieldUpdateOperationsInput | number
+  repaymentAmountPerMonth?: Prisma.FloatFieldUpdateOperationsInput | number
+  repaymentPeriodMonths?: Prisma.IntFieldUpdateOperationsInput | number
+  paymentDayOfMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  loanProcessingFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  administrativeFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  loanApplicationFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  earlyRepaymentFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  defaultPenaltyFeePercentPerDay?: Prisma.FloatFieldUpdateOperationsInput | number
+  spouseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -930,10 +1708,30 @@ export type LoanUncheckedUpdateWithoutRepaymentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalRepaidAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  outstandingBalance?: Prisma.FloatFieldUpdateOperationsInput | number
   purpose?: Prisma.StringFieldUpdateOperationsInput | string
   repaymentTerms?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guarantorInfo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   comments?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  interestRatePercentPerMonth?: Prisma.FloatFieldUpdateOperationsInput | number
+  termInMonths?: Prisma.IntFieldUpdateOperationsInput | number
+  termStartDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  termEndDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  disbursementWithinDays?: Prisma.IntFieldUpdateOperationsInput | number
+  collateralType?: Prisma.StringFieldUpdateOperationsInput | string
+  collateralEstimatedValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  collateralLocation?: Prisma.StringFieldUpdateOperationsInput | string
+  repaymentInstallmentsCount?: Prisma.IntFieldUpdateOperationsInput | number
+  repaymentAmountPerMonth?: Prisma.FloatFieldUpdateOperationsInput | number
+  repaymentPeriodMonths?: Prisma.IntFieldUpdateOperationsInput | number
+  paymentDayOfMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  loanProcessingFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  administrativeFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  loanApplicationFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  earlyRepaymentFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  defaultPenaltyFeePercentPerDay?: Prisma.FloatFieldUpdateOperationsInput | number
+  spouseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -946,10 +1744,30 @@ export type LoanCreateManyUserInput = {
   id?: string
   clientId: string
   amount: number
+  totalRepaidAmount?: number
+  outstandingBalance: number
   purpose: string
   repaymentTerms: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guarantorInfo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   comments?: string | null
+  interestRatePercentPerMonth: number
+  termInMonths: number
+  termStartDate: Date | string
+  termEndDate: Date | string
+  disbursementWithinDays: number
+  collateralType: string
+  collateralEstimatedValue: number
+  collateralLocation: string
+  repaymentInstallmentsCount: number
+  repaymentAmountPerMonth: number
+  repaymentPeriodMonths: number
+  paymentDayOfMonth: number
+  loanProcessingFeePercent: number
+  administrativeFeePercent: number
+  loanApplicationFeePercent: number
+  earlyRepaymentFeePercent: number
+  defaultPenaltyFeePercentPerDay: number
+  spouseName?: string | null
   status?: $Enums.LoanStatus
   activatedAt?: Date | string | null
   createdAt?: Date | string
@@ -959,10 +1777,30 @@ export type LoanCreateManyUserInput = {
 export type LoanUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalRepaidAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  outstandingBalance?: Prisma.FloatFieldUpdateOperationsInput | number
   purpose?: Prisma.StringFieldUpdateOperationsInput | string
   repaymentTerms?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guarantorInfo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   comments?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  interestRatePercentPerMonth?: Prisma.FloatFieldUpdateOperationsInput | number
+  termInMonths?: Prisma.IntFieldUpdateOperationsInput | number
+  termStartDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  termEndDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  disbursementWithinDays?: Prisma.IntFieldUpdateOperationsInput | number
+  collateralType?: Prisma.StringFieldUpdateOperationsInput | string
+  collateralEstimatedValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  collateralLocation?: Prisma.StringFieldUpdateOperationsInput | string
+  repaymentInstallmentsCount?: Prisma.IntFieldUpdateOperationsInput | number
+  repaymentAmountPerMonth?: Prisma.FloatFieldUpdateOperationsInput | number
+  repaymentPeriodMonths?: Prisma.IntFieldUpdateOperationsInput | number
+  paymentDayOfMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  loanProcessingFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  administrativeFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  loanApplicationFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  earlyRepaymentFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  defaultPenaltyFeePercentPerDay?: Prisma.FloatFieldUpdateOperationsInput | number
+  spouseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -976,10 +1814,30 @@ export type LoanUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalRepaidAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  outstandingBalance?: Prisma.FloatFieldUpdateOperationsInput | number
   purpose?: Prisma.StringFieldUpdateOperationsInput | string
   repaymentTerms?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guarantorInfo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   comments?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  interestRatePercentPerMonth?: Prisma.FloatFieldUpdateOperationsInput | number
+  termInMonths?: Prisma.IntFieldUpdateOperationsInput | number
+  termStartDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  termEndDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  disbursementWithinDays?: Prisma.IntFieldUpdateOperationsInput | number
+  collateralType?: Prisma.StringFieldUpdateOperationsInput | string
+  collateralEstimatedValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  collateralLocation?: Prisma.StringFieldUpdateOperationsInput | string
+  repaymentInstallmentsCount?: Prisma.IntFieldUpdateOperationsInput | number
+  repaymentAmountPerMonth?: Prisma.FloatFieldUpdateOperationsInput | number
+  repaymentPeriodMonths?: Prisma.IntFieldUpdateOperationsInput | number
+  paymentDayOfMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  loanProcessingFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  administrativeFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  loanApplicationFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  earlyRepaymentFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  defaultPenaltyFeePercentPerDay?: Prisma.FloatFieldUpdateOperationsInput | number
+  spouseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -992,10 +1850,30 @@ export type LoanUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalRepaidAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  outstandingBalance?: Prisma.FloatFieldUpdateOperationsInput | number
   purpose?: Prisma.StringFieldUpdateOperationsInput | string
   repaymentTerms?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guarantorInfo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   comments?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  interestRatePercentPerMonth?: Prisma.FloatFieldUpdateOperationsInput | number
+  termInMonths?: Prisma.IntFieldUpdateOperationsInput | number
+  termStartDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  termEndDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  disbursementWithinDays?: Prisma.IntFieldUpdateOperationsInput | number
+  collateralType?: Prisma.StringFieldUpdateOperationsInput | string
+  collateralEstimatedValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  collateralLocation?: Prisma.StringFieldUpdateOperationsInput | string
+  repaymentInstallmentsCount?: Prisma.IntFieldUpdateOperationsInput | number
+  repaymentAmountPerMonth?: Prisma.FloatFieldUpdateOperationsInput | number
+  repaymentPeriodMonths?: Prisma.IntFieldUpdateOperationsInput | number
+  paymentDayOfMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  loanProcessingFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  administrativeFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  loanApplicationFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  earlyRepaymentFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  defaultPenaltyFeePercentPerDay?: Prisma.FloatFieldUpdateOperationsInput | number
+  spouseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1005,10 +1883,30 @@ export type LoanUncheckedUpdateManyWithoutUserInput = {
 export type LoanCreateManyClientInput = {
   id?: string
   amount: number
+  totalRepaidAmount?: number
+  outstandingBalance: number
   purpose: string
   repaymentTerms: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guarantorInfo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   comments?: string | null
+  interestRatePercentPerMonth: number
+  termInMonths: number
+  termStartDate: Date | string
+  termEndDate: Date | string
+  disbursementWithinDays: number
+  collateralType: string
+  collateralEstimatedValue: number
+  collateralLocation: string
+  repaymentInstallmentsCount: number
+  repaymentAmountPerMonth: number
+  repaymentPeriodMonths: number
+  paymentDayOfMonth: number
+  loanProcessingFeePercent: number
+  administrativeFeePercent: number
+  loanApplicationFeePercent: number
+  earlyRepaymentFeePercent: number
+  defaultPenaltyFeePercentPerDay: number
+  spouseName?: string | null
   status?: $Enums.LoanStatus
   activatedAt?: Date | string | null
   createdAt?: Date | string
@@ -1019,10 +1917,30 @@ export type LoanCreateManyClientInput = {
 export type LoanUpdateWithoutClientInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalRepaidAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  outstandingBalance?: Prisma.FloatFieldUpdateOperationsInput | number
   purpose?: Prisma.StringFieldUpdateOperationsInput | string
   repaymentTerms?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guarantorInfo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   comments?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  interestRatePercentPerMonth?: Prisma.FloatFieldUpdateOperationsInput | number
+  termInMonths?: Prisma.IntFieldUpdateOperationsInput | number
+  termStartDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  termEndDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  disbursementWithinDays?: Prisma.IntFieldUpdateOperationsInput | number
+  collateralType?: Prisma.StringFieldUpdateOperationsInput | string
+  collateralEstimatedValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  collateralLocation?: Prisma.StringFieldUpdateOperationsInput | string
+  repaymentInstallmentsCount?: Prisma.IntFieldUpdateOperationsInput | number
+  repaymentAmountPerMonth?: Prisma.FloatFieldUpdateOperationsInput | number
+  repaymentPeriodMonths?: Prisma.IntFieldUpdateOperationsInput | number
+  paymentDayOfMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  loanProcessingFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  administrativeFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  loanApplicationFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  earlyRepaymentFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  defaultPenaltyFeePercentPerDay?: Prisma.FloatFieldUpdateOperationsInput | number
+  spouseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1035,10 +1953,30 @@ export type LoanUpdateWithoutClientInput = {
 export type LoanUncheckedUpdateWithoutClientInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalRepaidAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  outstandingBalance?: Prisma.FloatFieldUpdateOperationsInput | number
   purpose?: Prisma.StringFieldUpdateOperationsInput | string
   repaymentTerms?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guarantorInfo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   comments?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  interestRatePercentPerMonth?: Prisma.FloatFieldUpdateOperationsInput | number
+  termInMonths?: Prisma.IntFieldUpdateOperationsInput | number
+  termStartDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  termEndDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  disbursementWithinDays?: Prisma.IntFieldUpdateOperationsInput | number
+  collateralType?: Prisma.StringFieldUpdateOperationsInput | string
+  collateralEstimatedValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  collateralLocation?: Prisma.StringFieldUpdateOperationsInput | string
+  repaymentInstallmentsCount?: Prisma.IntFieldUpdateOperationsInput | number
+  repaymentAmountPerMonth?: Prisma.FloatFieldUpdateOperationsInput | number
+  repaymentPeriodMonths?: Prisma.IntFieldUpdateOperationsInput | number
+  paymentDayOfMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  loanProcessingFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  administrativeFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  loanApplicationFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  earlyRepaymentFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  defaultPenaltyFeePercentPerDay?: Prisma.FloatFieldUpdateOperationsInput | number
+  spouseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1051,10 +1989,30 @@ export type LoanUncheckedUpdateWithoutClientInput = {
 export type LoanUncheckedUpdateManyWithoutClientInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalRepaidAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  outstandingBalance?: Prisma.FloatFieldUpdateOperationsInput | number
   purpose?: Prisma.StringFieldUpdateOperationsInput | string
   repaymentTerms?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guarantorInfo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   comments?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  interestRatePercentPerMonth?: Prisma.FloatFieldUpdateOperationsInput | number
+  termInMonths?: Prisma.IntFieldUpdateOperationsInput | number
+  termStartDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  termEndDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  disbursementWithinDays?: Prisma.IntFieldUpdateOperationsInput | number
+  collateralType?: Prisma.StringFieldUpdateOperationsInput | string
+  collateralEstimatedValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  collateralLocation?: Prisma.StringFieldUpdateOperationsInput | string
+  repaymentInstallmentsCount?: Prisma.IntFieldUpdateOperationsInput | number
+  repaymentAmountPerMonth?: Prisma.FloatFieldUpdateOperationsInput | number
+  repaymentPeriodMonths?: Prisma.IntFieldUpdateOperationsInput | number
+  paymentDayOfMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  loanProcessingFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  administrativeFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  loanApplicationFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  earlyRepaymentFeePercent?: Prisma.FloatFieldUpdateOperationsInput | number
+  defaultPenaltyFeePercentPerDay?: Prisma.FloatFieldUpdateOperationsInput | number
+  spouseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1106,10 +2064,30 @@ export type LoanSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   id?: boolean
   clientId?: boolean
   amount?: boolean
+  totalRepaidAmount?: boolean
+  outstandingBalance?: boolean
   purpose?: boolean
   repaymentTerms?: boolean
   guarantorInfo?: boolean
   comments?: boolean
+  interestRatePercentPerMonth?: boolean
+  termInMonths?: boolean
+  termStartDate?: boolean
+  termEndDate?: boolean
+  disbursementWithinDays?: boolean
+  collateralType?: boolean
+  collateralEstimatedValue?: boolean
+  collateralLocation?: boolean
+  repaymentInstallmentsCount?: boolean
+  repaymentAmountPerMonth?: boolean
+  repaymentPeriodMonths?: boolean
+  paymentDayOfMonth?: boolean
+  loanProcessingFeePercent?: boolean
+  administrativeFeePercent?: boolean
+  loanApplicationFeePercent?: boolean
+  earlyRepaymentFeePercent?: boolean
+  defaultPenaltyFeePercentPerDay?: boolean
+  spouseName?: boolean
   status?: boolean
   activatedAt?: boolean
   createdAt?: boolean
@@ -1126,10 +2104,30 @@ export type LoanSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   id?: boolean
   clientId?: boolean
   amount?: boolean
+  totalRepaidAmount?: boolean
+  outstandingBalance?: boolean
   purpose?: boolean
   repaymentTerms?: boolean
   guarantorInfo?: boolean
   comments?: boolean
+  interestRatePercentPerMonth?: boolean
+  termInMonths?: boolean
+  termStartDate?: boolean
+  termEndDate?: boolean
+  disbursementWithinDays?: boolean
+  collateralType?: boolean
+  collateralEstimatedValue?: boolean
+  collateralLocation?: boolean
+  repaymentInstallmentsCount?: boolean
+  repaymentAmountPerMonth?: boolean
+  repaymentPeriodMonths?: boolean
+  paymentDayOfMonth?: boolean
+  loanProcessingFeePercent?: boolean
+  administrativeFeePercent?: boolean
+  loanApplicationFeePercent?: boolean
+  earlyRepaymentFeePercent?: boolean
+  defaultPenaltyFeePercentPerDay?: boolean
+  spouseName?: boolean
   status?: boolean
   activatedAt?: boolean
   createdAt?: boolean
@@ -1143,10 +2141,30 @@ export type LoanSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   id?: boolean
   clientId?: boolean
   amount?: boolean
+  totalRepaidAmount?: boolean
+  outstandingBalance?: boolean
   purpose?: boolean
   repaymentTerms?: boolean
   guarantorInfo?: boolean
   comments?: boolean
+  interestRatePercentPerMonth?: boolean
+  termInMonths?: boolean
+  termStartDate?: boolean
+  termEndDate?: boolean
+  disbursementWithinDays?: boolean
+  collateralType?: boolean
+  collateralEstimatedValue?: boolean
+  collateralLocation?: boolean
+  repaymentInstallmentsCount?: boolean
+  repaymentAmountPerMonth?: boolean
+  repaymentPeriodMonths?: boolean
+  paymentDayOfMonth?: boolean
+  loanProcessingFeePercent?: boolean
+  administrativeFeePercent?: boolean
+  loanApplicationFeePercent?: boolean
+  earlyRepaymentFeePercent?: boolean
+  defaultPenaltyFeePercentPerDay?: boolean
+  spouseName?: boolean
   status?: boolean
   activatedAt?: boolean
   createdAt?: boolean
@@ -1160,10 +2178,30 @@ export type LoanSelectScalar = {
   id?: boolean
   clientId?: boolean
   amount?: boolean
+  totalRepaidAmount?: boolean
+  outstandingBalance?: boolean
   purpose?: boolean
   repaymentTerms?: boolean
   guarantorInfo?: boolean
   comments?: boolean
+  interestRatePercentPerMonth?: boolean
+  termInMonths?: boolean
+  termStartDate?: boolean
+  termEndDate?: boolean
+  disbursementWithinDays?: boolean
+  collateralType?: boolean
+  collateralEstimatedValue?: boolean
+  collateralLocation?: boolean
+  repaymentInstallmentsCount?: boolean
+  repaymentAmountPerMonth?: boolean
+  repaymentPeriodMonths?: boolean
+  paymentDayOfMonth?: boolean
+  loanProcessingFeePercent?: boolean
+  administrativeFeePercent?: boolean
+  loanApplicationFeePercent?: boolean
+  earlyRepaymentFeePercent?: boolean
+  defaultPenaltyFeePercentPerDay?: boolean
+  spouseName?: boolean
   status?: boolean
   activatedAt?: boolean
   createdAt?: boolean
@@ -1171,7 +2209,7 @@ export type LoanSelectScalar = {
   userId?: boolean
 }
 
-export type LoanOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clientId" | "amount" | "purpose" | "repaymentTerms" | "guarantorInfo" | "comments" | "status" | "activatedAt" | "createdAt" | "updatedAt" | "userId", ExtArgs["result"]["loan"]>
+export type LoanOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clientId" | "amount" | "totalRepaidAmount" | "outstandingBalance" | "purpose" | "repaymentTerms" | "guarantorInfo" | "comments" | "interestRatePercentPerMonth" | "termInMonths" | "termStartDate" | "termEndDate" | "disbursementWithinDays" | "collateralType" | "collateralEstimatedValue" | "collateralLocation" | "repaymentInstallmentsCount" | "repaymentAmountPerMonth" | "repaymentPeriodMonths" | "paymentDayOfMonth" | "loanProcessingFeePercent" | "administrativeFeePercent" | "loanApplicationFeePercent" | "earlyRepaymentFeePercent" | "defaultPenaltyFeePercentPerDay" | "spouseName" | "status" | "activatedAt" | "createdAt" | "updatedAt" | "userId", ExtArgs["result"]["loan"]>
 export type LoanInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
   user?: boolean | Prisma.Loan$userArgs<ExtArgs>
@@ -1200,10 +2238,30 @@ export type $LoanPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     id: string
     clientId: string
     amount: number
+    totalRepaidAmount: number
+    outstandingBalance: number
     purpose: string
     repaymentTerms: runtime.JsonValue
     guarantorInfo: runtime.JsonValue | null
     comments: string | null
+    interestRatePercentPerMonth: number
+    termInMonths: number
+    termStartDate: Date
+    termEndDate: Date
+    disbursementWithinDays: number
+    collateralType: string
+    collateralEstimatedValue: number
+    collateralLocation: string
+    repaymentInstallmentsCount: number
+    repaymentAmountPerMonth: number
+    repaymentPeriodMonths: number
+    paymentDayOfMonth: number
+    loanProcessingFeePercent: number
+    administrativeFeePercent: number
+    loanApplicationFeePercent: number
+    earlyRepaymentFeePercent: number
+    defaultPenaltyFeePercentPerDay: number
+    spouseName: string | null
     status: $Enums.LoanStatus
     activatedAt: Date | null
     createdAt: Date
@@ -1639,10 +2697,30 @@ export interface LoanFieldRefs {
   readonly id: Prisma.FieldRef<"Loan", 'String'>
   readonly clientId: Prisma.FieldRef<"Loan", 'String'>
   readonly amount: Prisma.FieldRef<"Loan", 'Float'>
+  readonly totalRepaidAmount: Prisma.FieldRef<"Loan", 'Float'>
+  readonly outstandingBalance: Prisma.FieldRef<"Loan", 'Float'>
   readonly purpose: Prisma.FieldRef<"Loan", 'String'>
   readonly repaymentTerms: Prisma.FieldRef<"Loan", 'Json'>
   readonly guarantorInfo: Prisma.FieldRef<"Loan", 'Json'>
   readonly comments: Prisma.FieldRef<"Loan", 'String'>
+  readonly interestRatePercentPerMonth: Prisma.FieldRef<"Loan", 'Float'>
+  readonly termInMonths: Prisma.FieldRef<"Loan", 'Int'>
+  readonly termStartDate: Prisma.FieldRef<"Loan", 'DateTime'>
+  readonly termEndDate: Prisma.FieldRef<"Loan", 'DateTime'>
+  readonly disbursementWithinDays: Prisma.FieldRef<"Loan", 'Int'>
+  readonly collateralType: Prisma.FieldRef<"Loan", 'String'>
+  readonly collateralEstimatedValue: Prisma.FieldRef<"Loan", 'Float'>
+  readonly collateralLocation: Prisma.FieldRef<"Loan", 'String'>
+  readonly repaymentInstallmentsCount: Prisma.FieldRef<"Loan", 'Int'>
+  readonly repaymentAmountPerMonth: Prisma.FieldRef<"Loan", 'Float'>
+  readonly repaymentPeriodMonths: Prisma.FieldRef<"Loan", 'Int'>
+  readonly paymentDayOfMonth: Prisma.FieldRef<"Loan", 'Int'>
+  readonly loanProcessingFeePercent: Prisma.FieldRef<"Loan", 'Float'>
+  readonly administrativeFeePercent: Prisma.FieldRef<"Loan", 'Float'>
+  readonly loanApplicationFeePercent: Prisma.FieldRef<"Loan", 'Float'>
+  readonly earlyRepaymentFeePercent: Prisma.FieldRef<"Loan", 'Float'>
+  readonly defaultPenaltyFeePercentPerDay: Prisma.FieldRef<"Loan", 'Float'>
+  readonly spouseName: Prisma.FieldRef<"Loan", 'String'>
   readonly status: Prisma.FieldRef<"Loan", 'LoanStatus'>
   readonly activatedAt: Prisma.FieldRef<"Loan", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Loan", 'DateTime'>

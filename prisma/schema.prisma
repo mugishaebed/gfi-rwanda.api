@@ -91,22 +91,42 @@ model BusinessClient {
 }
 
 model Loan {
-  id             String          @id @default(uuid())
-  clientId       String
-  amount         Float
-  purpose        String
-  repaymentTerms Json
-  guarantorInfo  Json?
-  comments       String?
-  status         LoanStatus      @default(PENDING)
-  activatedAt    DateTime?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  userId         String?
-  client         Client          @relation(fields: [clientId], references: [id])
-  user           User?           @relation(fields: [userId], references: [id])
-  statusLogs     LoanStatusLog[]
-  repayments     Repayment[]
+  id                             String          @id @default(uuid())
+  clientId                       String
+  amount                         Float
+  totalRepaidAmount              Float           @default(0)
+  outstandingBalance             Float
+  purpose                        String
+  repaymentTerms                 Json
+  guarantorInfo                  Json?
+  comments                       String?
+  interestRatePercentPerMonth    Float
+  termInMonths                   Int
+  termStartDate                  DateTime        @db.Date
+  termEndDate                    DateTime        @db.Date
+  disbursementWithinDays         Int
+  collateralType                 String
+  collateralEstimatedValue       Float
+  collateralLocation             String
+  repaymentInstallmentsCount     Int
+  repaymentAmountPerMonth        Float
+  repaymentPeriodMonths          Int
+  paymentDayOfMonth              Int
+  loanProcessingFeePercent       Float
+  administrativeFeePercent       Float
+  loanApplicationFeePercent      Float
+  earlyRepaymentFeePercent       Float
+  defaultPenaltyFeePercentPerDay Float
+  spouseName                     String?
+  status                         LoanStatus      @default(PENDING)
+  activatedAt                    DateTime?
+  createdAt                      DateTime        @default(now())
+  updatedAt                      DateTime        @updatedAt
+  userId                         String?
+  client                         Client          @relation(fields: [clientId], references: [id])
+  user                           User?           @relation(fields: [userId], references: [id])
+  statusLogs                     LoanStatusLog[]
+  repayments                     Repayment[]
 }
 
 model LoanStatusLog {

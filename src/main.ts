@@ -22,9 +22,6 @@ async function bootstrap() {
       transform: true,
     }),
   );
-  app.enableCors({
-    origin: '*',
-  });
 
   if (process.env.NODE_ENV === 'development') {
     const config = new DocumentBuilder()
@@ -42,6 +39,14 @@ async function bootstrap() {
         content: document,
       }),
     );
+    app.enableCors({
+      origin: '*',
+    });
+  }
+  if (process.env.NODE_ENV === 'production') {
+    app.enableCors({
+      origin: process.env.FRONTEND_URL,
+    });
   }
 
   await app.listen(process.env.PORT ?? 4000);

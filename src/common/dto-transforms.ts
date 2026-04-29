@@ -97,6 +97,20 @@ export function ParseJsonArrayOf<T extends object>(
   });
 }
 
+export function ParseJsonObjectOf<T extends object>(
+  classType: ClassConstructor<T>,
+): PropertyDecorator {
+  return Transform(({ value }) => {
+    const parsed = parseJsonValue(value);
+
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return parsed;
+    }
+
+    return plainToInstance(classType, parsed);
+  });
+}
+
 export const ParseStringArray = () =>
   Transform(({ value }) => {
     const rawValue: unknown = value;

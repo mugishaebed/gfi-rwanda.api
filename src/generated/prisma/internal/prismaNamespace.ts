@@ -1357,10 +1357,30 @@ export const LoanScalarFieldEnum = {
   id: 'id',
   clientId: 'clientId',
   amount: 'amount',
+  totalRepaidAmount: 'totalRepaidAmount',
+  outstandingBalance: 'outstandingBalance',
   purpose: 'purpose',
   repaymentTerms: 'repaymentTerms',
   guarantorInfo: 'guarantorInfo',
   comments: 'comments',
+  interestRatePercentPerMonth: 'interestRatePercentPerMonth',
+  termInMonths: 'termInMonths',
+  termStartDate: 'termStartDate',
+  termEndDate: 'termEndDate',
+  disbursementWithinDays: 'disbursementWithinDays',
+  collateralType: 'collateralType',
+  collateralEstimatedValue: 'collateralEstimatedValue',
+  collateralLocation: 'collateralLocation',
+  repaymentInstallmentsCount: 'repaymentInstallmentsCount',
+  repaymentAmountPerMonth: 'repaymentAmountPerMonth',
+  repaymentPeriodMonths: 'repaymentPeriodMonths',
+  paymentDayOfMonth: 'paymentDayOfMonth',
+  loanProcessingFeePercent: 'loanProcessingFeePercent',
+  administrativeFeePercent: 'administrativeFeePercent',
+  loanApplicationFeePercent: 'loanApplicationFeePercent',
+  earlyRepaymentFeePercent: 'earlyRepaymentFeePercent',
+  defaultPenaltyFeePercentPerDay: 'defaultPenaltyFeePercentPerDay',
+  spouseName: 'spouseName',
   status: 'status',
   activatedAt: 'activatedAt',
   createdAt: 'createdAt',
@@ -1624,6 +1644,20 @@ export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMode
 
 
 /**
+ * Reference to a field of type 'Int'
+ */
+export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+/**
+ * Reference to a field of type 'Int[]'
+ */
+export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
  * Reference to a field of type 'LoanStatus'
  */
 export type EnumLoanStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LoanStatus'>
@@ -1662,20 +1696,6 @@ export type EnumDocumentOwnerTypeFieldRefInput<$PrismaModel> = FieldRefInputType
  * Reference to a field of type 'DocumentOwnerType[]'
  */
 export type ListEnumDocumentOwnerTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DocumentOwnerType[]'>
-    
-
-
-/**
- * Reference to a field of type 'Int'
- */
-export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
-    
-
-
-/**
- * Reference to a field of type 'Int[]'
- */
-export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
     
 
 /**

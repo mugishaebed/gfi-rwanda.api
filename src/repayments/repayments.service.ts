@@ -100,7 +100,12 @@ export class RepaymentsService {
   async createManualRepayment(
     data: CreateRepaymentDto,
     uploadedByUserId: string,
-    files: Array<{ buffer: Buffer; originalname: string; mimetype: string; size: number }> = [],
+    files: Array<{
+      buffer: Buffer;
+      originalname: string;
+      mimetype: string;
+      size: number;
+    }> = [],
   ) {
     const loan = await this.prisma.loan.findUnique({
       where: { id: data.loanId },
@@ -191,56 +196,77 @@ export class RepaymentsService {
     nextStatus: RepaymentStatus,
     review: ReviewRepaymentDto,
   ) {
-    const repayment = await this.prisma.repayment.findUnique({
-      where: { id },
-      include: {
-        loan: {
-          include: {
-            user: true,
-            client: {
-              include: {
-                individual: true,
-                business: true,
+    const updatedRepayment = await this.prisma.$transaction(async (tx) => {
+      const repayment = await tx.repayment.findUnique({
+        where: { id },
+      });
+
+      if (!repayment) {
+        throw new NotFoundException('Repayment not found');
+      }
+
+      if (repayment.status !== RepaymentStatus.PENDING) {
+        throw new BadRequestException(
+          `Only pending repayments can be ${nextStatus.toLowerCase()}`,
+        );
+      }
+
+      const noteSuffix = review.note?.trim();
+      const nextNotes = [repayment.notes, noteSuffix]
+        .filter(Boolean)
+        .join('\n');
+
+      if (nextStatus === RepaymentStatus.APPROVED) {
+        const loanDeduction = await tx.loan.updateMany({
+          where: {
+            id: repayment.loanId,
+            outstandingBalance: {
+              gte: repayment.amountPaid,
+            },
+          },
+          data: {
+            outstandingBalance: {
+              decrement: repayment.amountPaid,
+            },
+            totalRepaidAmount: {
+              increment: repayment.amountPaid,
+            },
+          },
+        });
+
+        if (loanDeduction.count === 0) {
+          throw new BadRequestException(
+            'Repayment amount exceeds outstanding loan balance',
+          );
+        }
+      }
+
+      await tx.repayment.update({
+        where: { id: repayment.id },
+        data: {
+          status: nextStatus,
+          approvedAt:
+            nextStatus === RepaymentStatus.APPROVED ? new Date() : null,
+          notes: nextNotes || repayment.notes,
+        },
+      });
+
+      return tx.repayment.findUniqueOrThrow({
+        where: { id: repayment.id },
+        include: {
+          loan: {
+            include: {
+              user: true,
+              client: {
+                include: {
+                  individual: true,
+                  business: true,
+                },
               },
             },
           },
         },
-      },
-    });
-
-    if (!repayment) {
-      throw new NotFoundException('Repayment not found');
-    }
-
-    if (repayment.status !== RepaymentStatus.PENDING) {
-      throw new BadRequestException(
-        `Only pending repayments can be ${nextStatus.toLowerCase()}`,
-      );
-    }
-
-    const noteSuffix = review.note?.trim();
-    const nextNotes = [repayment.notes, noteSuffix].filter(Boolean).join('\n');
-
-    const updatedRepayment = await this.prisma.repayment.update({
-      where: { id: repayment.id },
-      data: {
-        status: nextStatus,
-        approvedAt: nextStatus === RepaymentStatus.APPROVED ? new Date() : null,
-        notes: nextNotes || repayment.notes,
-      },
-      include: {
-        loan: {
-          include: {
-            user: true,
-            client: {
-              include: {
-                individual: true,
-                business: true,
-              },
-            },
-          },
-        },
-      },
+      });
     });
 
     if (nextStatus === RepaymentStatus.APPROVED) {
@@ -255,10 +281,9 @@ export class RepaymentsService {
     }
 
     return (
-      await this.documentsService.attachDocuments(
-        DocumentOwnerType.REPAYMENT,
-        [updatedRepayment],
-      )
+      await this.documentsService.attachDocuments(DocumentOwnerType.REPAYMENT, [
+        updatedRepayment,
+      ])
     )[0];
   }
 

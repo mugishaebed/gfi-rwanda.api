@@ -131,7 +131,7 @@ export class GoogleAuthService {
     const fragment = new URLSearchParams({
       token: result.appAccessToken,
       refresh: result.refreshToken,
-      action: result.action,
+      userId: result.user.id,
     }).toString();
 
     return `${frontendUrl}/auth/callback#${fragment}`;
