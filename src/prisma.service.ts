@@ -11,18 +11,18 @@ export class PrismaService
   private readonly pool: Pool;
 
   constructor() {
-    const connectionString = process.env.DIRECT_URL;
+    const connectionString = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
     if (!connectionString) {
-      throw new Error('DIRECT_URL is not set');
+      throw new Error('DIRECT_URL or DATABASE_URL must be set');
     }
 
     const pool = new Pool({
       connectionString,
       max: 10,
-      idleTimeoutMillis: 30_000,
-      connectionTimeoutMillis: 5_000,
-      keepAlive: true, //send TCP keep-alive packets
-      keepAliveInitialDelayMillis: 10_000, //start sending keep-alive packets after 10 seconds of inactivity
+      idleTimeoutMillis: 60_000,
+      connectionTimeoutMillis: 30_000,
+      keepAlive: true, // send TCP keep-alive packets
+      keepAliveInitialDelayMillis: 10_000, // start sending keep-alive packets after 10 seconds of inactivity
     });
 
     const adapter = new PrismaPg(pool);
