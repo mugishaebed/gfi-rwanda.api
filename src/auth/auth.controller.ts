@@ -637,6 +637,38 @@ export class AuthController {
     return { url };
   }
 
+  @Get('google/client/login')
+  @Redirect()
+  @ApiOperation({
+    summary: 'Redirect to Google client login',
+    description: 'Starts the Google login flow for clients.',
+  })
+  @ApiQuery({
+    name: 'state',
+    required: false,
+    description: 'Optional state value preserved through the auth flow.',
+  })
+  googleClientLogin(@Query('state') state?: string) {
+    const url = this.googleAuthService.getLoginUrl(state);
+    return { url };
+  }
+
+  @Get('google/client/signup')
+  @Redirect()
+  @ApiOperation({
+    summary: 'Redirect to Google client signup',
+    description: 'Starts Google signup and assigns the CLIENT role.',
+  })
+  @ApiQuery({
+    name: 'state',
+    required: false,
+    description: 'Optional state value preserved through the auth flow.',
+  })
+  googleClientSignup(@Query('state') state?: string) {
+    const url = this.googleAuthService.getSignupUrl(UserRole.CLIENT, state);
+    return { url };
+  }
+
   @Get('google/callback')
   @ApiOperation({
     summary: 'Handle Google auth callback',

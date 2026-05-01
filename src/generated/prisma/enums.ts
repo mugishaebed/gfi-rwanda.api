@@ -12,7 +12,8 @@
 export const UserRole = {
   LOAN_OFFICER: 'LOAN_OFFICER',
   GENERAL_MANAGER: 'GENERAL_MANAGER',
-  BLOG_EDITOR: 'BLOG_EDITOR'
+  BLOG_EDITOR: 'BLOG_EDITOR',
+  CLIENT: 'CLIENT'
 } as const
 
 export type UserRole = (typeof UserRole)[keyof typeof UserRole]
@@ -36,6 +37,8 @@ export type ClientType = (typeof ClientType)[keyof typeof ClientType]
 
 export const LoanStatus = {
   PENDING: 'PENDING',
+  LOAN_OFFICER_APPROVED: 'LOAN_OFFICER_APPROVED',
+  LOAN_OFFICER_REJECTED: 'LOAN_OFFICER_REJECTED',
   APPROVED: 'APPROVED',
   REJECTED: 'REJECTED'
 } as const

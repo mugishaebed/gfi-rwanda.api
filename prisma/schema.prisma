@@ -206,6 +206,7 @@ enum UserRole {
   LOAN_OFFICER
   GENERAL_MANAGER
   BLOG_EDITOR
+  CLIENT
 }
 
 enum AuthProvider {
@@ -220,6 +221,8 @@ enum ClientType {
 
 enum LoanStatus {
   PENDING
+  LOAN_OFFICER_APPROVED
+  LOAN_OFFICER_REJECTED
   APPROVED
   REJECTED
 }

@@ -49,6 +49,34 @@ export class NotificationsService {
     });
   }
 
+  async notifyLoanOfficersLoanPendingReview(details: {
+    loanId: string;
+    amount: number;
+    purpose: string;
+    clientName: string;
+  }) {
+    const recipientEmails = await this.getRecipientEmails(
+      UserRole.LOAN_OFFICER,
+    );
+
+    if (recipientEmails.length === 0) {
+      this.logger.warn('No loan officer emails found for pending loan review');
+      return;
+    }
+
+    await this.sendMail({
+      to: recipientEmails,
+      subject: `Loan review required for ${details.clientName}`,
+      text: [
+        'A new client loan request requires loan officer review.',
+        `Loan ID: ${details.loanId}`,
+        `Client: ${details.clientName}`,
+        `Amount: ${details.amount}`,
+        `Purpose: ${details.purpose}`,
+      ].join('\n'),
+    });
+  }
+
   async notifyLoanOfficerLoanApproved(details: {
     loanId: string;
     amount: number;

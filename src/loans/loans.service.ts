@@ -69,6 +69,68 @@ export class LoansService {
     };
   }
 
+  async findMyLoans(
+    clientEmail: string,
+    page = 1,
+    limit = 10,
+    status?: LoanStatus,
+  ) {
+    const client = await this.prisma.client.findUnique({
+      where: { email: clientEmail },
+      select: { id: true },
+    });
+
+    if (!client) {
+      throw new NotFoundException('Client profile not found for this account');
+    }
+
+    const safePage = Math.max(page, 1);
+    const safeLimit = Math.min(Math.max(limit, 1), 100);
+    const skip = (safePage - 1) * safeLimit;
+
+    const where = {
+      clientId: client.id,
+      ...(status ? { status } : {}),
+    };
+
+    const [loans, total] = await Promise.all([
+      this.prisma.loan.findMany({
+        where,
+        skip,
+        take: safeLimit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          client: {
+            include: {
+              individual: true,
+              business: true,
+            },
+          },
+          user: true,
+          statusLogs: {
+            orderBy: {
+              createdAt: 'desc',
+            },
+          },
+        },
+      }),
+      this.prisma.loan.count({ where }),
+    ]);
+
+    return {
+      data: await this.documentsService.attachDocuments(
+        DocumentOwnerType.LOAN,
+        loans,
+      ),
+      meta: {
+        page: safePage,
+        limit: safeLimit,
+        total,
+        totalPages: Math.ceil(total / safeLimit),
+      },
+    };
+  }
+
   async findOne(id: string) {
     const loan = await this.prisma.loan.findUnique({
       where: { id },
@@ -109,103 +171,87 @@ export class LoansService {
       size: number;
     }> = [],
   ) {
+    return this.createLoanInternal(
+      data,
+      data.clientId,
+      createdByUserId,
+      files,
+      LoanStatus.PENDING,
+      null,
+    );
+  }
+
+  async requestLoanAsClient(
+    data: CreateLoanDto,
+    createdByUserId: string,
+    clientEmail: string,
+    files: Array<{
+      buffer: Buffer;
+      originalname: string;
+      mimetype: string;
+      size: number;
+    }> = [],
+  ) {
     const client = await this.prisma.client.findUnique({
-      where: {
-        id: data.clientId,
-      },
+      where: { email: clientEmail },
+      select: { id: true },
     });
 
     if (!client) {
-      throw new NotFoundException('Client not found');
+      throw new NotFoundException('Client profile not found for this account');
     }
 
-    const loanId = randomUUID();
-    const preparedDocuments = await this.documentsService.prepareDocuments({
-      ownerType: DocumentOwnerType.LOAN,
-      ownerId: loanId,
-      labels: data.documentLabels,
+    return this.createLoanInternal(
+      data,
+      client.id,
+      createdByUserId,
       files,
-      uploadedByUserId: createdByUserId,
-    });
-
-    try {
-      const loan = await this.prisma.$transaction(async (tx) => {
-        const createdLoan = await tx.loan.create({
-          data: {
-            id: loanId,
-            clientId: data.clientId,
-            amount: data.amount,
-            totalRepaidAmount: 0,
-            outstandingBalance: data.amount,
-            purpose: data.purpose,
-            interestRatePercentPerMonth: data.interestRatePercentPerMonth,
-            termInMonths: data.termInMonths,
-            termStartDate: data.termStartDate,
-            termEndDate: data.termEndDate,
-            disbursementWithinDays: data.disbursementWithinDays,
-            collateralType: data.collateralType,
-            collateralEstimatedValue: data.collateralEstimatedValue,
-            collateralLocation: data.collateralLocation,
-            repaymentInstallmentsCount: data.repaymentInstallmentsCount,
-            repaymentAmountPerMonth: data.repaymentAmountPerMonth,
-            repaymentPeriodMonths: data.repaymentPeriodMonths,
-            paymentDayOfMonth: data.paymentDayOfMonth,
-            loanProcessingFeePercent: data.loanProcessingFeePercent,
-            administrativeFeePercent: data.administrativeFeePercent,
-            loanApplicationFeePercent: data.loanApplicationFeePercent,
-            earlyRepaymentFeePercent: data.earlyRepaymentFeePercent,
-            defaultPenaltyFeePercentPerDay: data.defaultPenaltyFeePercentPerDay,
-            spouseName: data.spouseName,
-            repaymentTerms:
-              data.repaymentTerms as unknown as Prisma.InputJsonValue,
-            guarantorInfo: data.guarantorInfo as
-              | Prisma.InputJsonValue
-              | undefined,
-            comments: data.comments,
-            status: LoanStatus.PENDING,
-            userId: createdByUserId,
-          },
-          include: {
-            client: {
-              include: {
-                individual: true,
-                business: true,
-              },
-            },
-            user: true,
-            statusLogs: {
-              orderBy: {
-                createdAt: 'desc',
-              },
-            },
-          },
-        });
-
-        await this.documentsService.createMany(preparedDocuments, tx);
-
-        return createdLoan;
-      });
-
-      await this.notificationsService.notifyGeneralManagersLoanPendingApproval({
-        loanId: loan.id,
-        amount: loan.amount,
-        purpose: loan.purpose,
-        clientName: this.getClientDisplayName(loan.client),
-        loanOfficerName: loan.user?.name,
-      });
-
-      return (
-        await this.documentsService.attachDocuments(DocumentOwnerType.LOAN, [
-          loan,
-        ])
-      )[0];
-    } catch (error) {
-      await this.documentsService.cleanupPreparedDocuments(preparedDocuments);
-      throw error;
-    }
+      LoanStatus.PENDING,
+      null,
+    );
   }
 
-  async approveLoan(
+  async approveLoanByOfficer(
+    id: string,
+    review: ReviewLoanDto,
+    reviewedByUserId: string,
+  ) {
+    const loan = await this.updateLoanStatus(
+      id,
+      LoanStatus.LOAN_OFFICER_APPROVED,
+      review,
+      reviewedByUserId,
+      [LoanStatus.PENDING],
+      true,
+    );
+
+    await this.notificationsService.notifyGeneralManagersLoanPendingApproval({
+      loanId: loan.id,
+      amount: loan.amount,
+      purpose: loan.purpose,
+      clientName: this.getClientDisplayName(loan.client),
+      loanOfficerName: loan.user?.name,
+    });
+
+    return loan;
+  }
+
+  async rejectLoanByOfficer(
+    id: string,
+    review: ReviewLoanDto,
+    reviewedByUserId: string,
+  ) {
+    return this.updateLoanStatus(
+      id,
+      LoanStatus.LOAN_OFFICER_REJECTED,
+      review,
+      reviewedByUserId,
+      [LoanStatus.PENDING],
+      true,
+    );
+  }
+
+  async approveLoanByGeneralManager(
     id: string,
     review: ReviewLoanDto,
     reviewedByUserId: string,
@@ -215,10 +261,12 @@ export class LoansService {
       LoanStatus.APPROVED,
       review,
       reviewedByUserId,
+      [LoanStatus.LOAN_OFFICER_APPROVED],
+      false,
     );
   }
 
-  async rejectLoan(
+  async rejectLoanByGeneralManager(
     id: string,
     review: ReviewLoanDto,
     reviewedByUserId: string,
@@ -228,6 +276,8 @@ export class LoansService {
       LoanStatus.REJECTED,
       review,
       reviewedByUserId,
+      [LoanStatus.LOAN_OFFICER_APPROVED],
+      false,
     );
   }
 
@@ -236,6 +286,8 @@ export class LoansService {
     nextStatus: LoanStatus,
     review: ReviewLoanDto,
     reviewedByUserId: string,
+    allowedFromStatuses: LoanStatus[],
+    setReviewingOfficer: boolean,
   ) {
     const existingLoan = await this.prisma.loan.findUnique({
       where: { id },
@@ -245,9 +297,9 @@ export class LoansService {
       throw new NotFoundException('Loan not found');
     }
 
-    if (existingLoan.status !== LoanStatus.PENDING) {
+    if (!allowedFromStatuses.includes(existingLoan.status)) {
       throw new BadRequestException(
-        `Only pending loans can be ${nextStatus.toLowerCase()}`,
+        `Loan cannot be moved from ${existingLoan.status} to ${nextStatus}`,
       );
     }
 
@@ -266,6 +318,7 @@ export class LoansService {
         where: { id: existingLoan.id },
         data: {
           status: nextStatus,
+          ...(setReviewingOfficer ? { userId: reviewedByUserId } : {}),
           activatedAt: nextStatus === LoanStatus.APPROVED ? new Date() : null,
         },
       });
@@ -306,6 +359,114 @@ export class LoansService {
         loan,
       ])
     )[0];
+  }
+
+  private async createLoanInternal(
+    data: CreateLoanDto,
+    clientId: string,
+    createdByUserId: string,
+    files: Array<{
+      buffer: Buffer;
+      originalname: string;
+      mimetype: string;
+      size: number;
+    }>,
+    initialStatus: LoanStatus,
+    assignedLoanOfficerId: string | null,
+  ) {
+    const client = await this.prisma.client.findUnique({
+      where: { id: clientId },
+    });
+
+    if (!client) {
+      throw new NotFoundException('Client not found');
+    }
+
+    const loanId = randomUUID();
+    const preparedDocuments = await this.documentsService.prepareDocuments({
+      ownerType: DocumentOwnerType.LOAN,
+      ownerId: loanId,
+      labels: data.documentLabels,
+      files,
+      uploadedByUserId: createdByUserId,
+    });
+
+    try {
+      const loan = await this.prisma.$transaction(async (tx) => {
+        const createdLoan = await tx.loan.create({
+          data: {
+            id: loanId,
+            clientId,
+            amount: data.amount,
+            totalRepaidAmount: 0,
+            outstandingBalance: data.amount,
+            purpose: data.purpose,
+            interestRatePercentPerMonth: data.interestRatePercentPerMonth,
+            termInMonths: data.termInMonths,
+            termStartDate: data.termStartDate,
+            termEndDate: data.termEndDate,
+            disbursementWithinDays: data.disbursementWithinDays,
+            collateralType: data.collateralType,
+            collateralEstimatedValue: data.collateralEstimatedValue,
+            collateralLocation: data.collateralLocation,
+            repaymentInstallmentsCount: data.repaymentInstallmentsCount,
+            repaymentAmountPerMonth: data.repaymentAmountPerMonth,
+            repaymentPeriodMonths: data.repaymentPeriodMonths,
+            paymentDayOfMonth: data.paymentDayOfMonth,
+            loanProcessingFeePercent: data.loanProcessingFeePercent,
+            administrativeFeePercent: data.administrativeFeePercent,
+            loanApplicationFeePercent: data.loanApplicationFeePercent,
+            earlyRepaymentFeePercent: data.earlyRepaymentFeePercent,
+            defaultPenaltyFeePercentPerDay: data.defaultPenaltyFeePercentPerDay,
+            spouseName: data.spouseName,
+            repaymentTerms:
+              data.repaymentTerms as unknown as Prisma.InputJsonValue,
+            guarantorInfo: data.guarantorInfo as
+              | Prisma.InputJsonValue
+              | undefined,
+            comments: data.comments,
+            status: initialStatus,
+            userId: assignedLoanOfficerId,
+          },
+          include: {
+            client: {
+              include: {
+                individual: true,
+                business: true,
+              },
+            },
+            user: true,
+            statusLogs: {
+              orderBy: {
+                createdAt: 'desc',
+              },
+            },
+          },
+        });
+
+        await this.documentsService.createMany(preparedDocuments, tx);
+
+        return createdLoan;
+      });
+
+      if (initialStatus === LoanStatus.PENDING) {
+        await this.notificationsService.notifyLoanOfficersLoanPendingReview({
+          loanId: loan.id,
+          amount: loan.amount,
+          purpose: loan.purpose,
+          clientName: this.getClientDisplayName(loan.client),
+        });
+      }
+
+      return (
+        await this.documentsService.attachDocuments(DocumentOwnerType.LOAN, [
+          loan,
+        ])
+      )[0];
+    } catch (error) {
+      await this.documentsService.cleanupPreparedDocuments(preparedDocuments);
+      throw error;
+    }
   }
 
   private getClientDisplayName(client: {

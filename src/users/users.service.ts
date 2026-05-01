@@ -223,7 +223,8 @@ export class UsersService {
     return (
       role === UserRole.LOAN_OFFICER ||
       role === UserRole.GENERAL_MANAGER ||
-      role === UserRole.BLOG_EDITOR
+      role === UserRole.BLOG_EDITOR ||
+      role === UserRole.CLIENT
     );
   }
 
