@@ -383,6 +383,7 @@ export class BlogsService {
     const publicBaseUrl = this.configService
       .get<string>('DOCUMENT_STORAGE_PUBLIC_BASE_URL')
       ?.replace(/\/$/, '');
+    const baseUrl = publicBaseUrl ?? '/v1';
 
     return {
       ...blog,
@@ -396,13 +397,9 @@ export class BlogsService {
         .map(
           (content): SerializedBlogContent => ({
             ...content,
-            imageUrl: this.toAssetUrl(publicBaseUrl, content.imageStorageKey, [
-              'blogs',
-              blog.id,
-              'contents',
-              content.id,
-              'image',
-            ]),
+            imageUrl: content.imageStorageKey
+              ? `${baseUrl}/blogs/${blog.id}/contents/${content.id}/image`
+              : null,
           }),
         ),
     };
