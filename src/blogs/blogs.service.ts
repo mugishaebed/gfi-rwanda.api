@@ -406,20 +406,22 @@ export class BlogsService {
   }
 
   private toAssetUrl(
-    publicBaseUrl: string | undefined,
-    storageKey: string | null,
-    fallbackPathParts: string[],
-  ) {
-    if (!storageKey) {
-      return null;
-    }
-
-    if (publicBaseUrl) {
-      return `${publicBaseUrl}/${storageKey.replace(/\\/g, '/')}`;
-    }
-
-    return `/v1/${fallbackPathParts.join('/')}`;
+  publicBaseUrl: string | undefined,
+  storageKey: string | null,
+  fallbackPathParts: string[],
+) {
+  if (!storageKey) {
+    return null;
   }
+
+  const routePath = fallbackPathParts.map(encodeURIComponent).join('/');
+
+  if (publicBaseUrl) {
+    return `${publicBaseUrl}/${routePath}`;
+  }
+
+  return `/v1/${routePath}`;
+}
 
   private getBlogImageMaxFileSizeBytes() {
     return Number(
