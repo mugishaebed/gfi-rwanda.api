@@ -7,7 +7,11 @@ import { randomUUID } from 'crypto';
 import { join } from 'path';
 import PDFDocument from 'pdfkit';
 import type { Prisma } from '../generated/prisma/client';
-import { DocumentOwnerType, LoanStatus } from '../generated/prisma/enums';
+import {
+  DocumentOwnerType,
+  LoanStatus,
+  UserRole,
+} from '../generated/prisma/enums';
 import { DocumentsService } from '../documents/documents.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../prisma.service';
@@ -255,7 +259,27 @@ export class LoansService {
     id: string,
     review: ReviewLoanDto,
     reviewedByUserId: string,
+    reviewedByUserRoles: string[] = [],
   ) {
+    if (reviewedByUserRoles.includes(UserRole.LOAN_OFFICER)) {
+      const loan = await this.prisma.loan.findUnique({
+        where: { id },
+        select: { status: true },
+      });
+
+      if (!loan) {
+        throw new NotFoundException('Loan not found');
+      }
+
+      if (loan.status === LoanStatus.PENDING) {
+        return this.approvePendingLoanByDualRoleUser(
+          id,
+          review,
+          reviewedByUserId,
+        );
+      }
+    }
+
     return this.updateLoanStatus(
       id,
       LoanStatus.APPROVED,
@@ -264,6 +288,90 @@ export class LoansService {
       [LoanStatus.LOAN_OFFICER_APPROVED],
       false,
     );
+  }
+
+  private async approvePendingLoanByDualRoleUser(
+    id: string,
+    review: ReviewLoanDto,
+    reviewedByUserId: string,
+  ) {
+    const loan = await this.prisma.$transaction(async (tx) => {
+      const existingLoan = await tx.loan.findUnique({
+        where: { id },
+      });
+
+      if (!existingLoan) {
+        throw new NotFoundException('Loan not found');
+      }
+
+      if (existingLoan.status !== LoanStatus.PENDING) {
+        throw new BadRequestException(
+          `Loan cannot be moved from ${existingLoan.status} to ${LoanStatus.APPROVED}`,
+        );
+      }
+
+      await tx.loanStatusLog.createMany({
+        data: [
+          {
+            loanId: existingLoan.id,
+            fromStatus: LoanStatus.PENDING,
+            toStatus: LoanStatus.LOAN_OFFICER_APPROVED,
+            changedBy: reviewedByUserId,
+            note: review.note,
+          },
+          {
+            loanId: existingLoan.id,
+            fromStatus: LoanStatus.LOAN_OFFICER_APPROVED,
+            toStatus: LoanStatus.APPROVED,
+            changedBy: reviewedByUserId,
+            note: review.note,
+          },
+        ],
+      });
+
+      await tx.loan.update({
+        where: { id: existingLoan.id },
+        data: {
+          status: LoanStatus.APPROVED,
+          userId: existingLoan.userId ?? reviewedByUserId,
+          activatedAt: new Date(),
+        },
+      });
+
+      return tx.loan.findUniqueOrThrow({
+        where: { id: existingLoan.id },
+        include: {
+          client: {
+            include: {
+              individual: true,
+              business: true,
+            },
+          },
+          user: true,
+          statusLogs: {
+            orderBy: {
+              createdAt: 'desc',
+            },
+          },
+        },
+      });
+    });
+
+    await this.generateAndAttachLoanContractPdf(loan.id, reviewedByUserId);
+
+    await this.notificationsService.notifyLoanOfficerLoanApproved({
+      loanId: loan.id,
+      amount: loan.amount,
+      clientName: this.getClientDisplayName(loan.client),
+      loanOfficerEmail: loan.user?.email,
+      loanOfficerName: loan.user?.name,
+    });
+
+    return (
+      await this.documentsService.attachDocuments(DocumentOwnerType.LOAN, [
+        loan,
+      ])
+    )[0];
   }
 
   async rejectLoanByGeneralManager(

@@ -195,6 +195,7 @@ export class LoansController {
       id,
       dto,
       req.user.userId,
+      req.user.roles,
     );
   }
 

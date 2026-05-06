@@ -40,7 +40,13 @@ export class RepaymentsService {
         },
         include: {
           loan: {
-            include: {
+            select: {
+              id: true,
+              amount: true,
+              outstandingBalance: true,
+              totalRepaidAmount: true,
+              purpose: true,
+              status: true,
               client: {
                 include: {
                   individual: true,
@@ -73,7 +79,13 @@ export class RepaymentsService {
       where: { id },
       include: {
         loan: {
-          include: {
+          select: {
+            id: true,
+            amount: true,
+            outstandingBalance: true,
+            totalRepaidAmount: true,
+            purpose: true,
+            status: true,
             user: true,
             client: {
               include: {
@@ -143,7 +155,13 @@ export class RepaymentsService {
           },
           include: {
             loan: {
-              include: {
+              select: {
+                id: true,
+                amount: true,
+                outstandingBalance: true,
+                totalRepaidAmount: true,
+                purpose: true,
+                status: true,
                 user: true,
                 client: {
                   include: {
@@ -255,7 +273,13 @@ export class RepaymentsService {
         where: { id: repayment.id },
         include: {
           loan: {
-            include: {
+            select: {
+              id: true,
+              amount: true,
+              outstandingBalance: true,
+              totalRepaidAmount: true,
+              purpose: true,
+              status: true,
               user: true,
               client: {
                 include: {
