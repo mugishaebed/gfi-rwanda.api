@@ -8,6 +8,7 @@ import { join } from 'path';
 import PDFDocument from 'pdfkit';
 import type { Prisma } from '../generated/prisma/client';
 import {
+  ClientOnboardingStatus,
   DocumentOwnerType,
   LoanStatus,
   UserRole,
@@ -79,6 +80,8 @@ export class LoansService {
     limit = 10,
     status?: LoanStatus,
   ) {
+    await this.ensureClientAccountIsActive(clientEmail);
+
     const client = await this.prisma.client.findUnique({
       where: { email: clientEmail },
       select: { id: true },
@@ -196,6 +199,8 @@ export class LoansService {
       size: number;
     }> = [],
   ) {
+    await this.ensureClientAccountIsActive(clientEmail);
+
     const client = await this.prisma.client.findUnique({
       where: { email: clientEmail },
       select: { id: true },
@@ -213,6 +218,23 @@ export class LoansService {
       LoanStatus.PENDING,
       null,
     );
+  }
+
+  private async ensureClientAccountIsActive(clientEmail: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: clientEmail },
+      select: { clientOnboardingStatus: true, roles: true },
+    });
+
+    if (!user || !user.roles.includes(UserRole.CLIENT)) {
+      throw new NotFoundException('Client account not found');
+    }
+
+    if (user.clientOnboardingStatus !== ClientOnboardingStatus.ACTIVE) {
+      throw new BadRequestException(
+        'Client account is pending approval by loan officer',
+      );
+    }
   }
 
   async approveLoanByOfficer(

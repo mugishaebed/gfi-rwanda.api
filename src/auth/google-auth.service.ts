@@ -10,6 +10,7 @@ import { ConfigService } from '@nestjs/config';
 import { createHash, randomBytes } from 'node:crypto';
 import { JwtService } from '@nestjs/jwt';
 import {
+  ClientOnboardingStatus,
   UserRole,
   type UserRole as UserRoleValue,
 } from '../generated/prisma/enums';
@@ -70,6 +71,7 @@ export type GoogleCallbackResult = {
     email: string;
     name: string;
     roles: string[];
+    clientOnboardingStatus: ClientOnboardingStatus;
   };
   appAccessToken: string;
   refreshToken: string;
@@ -130,6 +132,7 @@ export class GoogleAuthService {
       token: result.appAccessToken,
       refresh: result.refreshToken,
       userId: result.user.id,
+      clientOnboardingStatus: result.user.clientOnboardingStatus,
     }).toString();
 
     return `${this.getDefaultRedirectForRoles(result.user.roles)}#${fragment}`;
@@ -207,6 +210,7 @@ export class GoogleAuthService {
         email: user.email,
         name: user.name,
         roles: user.roles,
+        clientOnboardingStatus: user.clientOnboardingStatus,
       },
       appAccessToken,
       refreshToken,

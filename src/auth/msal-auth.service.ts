@@ -19,6 +19,7 @@ import {
 import { UsersService } from '../users/users.service';
 import { type User } from '../generated/prisma/client';
 import {
+  ClientOnboardingStatus,
   UserRole,
   type UserRole as UserRoleValue,
 } from '../generated/prisma/enums';
@@ -48,6 +49,7 @@ export type MicrosoftCallbackResult = {
     email: string;
     name: string;
     roles: string[];
+    clientOnboardingStatus: ClientOnboardingStatus;
   };
   appAccessToken: string;
   refreshToken: string;
@@ -67,6 +69,7 @@ export type RefreshTokenResult = {
     email: string;
     name: string;
     roles: string[];
+    clientOnboardingStatus: ClientOnboardingStatus;
   };
 };
 
@@ -170,6 +173,10 @@ export class MsalAuthService {
     redirectUrl.searchParams.set('email', result.user.email);
     redirectUrl.searchParams.set('name', result.user.name);
     redirectUrl.searchParams.set('roles', result.user.roles.join(','));
+    redirectUrl.searchParams.set(
+      'clientOnboardingStatus',
+      result.user.clientOnboardingStatus,
+    );
 
     if (authState.nonce) {
       redirectUrl.searchParams.set('state', authState.nonce);
@@ -261,6 +268,7 @@ export class MsalAuthService {
         email: user.email,
         name: user.name,
         roles: user.roles,
+        clientOnboardingStatus: user.clientOnboardingStatus,
       },
       appAccessToken,
       refreshToken,
@@ -313,6 +321,7 @@ export class MsalAuthService {
         email: user.email,
         name: user.name,
         roles: user.roles,
+        clientOnboardingStatus: user.clientOnboardingStatus,
       },
     };
   }

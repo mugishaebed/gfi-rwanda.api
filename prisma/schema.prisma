@@ -12,6 +12,8 @@ model User {
   id                    String         @id @default(uuid())
   name                  String
   email                 String         @unique
+  clientOnboardingStatus ClientOnboardingStatus @default(ACTIVE)
+  clientApprovedAt      DateTime?
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
   refreshTokenExpiresAt DateTime?
@@ -207,6 +209,12 @@ enum UserRole {
   GENERAL_MANAGER
   BLOG_EDITOR
   CLIENT
+}
+
+enum ClientOnboardingStatus {
+  PENDING_PROFILE
+  PENDING_APPROVAL
+  ACTIVE
 }
 
 enum AuthProvider {

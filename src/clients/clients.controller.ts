@@ -39,6 +39,7 @@ import { createDocumentUploadOptions } from '../documents/document-upload';
 type AuthenticatedRequest = {
   user: {
     userId: string;
+    email: string;
   };
 };
 
@@ -164,5 +165,78 @@ export class ClientsController {
   @ApiOperation({ summary: 'Delete a business client' })
   deleteBusinessClient(@Param('id') id: string) {
     return this.clientsService.deleteBusinessClient(id);
+  }
+
+  @Roles('CLIENT')
+  @Post('me/complete-profile/individual')
+  @UseInterceptors(
+    FilesInterceptor(
+      'documents',
+      10,
+      createDocumentUploadOptions(10 * 1024 * 1024),
+    ),
+  )
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({
+    summary:
+      'Complete current client individual profile and move account to pending approval',
+  })
+  completeMyIndividualProfile(
+    @Body() dto: CreateIndividualClientDto,
+    @UploadedFiles()
+    files: Array<{
+      buffer: Buffer;
+      originalname: string;
+      mimetype: string;
+      size: number;
+    }>,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.clientsService.completeMyIndividualProfile(
+      req.user.userId,
+      req.user.email,
+      dto,
+      files,
+    );
+  }
+
+  @Roles('CLIENT')
+  @Post('me/complete-profile/business')
+  @UseInterceptors(
+    FilesInterceptor(
+      'documents',
+      10,
+      createDocumentUploadOptions(10 * 1024 * 1024),
+    ),
+  )
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({
+    summary:
+      'Complete current client business profile and move account to pending approval',
+  })
+  completeMyBusinessProfile(
+    @Body() dto: CreateBusinessClientDto,
+    @UploadedFiles()
+    files: Array<{
+      buffer: Buffer;
+      originalname: string;
+      mimetype: string;
+      size: number;
+    }>,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.clientsService.completeMyBusinessProfile(
+      req.user.userId,
+      req.user.email,
+      dto,
+      files,
+    );
+  }
+
+  @Roles('LOAN_OFFICER')
+  @Put(':id/approve-profile')
+  @ApiOperation({ summary: 'Approve a pending client profile' })
+  approveClientProfile(@Param('id') id: string) {
+    return this.clientsService.approveClientProfile(id);
   }
 }

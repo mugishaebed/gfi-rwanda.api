@@ -5,7 +5,12 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'crypto';
-import { ClientType, DocumentOwnerType } from '../generated/prisma/enums';
+import {
+  ClientOnboardingStatus,
+  ClientType,
+  DocumentOwnerType,
+  UserRole,
+} from '../generated/prisma/enums';
 import { DocumentsService } from '../documents/documents.service';
 import { PrismaService } from '../prisma.service';
 import {
@@ -457,5 +462,127 @@ export class ClientsService {
         error instanceof Error ? error.message : 'Failed to delete client';
       throw new BadRequestException(message);
     }
+  }
+
+  async completeMyIndividualProfile(
+    userId: string,
+    userEmail: string,
+    data: CreateIndividualClientDto,
+    files: Array<{
+      buffer: Buffer;
+      originalname: string;
+      mimetype: string;
+      size: number;
+    }> = [],
+  ) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, clientOnboardingStatus: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.clientOnboardingStatus !== ClientOnboardingStatus.PENDING_PROFILE) {
+      throw new BadRequestException('Client profile is already completed');
+    }
+
+    const payload: CreateIndividualClientDto = {
+      ...data,
+      email: userEmail,
+      type: ClientType.INDIVIDUAL,
+    };
+
+    const client = await this.createIndividualClient(payload, files, userId);
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        clientOnboardingStatus: ClientOnboardingStatus.PENDING_APPROVAL,
+      },
+    });
+
+    return client;
+  }
+
+  async completeMyBusinessProfile(
+    userId: string,
+    userEmail: string,
+    data: CreateBusinessClientDto,
+    files: Array<{
+      buffer: Buffer;
+      originalname: string;
+      mimetype: string;
+      size: number;
+    }> = [],
+  ) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, clientOnboardingStatus: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.clientOnboardingStatus !== ClientOnboardingStatus.PENDING_PROFILE) {
+      throw new BadRequestException('Client profile is already completed');
+    }
+
+    const payload: CreateBusinessClientDto = {
+      ...data,
+      email: userEmail,
+      type: ClientType.BUSINESS,
+    };
+
+    const client = await this.createBusinessClient(payload, files, userId);
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        clientOnboardingStatus: ClientOnboardingStatus.PENDING_APPROVAL,
+      },
+    });
+
+    return client;
+  }
+
+  async approveClientProfile(clientId: string) {
+    const client = await this.prisma.client.findUnique({
+      where: { id: clientId },
+      select: { email: true },
+    });
+
+    if (!client) {
+      throw new NotFoundException('Client not found');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { email: client.email },
+      select: { id: true, roles: true, clientOnboardingStatus: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Client account not found');
+    }
+
+    if (!user.roles.includes(UserRole.CLIENT)) {
+      throw new BadRequestException('User is not a client account');
+    }
+
+    if (user.clientOnboardingStatus !== ClientOnboardingStatus.PENDING_APPROVAL) {
+      throw new BadRequestException('Client profile is not awaiting approval');
+    }
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        clientOnboardingStatus: ClientOnboardingStatus.ACTIVE,
+        clientApprovedAt: new Date(),
+      },
+    });
+
+    return { message: 'Client profile approved successfully' };
   }
 }

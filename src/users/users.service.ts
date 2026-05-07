@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import {
+  ClientOnboardingStatus,
   type AuthProvider as AuthProviderValue,
   type UserRole as UserRoleValue,
   UserRole,
@@ -148,6 +149,10 @@ export class UsersService {
       email: profile.email,
       displayName: displayName || profile.email,
       rolesForNewUser: [role],
+      clientOnboardingStatus:
+        role === UserRole.CLIENT
+          ? ClientOnboardingStatus.PENDING_PROFILE
+          : ClientOnboardingStatus.ACTIVE,
     });
   }
 
@@ -219,6 +224,20 @@ export class UsersService {
     });
   }
 
+  async setClientOnboardingStatus(
+    userId: string,
+    status: ClientOnboardingStatus,
+    clientApprovedAt: Date | null = null,
+  ) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        clientOnboardingStatus: status,
+        clientApprovedAt,
+      },
+    });
+  }
+
   isAllowedRole(role: string): role is UserRoleValue {
     return (
       role === UserRole.LOAN_OFFICER ||
@@ -252,6 +271,7 @@ export class UsersService {
     email: string;
     displayName: string;
     rolesForNewUser: UserRoleValue[];
+    clientOnboardingStatus?: ClientOnboardingStatus;
   }) {
     return this.prisma.$transaction(async (tx) => {
       const existingIdentity = await tx.authIdentity.findUnique({
@@ -290,6 +310,8 @@ export class UsersService {
               email: params.email,
               name: params.displayName,
               roles: params.rolesForNewUser,
+              clientOnboardingStatus:
+                params.clientOnboardingStatus ?? ClientOnboardingStatus.ACTIVE,
             },
           });
 

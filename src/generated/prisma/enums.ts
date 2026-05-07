@@ -19,6 +19,15 @@ export const UserRole = {
 export type UserRole = (typeof UserRole)[keyof typeof UserRole]
 
 
+export const ClientOnboardingStatus = {
+  PENDING_PROFILE: 'PENDING_PROFILE',
+  PENDING_APPROVAL: 'PENDING_APPROVAL',
+  ACTIVE: 'ACTIVE'
+} as const
+
+export type ClientOnboardingStatus = (typeof ClientOnboardingStatus)[keyof typeof ClientOnboardingStatus]
+
+
 export const AuthProvider = {
   MICROSOFT: 'MICROSOFT',
   GOOGLE: 'GOOGLE'
