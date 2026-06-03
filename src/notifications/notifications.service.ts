@@ -111,6 +111,8 @@ export class NotificationsService {
     amountPaid: number;
     paymentDate: Date;
     clientName: string;
+    source?: 'STAFF_MANUAL' | 'CLIENT_ONLINE';
+    paymentReference?: string | null;
   }) {
     const recipientEmails = await this.getRecipientEmails(
       UserRole.GENERAL_MANAGER,
@@ -123,16 +125,22 @@ export class NotificationsService {
       return;
     }
 
+    const sourceLabel =
+      details.source === 'CLIENT_ONLINE' ? 'online' : 'manual';
+
     await this.sendMail({
       to: recipientEmails,
       subject: `Repayment approval required for ${details.clientName}`,
       text: [
-        'A manual repayment has been recorded and requires your approval.',
+        `A ${sourceLabel} repayment has been recorded and requires your approval.`,
         `Repayment ID: ${details.repaymentId}`,
         `Loan ID: ${details.loanId}`,
         `Client: ${details.clientName}`,
         `Amount Paid: ${details.amountPaid}`,
         `Payment Date: ${details.paymentDate.toISOString()}`,
+        ...(details.paymentReference
+          ? [`Payment Reference: ${details.paymentReference}`]
+          : []),
       ].join('\n'),
     });
   }
@@ -158,7 +166,7 @@ export class NotificationsService {
       text: [
         `Hello ${details.loanOfficerName ?? 'Loan Officer'},`,
         '',
-        'The following manual repayment has been approved by the general manager.',
+        'The following repayment has been approved by the general manager.',
         `Repayment ID: ${details.repaymentId}`,
         `Loan ID: ${details.loanId}`,
         `Client: ${details.clientName}`,

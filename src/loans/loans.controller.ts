@@ -14,6 +14,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import {
+  ApiBody,
   ApiBearerAuth,
   ApiConsumes,
   ApiOperation,
@@ -24,8 +25,9 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { LoanStatus } from '../generated/prisma/enums';
+import { LoanSource, LoanStatus } from '../generated/prisma/enums';
 import { LoansService } from './loans.service';
+import { ClientLoanRequestDto } from './dto/client-loan-request.dto';
 import { CreateLoanDto } from './dto/create-loan.dto';
 import { ReviewLoanDto } from './dto/review-loan.dto';
 import { createDocumentUploadOptions } from '../documents/document-upload';
@@ -66,13 +68,21 @@ export class LoansController {
     enum: LoanStatus,
     description: 'Optional loan status filter.',
   })
+  @ApiQuery({
+    name: 'source',
+    required: false,
+    enum: LoanSource,
+    description: 'Optional loan source filter.',
+  })
   findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
     @Query('status', new ParseEnumPipe(LoanStatus, { optional: true }))
     status?: LoanStatus,
+    @Query('source', new ParseEnumPipe(LoanSource, { optional: true }))
+    source?: LoanSource,
   ) {
-    return this.loansService.findAll(page, limit, status);
+    return this.loansService.findAll(page, limit, status, source);
   }
 
   @Roles('CLIENT')
@@ -85,7 +95,7 @@ export class LoansController {
     status: LoanStatus | undefined,
     @Req() req: AuthenticatedRequest,
   ) {
-    return this.loansService.findMyLoans(req.user.email, page, limit, status);
+    return this.loansService.findMyLoans(req.user.userId, page, limit, status);
   }
 
   @Roles('LOAN_OFFICER', 'GENERAL_MANAGER')
@@ -104,12 +114,13 @@ export class LoansController {
       createDocumentUploadOptions(10 * 1024 * 1024),
     ),
   )
-  @ApiConsumes('multipart/form-data')
+  @ApiConsumes('application/json', 'multipart/form-data')
+  @ApiBody({ type: ClientLoanRequestDto })
   @ApiOperation({
     summary: 'Create a loan request as client for loan officer review',
   })
   requestLoan(
-    @Body() dto: CreateLoanDto,
+    @Body() dto: ClientLoanRequestDto,
     @UploadedFiles()
     files: Array<{
       buffer: Buffer;
@@ -122,7 +133,6 @@ export class LoansController {
     return this.loansService.requestLoanAsClient(
       dto,
       req.user.userId,
-      req.user.email,
       files,
     );
   }

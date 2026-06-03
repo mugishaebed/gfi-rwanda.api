@@ -5,13 +5,18 @@ import {
 } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import {
+  ClientOnboardingStatus,
   DocumentOwnerType,
   LoanStatus,
+  RepaymentSource,
   RepaymentStatus,
+  UserRole,
 } from '../generated/prisma/enums';
 import { DocumentsService } from '../documents/documents.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../prisma.service';
+import { withLoanNumber } from '../loans/loan-number';
+import { CreateOnlineRepaymentDto } from './dto/create-online-repayment.dto';
 import { CreateRepaymentDto } from './dto/create-repayment.dto';
 import { ReviewRepaymentDto } from './dto/review-repayment.dto';
 
@@ -23,12 +28,20 @@ export class RepaymentsService {
     private readonly documentsService: DocumentsService,
   ) {}
 
-  async findAll(page = 1, limit = 10, status?: RepaymentStatus) {
+  async findAll(
+    page = 1,
+    limit = 10,
+    status?: RepaymentStatus,
+    source?: RepaymentSource,
+  ) {
     const safePage = Math.max(page, 1);
     const safeLimit = Math.min(Math.max(limit, 1), 100);
     const skip = (safePage - 1) * safeLimit;
 
-    const where = status ? { status } : undefined;
+    const where = {
+      ...(status ? { status } : {}),
+      ...(source ? { source } : {}),
+    };
 
     const [repayments, total] = await Promise.all([
       this.prisma.repayment.findMany({
@@ -42,6 +55,7 @@ export class RepaymentsService {
           loan: {
             select: {
               id: true,
+              createdAt: true,
               amount: true,
               outstandingBalance: true,
               totalRepaidAmount: true,
@@ -63,7 +77,7 @@ export class RepaymentsService {
     return {
       data: await this.documentsService.attachDocuments(
         DocumentOwnerType.REPAYMENT,
-        repayments,
+        repayments.map((repayment) => this.addLoanNumberToRepayment(repayment)),
       ),
       meta: {
         page: safePage,
@@ -81,6 +95,7 @@ export class RepaymentsService {
         loan: {
           select: {
             id: true,
+            createdAt: true,
             amount: true,
             outstandingBalance: true,
             totalRepaidAmount: true,
@@ -104,7 +119,234 @@ export class RepaymentsService {
 
     return (
       await this.documentsService.attachDocuments(DocumentOwnerType.REPAYMENT, [
-        repayment,
+        this.addLoanNumberToRepayment(repayment),
+      ])
+    )[0];
+  }
+
+  async findMyRepayments(
+    clientUserId: string,
+    page = 1,
+    limit = 10,
+    status?: RepaymentStatus,
+  ) {
+    const client = await this.getActiveClient(clientUserId);
+
+    const safePage = Math.max(page, 1);
+    const safeLimit = Math.min(Math.max(limit, 1), 100);
+    const skip = (safePage - 1) * safeLimit;
+
+    const where = {
+      loan: {
+        clientId: client.id,
+      },
+      ...(status ? { status } : {}),
+    };
+
+    const [repayments, total] = await Promise.all([
+      this.prisma.repayment.findMany({
+        where,
+        skip,
+        take: safeLimit,
+        orderBy: {
+          createdAt: 'desc',
+        },
+        include: {
+          loan: {
+            select: {
+              id: true,
+              createdAt: true,
+              amount: true,
+              outstandingBalance: true,
+              totalRepaidAmount: true,
+              purpose: true,
+              status: true,
+            },
+          },
+        },
+      }),
+      this.prisma.repayment.count({ where }),
+    ]);
+
+    return {
+      data: await this.documentsService.attachDocuments(
+        DocumentOwnerType.REPAYMENT,
+        repayments.map((repayment) => this.addLoanNumberToRepayment(repayment)),
+      ),
+      meta: {
+        page: safePage,
+        limit: safeLimit,
+        total,
+        totalPages: Math.ceil(total / safeLimit),
+      },
+    };
+  }
+
+  async findMyRepayment(clientUserId: string, repaymentId: string) {
+    const client = await this.getActiveClient(clientUserId);
+
+    const repayment = await this.prisma.repayment.findUnique({
+      where: { id: repaymentId },
+      include: {
+        loan: {
+          select: {
+            id: true,
+            clientId: true,
+            createdAt: true,
+            amount: true,
+            outstandingBalance: true,
+            totalRepaidAmount: true,
+            purpose: true,
+            status: true,
+          },
+        },
+      },
+    });
+
+    if (!repayment || repayment.loan.clientId !== client.id) {
+      throw new NotFoundException('Repayment not found');
+    }
+
+    const { clientId: _clientId, ...loanForResponse } = repayment.loan;
+
+    return (
+      await this.documentsService.attachDocuments(DocumentOwnerType.REPAYMENT, [
+        this.addLoanNumberToRepayment({
+          ...repayment,
+          loan: loanForResponse,
+        }),
+      ])
+    )[0];
+  }
+
+  async createOnlineRepayment(
+    loanId: string,
+    data: CreateOnlineRepaymentDto,
+    clientUserId: string,
+  ) {
+    const client = await this.getActiveClient(clientUserId);
+    const loan = await this.prisma.loan.findUnique({
+      where: { id: loanId },
+      include: {
+        user: true,
+        client: {
+          include: {
+            individual: true,
+            business: true,
+          },
+        },
+      },
+    });
+
+    if (!loan || loan.clientId !== client.id) {
+      throw new NotFoundException('Loan not found');
+    }
+
+    if (loan.status !== LoanStatus.APPROVED) {
+      throw new BadRequestException(
+        'Online payment can only be made for active or overdue loans',
+      );
+    }
+
+    if (loan.outstandingBalance <= 0) {
+      throw new BadRequestException('Loan is already fully paid');
+    }
+
+    const pendingRepayments = await this.prisma.repayment.aggregate({
+      where: {
+        loanId: loan.id,
+        status: RepaymentStatus.PENDING,
+      },
+      _sum: {
+        amountPaid: true,
+      },
+    });
+    const availableBalance =
+      loan.outstandingBalance - (pendingRepayments._sum.amountPaid ?? 0);
+
+    if (data.amountPaid > availableBalance) {
+      throw new BadRequestException(
+        'Payment amount exceeds outstanding loan balance after pending repayments',
+      );
+    }
+
+    const repaymentId = randomUUID();
+    const paymentDate = new Date();
+    const paymentReference = this.normalizePaymentReference(
+      data.paymentReference,
+      repaymentId,
+    );
+    const paymentPhoneNumber =
+      data.paymentPhoneNumber?.trim() || client.phoneNumber;
+
+    await this.ensurePaymentReferenceIsAvailable(paymentReference);
+
+    const repayment = await this.prisma.$transaction(async (tx) => {
+      const loanDeduction = await tx.loan.updateMany({
+        where: {
+          id: loan.id,
+          outstandingBalance: {
+            gte: data.amountPaid,
+          },
+        },
+        data: {
+          outstandingBalance: {
+            decrement: data.amountPaid,
+          },
+          totalRepaidAmount: {
+            increment: data.amountPaid,
+          },
+        },
+      });
+
+      if (loanDeduction.count === 0) {
+        throw new BadRequestException(
+          'Payment amount exceeds outstanding loan balance',
+        );
+      }
+
+      const createdRepayment = await tx.repayment.create({
+        data: {
+          id: repaymentId,
+          loanId: loan.id,
+          amountPaid: data.amountPaid,
+          paymentDate,
+          notes: this.buildOnlinePaymentNotes(data, paymentReference),
+          source: RepaymentSource.CLIENT_ONLINE,
+          paymentProvider: data.paymentProvider,
+          paymentReference,
+          paymentPhoneNumber,
+          status: RepaymentStatus.APPROVED,
+          approvedAt: paymentDate,
+        },
+        include: {
+          loan: {
+            select: {
+              id: true,
+              createdAt: true,
+              amount: true,
+              outstandingBalance: true,
+              totalRepaidAmount: true,
+              purpose: true,
+              status: true,
+              user: true,
+              client: {
+                include: {
+                  individual: true,
+                  business: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      return createdRepayment;
+    });
+
+    return (
+      await this.documentsService.attachDocuments(DocumentOwnerType.REPAYMENT, [
+        this.addLoanNumberToRepayment(repayment),
       ])
     )[0];
   }
@@ -151,12 +393,14 @@ export class RepaymentsService {
             amountPaid: data.amountPaid,
             paymentDate: data.paymentDate,
             notes: data.notes,
+            source: RepaymentSource.STAFF_MANUAL,
             status: RepaymentStatus.PENDING,
           },
           include: {
             loan: {
               select: {
                 id: true,
+                createdAt: true,
                 amount: true,
                 outstandingBalance: true,
                 totalRepaidAmount: true,
@@ -186,13 +430,14 @@ export class RepaymentsService {
           amountPaid: repayment.amountPaid,
           paymentDate: repayment.paymentDate,
           clientName: this.getClientDisplayName(repayment.loan.client),
+          source: RepaymentSource.STAFF_MANUAL,
         },
       );
 
       return (
         await this.documentsService.attachDocuments(
           DocumentOwnerType.REPAYMENT,
-          [repayment],
+          [this.addLoanNumberToRepayment(repayment)],
         )
       )[0];
     } catch (error) {
@@ -275,6 +520,7 @@ export class RepaymentsService {
           loan: {
             select: {
               id: true,
+              createdAt: true,
               amount: true,
               outstandingBalance: true,
               totalRepaidAmount: true,
@@ -306,9 +552,84 @@ export class RepaymentsService {
 
     return (
       await this.documentsService.attachDocuments(DocumentOwnerType.REPAYMENT, [
-        updatedRepayment,
+        this.addLoanNumberToRepayment(updatedRepayment),
       ])
     )[0];
+  }
+
+  private async getActiveClient(clientUserId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: clientUserId },
+      select: { clientOnboardingStatus: true, roles: true },
+    });
+
+    if (!user || !user.roles.includes(UserRole.CLIENT)) {
+      throw new NotFoundException('Client account not found');
+    }
+
+    if (user.clientOnboardingStatus !== ClientOnboardingStatus.ACTIVE) {
+      throw new BadRequestException(
+        'Client account is pending approval by loan officer',
+      );
+    }
+
+    const client = await this.prisma.client.findUnique({
+      where: { userId: clientUserId },
+      select: { id: true, phoneNumber: true },
+    });
+
+    if (!client) {
+      throw new NotFoundException('Client profile not found for this account');
+    }
+
+    return client;
+  }
+
+  private normalizePaymentReference(
+    paymentReference: string | undefined,
+    repaymentId: string,
+  ) {
+    const trimmed = paymentReference?.trim();
+    if (trimmed) {
+      return trimmed;
+    }
+
+    return `PAY-${repaymentId.slice(0, 8).toUpperCase()}`;
+  }
+
+  private buildOnlinePaymentNotes(
+    data: CreateOnlineRepaymentDto,
+    paymentReference: string,
+  ) {
+    return [
+      data.notes?.trim(),
+      `Online payment submitted by client via ${data.paymentProvider}. Reference: ${paymentReference}.`,
+    ]
+      .filter(Boolean)
+      .join('\n');
+  }
+
+  private async ensurePaymentReferenceIsAvailable(paymentReference: string) {
+    const existing = await this.prisma.repayment.findUnique({
+      where: { paymentReference },
+      select: { id: true },
+    });
+
+    if (existing) {
+      throw new BadRequestException('Payment reference has already been used');
+    }
+  }
+
+  private addLoanNumberToRepayment<
+    T extends { loan: { id: string; createdAt?: Date | string | null } },
+  >(repayment: T) {
+    const loan = withLoanNumber(repayment.loan);
+    const { createdAt: _createdAt, ...loanForResponse } = loan;
+
+    return {
+      ...repayment,
+      loan: loanForResponse,
+    };
   }
 
   private getClientDisplayName(client: {

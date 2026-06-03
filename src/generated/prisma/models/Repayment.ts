@@ -40,6 +40,10 @@ export type RepaymentMinAggregateOutputType = {
   amountPaid: number | null
   paymentDate: Date | null
   notes: string | null
+  source: $Enums.RepaymentSource | null
+  paymentProvider: $Enums.OnlinePaymentProvider | null
+  paymentReference: string | null
+  paymentPhoneNumber: string | null
   status: $Enums.RepaymentStatus | null
   approvedAt: Date | null
   createdAt: Date | null
@@ -51,6 +55,10 @@ export type RepaymentMaxAggregateOutputType = {
   amountPaid: number | null
   paymentDate: Date | null
   notes: string | null
+  source: $Enums.RepaymentSource | null
+  paymentProvider: $Enums.OnlinePaymentProvider | null
+  paymentReference: string | null
+  paymentPhoneNumber: string | null
   status: $Enums.RepaymentStatus | null
   approvedAt: Date | null
   createdAt: Date | null
@@ -62,6 +70,10 @@ export type RepaymentCountAggregateOutputType = {
   amountPaid: number
   paymentDate: number
   notes: number
+  source: number
+  paymentProvider: number
+  paymentReference: number
+  paymentPhoneNumber: number
   status: number
   approvedAt: number
   createdAt: number
@@ -83,6 +95,10 @@ export type RepaymentMinAggregateInputType = {
   amountPaid?: true
   paymentDate?: true
   notes?: true
+  source?: true
+  paymentProvider?: true
+  paymentReference?: true
+  paymentPhoneNumber?: true
   status?: true
   approvedAt?: true
   createdAt?: true
@@ -94,6 +110,10 @@ export type RepaymentMaxAggregateInputType = {
   amountPaid?: true
   paymentDate?: true
   notes?: true
+  source?: true
+  paymentProvider?: true
+  paymentReference?: true
+  paymentPhoneNumber?: true
   status?: true
   approvedAt?: true
   createdAt?: true
@@ -105,6 +125,10 @@ export type RepaymentCountAggregateInputType = {
   amountPaid?: true
   paymentDate?: true
   notes?: true
+  source?: true
+  paymentProvider?: true
+  paymentReference?: true
+  paymentPhoneNumber?: true
   status?: true
   approvedAt?: true
   createdAt?: true
@@ -203,6 +227,10 @@ export type RepaymentGroupByOutputType = {
   amountPaid: number
   paymentDate: Date
   notes: string | null
+  source: $Enums.RepaymentSource
+  paymentProvider: $Enums.OnlinePaymentProvider | null
+  paymentReference: string | null
+  paymentPhoneNumber: string | null
   status: $Enums.RepaymentStatus
   approvedAt: Date | null
   createdAt: Date
@@ -237,6 +265,10 @@ export type RepaymentWhereInput = {
   amountPaid?: Prisma.FloatFilter<"Repayment"> | number
   paymentDate?: Prisma.DateTimeFilter<"Repayment"> | Date | string
   notes?: Prisma.StringNullableFilter<"Repayment"> | string | null
+  source?: Prisma.EnumRepaymentSourceFilter<"Repayment"> | $Enums.RepaymentSource
+  paymentProvider?: Prisma.EnumOnlinePaymentProviderNullableFilter<"Repayment"> | $Enums.OnlinePaymentProvider | null
+  paymentReference?: Prisma.StringNullableFilter<"Repayment"> | string | null
+  paymentPhoneNumber?: Prisma.StringNullableFilter<"Repayment"> | string | null
   status?: Prisma.EnumRepaymentStatusFilter<"Repayment"> | $Enums.RepaymentStatus
   approvedAt?: Prisma.DateTimeNullableFilter<"Repayment"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Repayment"> | Date | string
@@ -249,6 +281,10 @@ export type RepaymentOrderByWithRelationInput = {
   amountPaid?: Prisma.SortOrder
   paymentDate?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
+  source?: Prisma.SortOrder
+  paymentProvider?: Prisma.SortOrderInput | Prisma.SortOrder
+  paymentReference?: Prisma.SortOrderInput | Prisma.SortOrder
+  paymentPhoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   approvedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -257,6 +293,7 @@ export type RepaymentOrderByWithRelationInput = {
 
 export type RepaymentWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  paymentReference?: string
   AND?: Prisma.RepaymentWhereInput | Prisma.RepaymentWhereInput[]
   OR?: Prisma.RepaymentWhereInput[]
   NOT?: Prisma.RepaymentWhereInput | Prisma.RepaymentWhereInput[]
@@ -264,11 +301,14 @@ export type RepaymentWhereUniqueInput = Prisma.AtLeast<{
   amountPaid?: Prisma.FloatFilter<"Repayment"> | number
   paymentDate?: Prisma.DateTimeFilter<"Repayment"> | Date | string
   notes?: Prisma.StringNullableFilter<"Repayment"> | string | null
+  source?: Prisma.EnumRepaymentSourceFilter<"Repayment"> | $Enums.RepaymentSource
+  paymentProvider?: Prisma.EnumOnlinePaymentProviderNullableFilter<"Repayment"> | $Enums.OnlinePaymentProvider | null
+  paymentPhoneNumber?: Prisma.StringNullableFilter<"Repayment"> | string | null
   status?: Prisma.EnumRepaymentStatusFilter<"Repayment"> | $Enums.RepaymentStatus
   approvedAt?: Prisma.DateTimeNullableFilter<"Repayment"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Repayment"> | Date | string
   loan?: Prisma.XOR<Prisma.LoanScalarRelationFilter, Prisma.LoanWhereInput>
-}, "id">
+}, "id" | "paymentReference">
 
 export type RepaymentOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -276,6 +316,10 @@ export type RepaymentOrderByWithAggregationInput = {
   amountPaid?: Prisma.SortOrder
   paymentDate?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
+  source?: Prisma.SortOrder
+  paymentProvider?: Prisma.SortOrderInput | Prisma.SortOrder
+  paymentReference?: Prisma.SortOrderInput | Prisma.SortOrder
+  paymentPhoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   approvedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -295,6 +339,10 @@ export type RepaymentScalarWhereWithAggregatesInput = {
   amountPaid?: Prisma.FloatWithAggregatesFilter<"Repayment"> | number
   paymentDate?: Prisma.DateTimeWithAggregatesFilter<"Repayment"> | Date | string
   notes?: Prisma.StringNullableWithAggregatesFilter<"Repayment"> | string | null
+  source?: Prisma.EnumRepaymentSourceWithAggregatesFilter<"Repayment"> | $Enums.RepaymentSource
+  paymentProvider?: Prisma.EnumOnlinePaymentProviderNullableWithAggregatesFilter<"Repayment"> | $Enums.OnlinePaymentProvider | null
+  paymentReference?: Prisma.StringNullableWithAggregatesFilter<"Repayment"> | string | null
+  paymentPhoneNumber?: Prisma.StringNullableWithAggregatesFilter<"Repayment"> | string | null
   status?: Prisma.EnumRepaymentStatusWithAggregatesFilter<"Repayment"> | $Enums.RepaymentStatus
   approvedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Repayment"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Repayment"> | Date | string
@@ -305,6 +353,10 @@ export type RepaymentCreateInput = {
   amountPaid: number
   paymentDate: Date | string
   notes?: string | null
+  source?: $Enums.RepaymentSource
+  paymentProvider?: $Enums.OnlinePaymentProvider | null
+  paymentReference?: string | null
+  paymentPhoneNumber?: string | null
   status?: $Enums.RepaymentStatus
   approvedAt?: Date | string | null
   createdAt?: Date | string
@@ -317,6 +369,10 @@ export type RepaymentUncheckedCreateInput = {
   amountPaid: number
   paymentDate: Date | string
   notes?: string | null
+  source?: $Enums.RepaymentSource
+  paymentProvider?: $Enums.OnlinePaymentProvider | null
+  paymentReference?: string | null
+  paymentPhoneNumber?: string | null
   status?: $Enums.RepaymentStatus
   approvedAt?: Date | string | null
   createdAt?: Date | string
@@ -327,6 +383,10 @@ export type RepaymentUpdateInput = {
   amountPaid?: Prisma.FloatFieldUpdateOperationsInput | number
   paymentDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.EnumRepaymentSourceFieldUpdateOperationsInput | $Enums.RepaymentSource
+  paymentProvider?: Prisma.NullableEnumOnlinePaymentProviderFieldUpdateOperationsInput | $Enums.OnlinePaymentProvider | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumRepaymentStatusFieldUpdateOperationsInput | $Enums.RepaymentStatus
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -339,6 +399,10 @@ export type RepaymentUncheckedUpdateInput = {
   amountPaid?: Prisma.FloatFieldUpdateOperationsInput | number
   paymentDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.EnumRepaymentSourceFieldUpdateOperationsInput | $Enums.RepaymentSource
+  paymentProvider?: Prisma.NullableEnumOnlinePaymentProviderFieldUpdateOperationsInput | $Enums.OnlinePaymentProvider | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumRepaymentStatusFieldUpdateOperationsInput | $Enums.RepaymentStatus
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -350,6 +414,10 @@ export type RepaymentCreateManyInput = {
   amountPaid: number
   paymentDate: Date | string
   notes?: string | null
+  source?: $Enums.RepaymentSource
+  paymentProvider?: $Enums.OnlinePaymentProvider | null
+  paymentReference?: string | null
+  paymentPhoneNumber?: string | null
   status?: $Enums.RepaymentStatus
   approvedAt?: Date | string | null
   createdAt?: Date | string
@@ -360,6 +428,10 @@ export type RepaymentUpdateManyMutationInput = {
   amountPaid?: Prisma.FloatFieldUpdateOperationsInput | number
   paymentDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.EnumRepaymentSourceFieldUpdateOperationsInput | $Enums.RepaymentSource
+  paymentProvider?: Prisma.NullableEnumOnlinePaymentProviderFieldUpdateOperationsInput | $Enums.OnlinePaymentProvider | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumRepaymentStatusFieldUpdateOperationsInput | $Enums.RepaymentStatus
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -371,6 +443,10 @@ export type RepaymentUncheckedUpdateManyInput = {
   amountPaid?: Prisma.FloatFieldUpdateOperationsInput | number
   paymentDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.EnumRepaymentSourceFieldUpdateOperationsInput | $Enums.RepaymentSource
+  paymentProvider?: Prisma.NullableEnumOnlinePaymentProviderFieldUpdateOperationsInput | $Enums.OnlinePaymentProvider | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumRepaymentStatusFieldUpdateOperationsInput | $Enums.RepaymentStatus
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -392,6 +468,10 @@ export type RepaymentCountOrderByAggregateInput = {
   amountPaid?: Prisma.SortOrder
   paymentDate?: Prisma.SortOrder
   notes?: Prisma.SortOrder
+  source?: Prisma.SortOrder
+  paymentProvider?: Prisma.SortOrder
+  paymentReference?: Prisma.SortOrder
+  paymentPhoneNumber?: Prisma.SortOrder
   status?: Prisma.SortOrder
   approvedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -407,6 +487,10 @@ export type RepaymentMaxOrderByAggregateInput = {
   amountPaid?: Prisma.SortOrder
   paymentDate?: Prisma.SortOrder
   notes?: Prisma.SortOrder
+  source?: Prisma.SortOrder
+  paymentProvider?: Prisma.SortOrder
+  paymentReference?: Prisma.SortOrder
+  paymentPhoneNumber?: Prisma.SortOrder
   status?: Prisma.SortOrder
   approvedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -418,6 +502,10 @@ export type RepaymentMinOrderByAggregateInput = {
   amountPaid?: Prisma.SortOrder
   paymentDate?: Prisma.SortOrder
   notes?: Prisma.SortOrder
+  source?: Prisma.SortOrder
+  paymentProvider?: Prisma.SortOrder
+  paymentReference?: Prisma.SortOrder
+  paymentPhoneNumber?: Prisma.SortOrder
   status?: Prisma.SortOrder
   approvedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -469,6 +557,14 @@ export type RepaymentUncheckedUpdateManyWithoutLoanNestedInput = {
   deleteMany?: Prisma.RepaymentScalarWhereInput | Prisma.RepaymentScalarWhereInput[]
 }
 
+export type EnumRepaymentSourceFieldUpdateOperationsInput = {
+  set?: $Enums.RepaymentSource
+}
+
+export type NullableEnumOnlinePaymentProviderFieldUpdateOperationsInput = {
+  set?: $Enums.OnlinePaymentProvider | null
+}
+
 export type EnumRepaymentStatusFieldUpdateOperationsInput = {
   set?: $Enums.RepaymentStatus
 }
@@ -478,6 +574,10 @@ export type RepaymentCreateWithoutLoanInput = {
   amountPaid: number
   paymentDate: Date | string
   notes?: string | null
+  source?: $Enums.RepaymentSource
+  paymentProvider?: $Enums.OnlinePaymentProvider | null
+  paymentReference?: string | null
+  paymentPhoneNumber?: string | null
   status?: $Enums.RepaymentStatus
   approvedAt?: Date | string | null
   createdAt?: Date | string
@@ -488,6 +588,10 @@ export type RepaymentUncheckedCreateWithoutLoanInput = {
   amountPaid: number
   paymentDate: Date | string
   notes?: string | null
+  source?: $Enums.RepaymentSource
+  paymentProvider?: $Enums.OnlinePaymentProvider | null
+  paymentReference?: string | null
+  paymentPhoneNumber?: string | null
   status?: $Enums.RepaymentStatus
   approvedAt?: Date | string | null
   createdAt?: Date | string
@@ -528,6 +632,10 @@ export type RepaymentScalarWhereInput = {
   amountPaid?: Prisma.FloatFilter<"Repayment"> | number
   paymentDate?: Prisma.DateTimeFilter<"Repayment"> | Date | string
   notes?: Prisma.StringNullableFilter<"Repayment"> | string | null
+  source?: Prisma.EnumRepaymentSourceFilter<"Repayment"> | $Enums.RepaymentSource
+  paymentProvider?: Prisma.EnumOnlinePaymentProviderNullableFilter<"Repayment"> | $Enums.OnlinePaymentProvider | null
+  paymentReference?: Prisma.StringNullableFilter<"Repayment"> | string | null
+  paymentPhoneNumber?: Prisma.StringNullableFilter<"Repayment"> | string | null
   status?: Prisma.EnumRepaymentStatusFilter<"Repayment"> | $Enums.RepaymentStatus
   approvedAt?: Prisma.DateTimeNullableFilter<"Repayment"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Repayment"> | Date | string
@@ -538,6 +646,10 @@ export type RepaymentCreateManyLoanInput = {
   amountPaid: number
   paymentDate: Date | string
   notes?: string | null
+  source?: $Enums.RepaymentSource
+  paymentProvider?: $Enums.OnlinePaymentProvider | null
+  paymentReference?: string | null
+  paymentPhoneNumber?: string | null
   status?: $Enums.RepaymentStatus
   approvedAt?: Date | string | null
   createdAt?: Date | string
@@ -548,6 +660,10 @@ export type RepaymentUpdateWithoutLoanInput = {
   amountPaid?: Prisma.FloatFieldUpdateOperationsInput | number
   paymentDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.EnumRepaymentSourceFieldUpdateOperationsInput | $Enums.RepaymentSource
+  paymentProvider?: Prisma.NullableEnumOnlinePaymentProviderFieldUpdateOperationsInput | $Enums.OnlinePaymentProvider | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumRepaymentStatusFieldUpdateOperationsInput | $Enums.RepaymentStatus
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -558,6 +674,10 @@ export type RepaymentUncheckedUpdateWithoutLoanInput = {
   amountPaid?: Prisma.FloatFieldUpdateOperationsInput | number
   paymentDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.EnumRepaymentSourceFieldUpdateOperationsInput | $Enums.RepaymentSource
+  paymentProvider?: Prisma.NullableEnumOnlinePaymentProviderFieldUpdateOperationsInput | $Enums.OnlinePaymentProvider | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumRepaymentStatusFieldUpdateOperationsInput | $Enums.RepaymentStatus
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -568,6 +688,10 @@ export type RepaymentUncheckedUpdateManyWithoutLoanInput = {
   amountPaid?: Prisma.FloatFieldUpdateOperationsInput | number
   paymentDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.EnumRepaymentSourceFieldUpdateOperationsInput | $Enums.RepaymentSource
+  paymentProvider?: Prisma.NullableEnumOnlinePaymentProviderFieldUpdateOperationsInput | $Enums.OnlinePaymentProvider | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumRepaymentStatusFieldUpdateOperationsInput | $Enums.RepaymentStatus
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -581,6 +705,10 @@ export type RepaymentSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   amountPaid?: boolean
   paymentDate?: boolean
   notes?: boolean
+  source?: boolean
+  paymentProvider?: boolean
+  paymentReference?: boolean
+  paymentPhoneNumber?: boolean
   status?: boolean
   approvedAt?: boolean
   createdAt?: boolean
@@ -593,6 +721,10 @@ export type RepaymentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   amountPaid?: boolean
   paymentDate?: boolean
   notes?: boolean
+  source?: boolean
+  paymentProvider?: boolean
+  paymentReference?: boolean
+  paymentPhoneNumber?: boolean
   status?: boolean
   approvedAt?: boolean
   createdAt?: boolean
@@ -605,6 +737,10 @@ export type RepaymentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   amountPaid?: boolean
   paymentDate?: boolean
   notes?: boolean
+  source?: boolean
+  paymentProvider?: boolean
+  paymentReference?: boolean
+  paymentPhoneNumber?: boolean
   status?: boolean
   approvedAt?: boolean
   createdAt?: boolean
@@ -617,12 +753,16 @@ export type RepaymentSelectScalar = {
   amountPaid?: boolean
   paymentDate?: boolean
   notes?: boolean
+  source?: boolean
+  paymentProvider?: boolean
+  paymentReference?: boolean
+  paymentPhoneNumber?: boolean
   status?: boolean
   approvedAt?: boolean
   createdAt?: boolean
 }
 
-export type RepaymentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "loanId" | "amountPaid" | "paymentDate" | "notes" | "status" | "approvedAt" | "createdAt", ExtArgs["result"]["repayment"]>
+export type RepaymentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "loanId" | "amountPaid" | "paymentDate" | "notes" | "source" | "paymentProvider" | "paymentReference" | "paymentPhoneNumber" | "status" | "approvedAt" | "createdAt", ExtArgs["result"]["repayment"]>
 export type RepaymentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   loan?: boolean | Prisma.LoanDefaultArgs<ExtArgs>
 }
@@ -644,6 +784,10 @@ export type $RepaymentPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     amountPaid: number
     paymentDate: Date
     notes: string | null
+    source: $Enums.RepaymentSource
+    paymentProvider: $Enums.OnlinePaymentProvider | null
+    paymentReference: string | null
+    paymentPhoneNumber: string | null
     status: $Enums.RepaymentStatus
     approvedAt: Date | null
     createdAt: Date
@@ -1076,6 +1220,10 @@ export interface RepaymentFieldRefs {
   readonly amountPaid: Prisma.FieldRef<"Repayment", 'Float'>
   readonly paymentDate: Prisma.FieldRef<"Repayment", 'DateTime'>
   readonly notes: Prisma.FieldRef<"Repayment", 'String'>
+  readonly source: Prisma.FieldRef<"Repayment", 'RepaymentSource'>
+  readonly paymentProvider: Prisma.FieldRef<"Repayment", 'OnlinePaymentProvider'>
+  readonly paymentReference: Prisma.FieldRef<"Repayment", 'String'>
+  readonly paymentPhoneNumber: Prisma.FieldRef<"Repayment", 'String'>
   readonly status: Prisma.FieldRef<"Repayment", 'RepaymentStatus'>
   readonly approvedAt: Prisma.FieldRef<"Repayment", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Repayment", 'DateTime'>

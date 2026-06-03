@@ -218,6 +218,7 @@ export type UserWhereInput = {
   refreshTokenExpiresAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   refreshTokenHash?: Prisma.StringNullableFilter<"User"> | string | null
   roles?: Prisma.EnumUserRoleNullableListFilter<"User">
+  clientProfile?: Prisma.XOR<Prisma.ClientNullableScalarRelationFilter, Prisma.ClientWhereInput> | null
   identities?: Prisma.AuthIdentityListRelationFilter
   loans?: Prisma.LoanListRelationFilter
 }
@@ -233,6 +234,7 @@ export type UserOrderByWithRelationInput = {
   refreshTokenExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   refreshTokenHash?: Prisma.SortOrderInput | Prisma.SortOrder
   roles?: Prisma.SortOrder
+  clientProfile?: Prisma.ClientOrderByWithRelationInput
   identities?: Prisma.AuthIdentityOrderByRelationAggregateInput
   loans?: Prisma.LoanOrderByRelationAggregateInput
 }
@@ -251,6 +253,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   refreshTokenExpiresAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   refreshTokenHash?: Prisma.StringNullableFilter<"User"> | string | null
   roles?: Prisma.EnumUserRoleNullableListFilter<"User">
+  clientProfile?: Prisma.XOR<Prisma.ClientNullableScalarRelationFilter, Prisma.ClientWhereInput> | null
   identities?: Prisma.AuthIdentityListRelationFilter
   loans?: Prisma.LoanListRelationFilter
 }, "id" | "email">
@@ -298,6 +301,7 @@ export type UserCreateInput = {
   refreshTokenExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
   roles?: Prisma.UserCreaterolesInput | $Enums.UserRole[]
+  clientProfile?: Prisma.ClientCreateNestedOneWithoutUserInput
   identities?: Prisma.AuthIdentityCreateNestedManyWithoutUserInput
   loans?: Prisma.LoanCreateNestedManyWithoutUserInput
 }
@@ -313,6 +317,7 @@ export type UserUncheckedCreateInput = {
   refreshTokenExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
   roles?: Prisma.UserCreaterolesInput | $Enums.UserRole[]
+  clientProfile?: Prisma.ClientUncheckedCreateNestedOneWithoutUserInput
   identities?: Prisma.AuthIdentityUncheckedCreateNestedManyWithoutUserInput
   loans?: Prisma.LoanUncheckedCreateNestedManyWithoutUserInput
 }
@@ -328,6 +333,7 @@ export type UserUpdateInput = {
   refreshTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   roles?: Prisma.UserUpdaterolesInput | $Enums.UserRole[]
+  clientProfile?: Prisma.ClientUpdateOneWithoutUserNestedInput
   identities?: Prisma.AuthIdentityUpdateManyWithoutUserNestedInput
   loans?: Prisma.LoanUpdateManyWithoutUserNestedInput
 }
@@ -343,6 +349,7 @@ export type UserUncheckedUpdateInput = {
   refreshTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   roles?: Prisma.UserUpdaterolesInput | $Enums.UserRole[]
+  clientProfile?: Prisma.ClientUncheckedUpdateOneWithoutUserNestedInput
   identities?: Prisma.AuthIdentityUncheckedUpdateManyWithoutUserNestedInput
   loans?: Prisma.LoanUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -484,6 +491,22 @@ export type UserUpdateOneRequiredWithoutIdentitiesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutIdentitiesInput, Prisma.UserUpdateWithoutIdentitiesInput>, Prisma.UserUncheckedUpdateWithoutIdentitiesInput>
 }
 
+export type UserCreateNestedOneWithoutClientProfileInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutClientProfileInput, Prisma.UserUncheckedCreateWithoutClientProfileInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutClientProfileInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutClientProfileNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutClientProfileInput, Prisma.UserUncheckedCreateWithoutClientProfileInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutClientProfileInput
+  upsert?: Prisma.UserUpsertWithoutClientProfileInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutClientProfileInput, Prisma.UserUpdateWithoutClientProfileInput>, Prisma.UserUncheckedUpdateWithoutClientProfileInput>
+}
+
 export type UserCreateNestedOneWithoutLoansInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutLoansInput, Prisma.UserUncheckedCreateWithoutLoansInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutLoansInput
@@ -511,6 +534,7 @@ export type UserCreateWithoutIdentitiesInput = {
   refreshTokenExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
   roles?: Prisma.UserCreaterolesInput | $Enums.UserRole[]
+  clientProfile?: Prisma.ClientCreateNestedOneWithoutUserInput
   loans?: Prisma.LoanCreateNestedManyWithoutUserInput
 }
 
@@ -525,6 +549,7 @@ export type UserUncheckedCreateWithoutIdentitiesInput = {
   refreshTokenExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
   roles?: Prisma.UserCreaterolesInput | $Enums.UserRole[]
+  clientProfile?: Prisma.ClientUncheckedCreateNestedOneWithoutUserInput
   loans?: Prisma.LoanUncheckedCreateNestedManyWithoutUserInput
 }
 
@@ -555,6 +580,7 @@ export type UserUpdateWithoutIdentitiesInput = {
   refreshTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   roles?: Prisma.UserUpdaterolesInput | $Enums.UserRole[]
+  clientProfile?: Prisma.ClientUpdateOneWithoutUserNestedInput
   loans?: Prisma.LoanUpdateManyWithoutUserNestedInput
 }
 
@@ -569,6 +595,83 @@ export type UserUncheckedUpdateWithoutIdentitiesInput = {
   refreshTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   roles?: Prisma.UserUpdaterolesInput | $Enums.UserRole[]
+  clientProfile?: Prisma.ClientUncheckedUpdateOneWithoutUserNestedInput
+  loans?: Prisma.LoanUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutClientProfileInput = {
+  id?: string
+  name: string
+  email: string
+  clientOnboardingStatus?: $Enums.ClientOnboardingStatus
+  clientApprovedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  refreshTokenExpiresAt?: Date | string | null
+  refreshTokenHash?: string | null
+  roles?: Prisma.UserCreaterolesInput | $Enums.UserRole[]
+  identities?: Prisma.AuthIdentityCreateNestedManyWithoutUserInput
+  loans?: Prisma.LoanCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutClientProfileInput = {
+  id?: string
+  name: string
+  email: string
+  clientOnboardingStatus?: $Enums.ClientOnboardingStatus
+  clientApprovedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  refreshTokenExpiresAt?: Date | string | null
+  refreshTokenHash?: string | null
+  roles?: Prisma.UserCreaterolesInput | $Enums.UserRole[]
+  identities?: Prisma.AuthIdentityUncheckedCreateNestedManyWithoutUserInput
+  loans?: Prisma.LoanUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutClientProfileInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutClientProfileInput, Prisma.UserUncheckedCreateWithoutClientProfileInput>
+}
+
+export type UserUpsertWithoutClientProfileInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutClientProfileInput, Prisma.UserUncheckedUpdateWithoutClientProfileInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutClientProfileInput, Prisma.UserUncheckedCreateWithoutClientProfileInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutClientProfileInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutClientProfileInput, Prisma.UserUncheckedUpdateWithoutClientProfileInput>
+}
+
+export type UserUpdateWithoutClientProfileInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  clientOnboardingStatus?: Prisma.EnumClientOnboardingStatusFieldUpdateOperationsInput | $Enums.ClientOnboardingStatus
+  clientApprovedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refreshTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roles?: Prisma.UserUpdaterolesInput | $Enums.UserRole[]
+  identities?: Prisma.AuthIdentityUpdateManyWithoutUserNestedInput
+  loans?: Prisma.LoanUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutClientProfileInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  clientOnboardingStatus?: Prisma.EnumClientOnboardingStatusFieldUpdateOperationsInput | $Enums.ClientOnboardingStatus
+  clientApprovedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refreshTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roles?: Prisma.UserUpdaterolesInput | $Enums.UserRole[]
+  identities?: Prisma.AuthIdentityUncheckedUpdateManyWithoutUserNestedInput
   loans?: Prisma.LoanUncheckedUpdateManyWithoutUserNestedInput
 }
 
@@ -583,6 +686,7 @@ export type UserCreateWithoutLoansInput = {
   refreshTokenExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
   roles?: Prisma.UserCreaterolesInput | $Enums.UserRole[]
+  clientProfile?: Prisma.ClientCreateNestedOneWithoutUserInput
   identities?: Prisma.AuthIdentityCreateNestedManyWithoutUserInput
 }
 
@@ -597,6 +701,7 @@ export type UserUncheckedCreateWithoutLoansInput = {
   refreshTokenExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
   roles?: Prisma.UserCreaterolesInput | $Enums.UserRole[]
+  clientProfile?: Prisma.ClientUncheckedCreateNestedOneWithoutUserInput
   identities?: Prisma.AuthIdentityUncheckedCreateNestedManyWithoutUserInput
 }
 
@@ -627,6 +732,7 @@ export type UserUpdateWithoutLoansInput = {
   refreshTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   roles?: Prisma.UserUpdaterolesInput | $Enums.UserRole[]
+  clientProfile?: Prisma.ClientUpdateOneWithoutUserNestedInput
   identities?: Prisma.AuthIdentityUpdateManyWithoutUserNestedInput
 }
 
@@ -641,6 +747,7 @@ export type UserUncheckedUpdateWithoutLoansInput = {
   refreshTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   roles?: Prisma.UserUpdaterolesInput | $Enums.UserRole[]
+  clientProfile?: Prisma.ClientUncheckedUpdateOneWithoutUserNestedInput
   identities?: Prisma.AuthIdentityUncheckedUpdateManyWithoutUserNestedInput
 }
 
@@ -695,6 +802,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   refreshTokenExpiresAt?: boolean
   refreshTokenHash?: boolean
   roles?: boolean
+  clientProfile?: boolean | Prisma.User$clientProfileArgs<ExtArgs>
   identities?: boolean | Prisma.User$identitiesArgs<ExtArgs>
   loans?: boolean | Prisma.User$loansArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
@@ -741,6 +849,7 @@ export type UserSelectScalar = {
 
 export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "clientOnboardingStatus" | "clientApprovedAt" | "createdAt" | "updatedAt" | "refreshTokenExpiresAt" | "refreshTokenHash" | "roles", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  clientProfile?: boolean | Prisma.User$clientProfileArgs<ExtArgs>
   identities?: boolean | Prisma.User$identitiesArgs<ExtArgs>
   loans?: boolean | Prisma.User$loansArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
@@ -751,6 +860,7 @@ export type UserIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
 export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "User"
   objects: {
+    clientProfile: Prisma.$ClientPayload<ExtArgs> | null
     identities: Prisma.$AuthIdentityPayload<ExtArgs>[]
     loans: Prisma.$LoanPayload<ExtArgs>[]
   }
@@ -1159,6 +1269,7 @@ readonly fields: UserFieldRefs;
  */
 export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  clientProfile<T extends Prisma.User$clientProfileArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$clientProfileArgs<ExtArgs>>): Prisma.Prisma__ClientClient<runtime.Types.Result.GetResult<Prisma.$ClientPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   identities<T extends Prisma.User$identitiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$identitiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuthIdentityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   loans<T extends Prisma.User$loansArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$loansArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LoanPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -1590,6 +1701,25 @@ export type UserDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Limit how many Users to delete.
    */
   limit?: number
+}
+
+/**
+ * User.clientProfile
+ */
+export type User$clientProfileArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Client
+   */
+  select?: Prisma.ClientSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Client
+   */
+  omit?: Prisma.ClientOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClientInclude<ExtArgs> | null
+  where?: Prisma.ClientWhereInput
 }
 
 /**

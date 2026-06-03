@@ -24,7 +24,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { RepaymentStatus } from '../generated/prisma/enums';
+import { RepaymentSource, RepaymentStatus } from '../generated/prisma/enums';
 import { RepaymentsService } from './repayments.service';
 import { CreateRepaymentDto } from './dto/create-repayment.dto';
 import { ReviewRepaymentDto } from './dto/review-repayment.dto';
@@ -64,13 +64,21 @@ export class RepaymentsController {
     enum: RepaymentStatus,
     description: 'Optional repayment status filter.',
   })
+  @ApiQuery({
+    name: 'source',
+    required: false,
+    enum: RepaymentSource,
+    description: 'Optional repayment source filter.',
+  })
   findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
     @Query('status', new ParseEnumPipe(RepaymentStatus, { optional: true }))
     status?: RepaymentStatus,
+    @Query('source', new ParseEnumPipe(RepaymentSource, { optional: true }))
+    source?: RepaymentSource,
   ) {
-    return this.repaymentsService.findAll(page, limit, status);
+    return this.repaymentsService.findAll(page, limit, status, source);
   }
 
   @Roles('LOAN_OFFICER', 'GENERAL_MANAGER')

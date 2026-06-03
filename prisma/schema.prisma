@@ -9,18 +9,19 @@ datasource db {
 }
 
 model User {
-  id                    String         @id @default(uuid())
-  name                  String
-  email                 String         @unique
+  id                     String                 @id @default(uuid())
+  name                   String
+  email                  String                 @unique
   clientOnboardingStatus ClientOnboardingStatus @default(ACTIVE)
-  clientApprovedAt      DateTime?
-  createdAt             DateTime       @default(now())
-  updatedAt             DateTime       @updatedAt
-  refreshTokenExpiresAt DateTime?
-  refreshTokenHash      String?
-  roles                 UserRole[]     @default([LOAN_OFFICER])
-  identities            AuthIdentity[]
-  loans                 Loan[]
+  clientApprovedAt       DateTime?
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+  refreshTokenExpiresAt  DateTime?
+  refreshTokenHash       String?
+  roles                  UserRole[]             @default([LOAN_OFFICER])
+  clientProfile          Client?
+  identities             AuthIdentity[]
+  loans                  Loan[]
 }
 
 model AuthIdentity {
@@ -40,14 +41,16 @@ model AuthIdentity {
 model Client {
   id            String            @id @default(uuid())
   type          ClientType
-  email         String            @unique
+  email         String
   phoneNumber   String
   address       String
   accountNumber String            @unique
+  userId        String?           @unique
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
   business      BusinessClient?
   individual    IndividualClient?
+  user          User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
   loans         Loan[]
 }
 
@@ -93,10 +96,11 @@ model BusinessClient {
 }
 
 model Loan {
-  id                             String          @id @default(uuid())
+  id                             String             @id @default(uuid())
   clientId                       String
   amount                         Float
-  totalRepaidAmount              Float           @default(0)
+  currency                       String             @default("RWF")
+  totalRepaidAmount              Float              @default(0)
   outstandingBalance             Float
   purpose                        String
   repaymentTerms                 Json
@@ -104,8 +108,8 @@ model Loan {
   comments                       String?
   interestRatePercentPerMonth    Float
   termInMonths                   Int
-  termStartDate                  DateTime        @db.Date
-  termEndDate                    DateTime        @db.Date
+  termStartDate                  DateTime           @db.Date
+  termEndDate                    DateTime           @db.Date
   disbursementWithinDays         Int
   collateralType                 String
   collateralEstimatedValue       Float
@@ -120,15 +124,21 @@ model Loan {
   earlyRepaymentFeePercent       Float
   defaultPenaltyFeePercentPerDay Float
   spouseName                     String?
-  status                         LoanStatus      @default(PENDING)
+  termsAccepted                  Boolean            @default(false)
+  termsVersion                   String?
+  disbursementMethod             DisbursementMethod @default(MOBILE_MONEY)
+  source                         LoanSource         @default(STAFF_MANUAL)
+  status                         LoanStatus         @default(PENDING)
   activatedAt                    DateTime?
-  createdAt                      DateTime        @default(now())
-  updatedAt                      DateTime        @updatedAt
+  createdAt                      DateTime           @default(now())
+  updatedAt                      DateTime           @updatedAt
   userId                         String?
-  client                         Client          @relation(fields: [clientId], references: [id])
-  user                           User?           @relation(fields: [userId], references: [id])
+  client                         Client             @relation(fields: [clientId], references: [id])
+  user                           User?              @relation(fields: [userId], references: [id])
   statusLogs                     LoanStatusLog[]
   repayments                     Repayment[]
+
+  @@index([source, status, createdAt])
 }
 
 model LoanStatusLog {
@@ -143,15 +153,22 @@ model LoanStatusLog {
 }
 
 model Repayment {
-  id          String          @id @default(uuid())
-  loanId      String
-  amountPaid  Float
-  paymentDate DateTime
-  notes       String?
-  status      RepaymentStatus @default(PENDING)
-  approvedAt  DateTime?
-  createdAt   DateTime        @default(now())
-  loan        Loan            @relation(fields: [loanId], references: [id])
+  id                 String                 @id @default(uuid())
+  loanId             String
+  amountPaid         Float
+  paymentDate        DateTime
+  notes              String?
+  source             RepaymentSource        @default(STAFF_MANUAL)
+  paymentProvider    OnlinePaymentProvider?
+  paymentReference   String?                @unique
+  paymentPhoneNumber String?
+  status             RepaymentStatus        @default(PENDING)
+  approvedAt         DateTime?
+  createdAt          DateTime               @default(now())
+  loan               Loan                   @relation(fields: [loanId], references: [id])
+
+  @@index([source, status, createdAt])
+  @@index([loanId, createdAt])
 }
 
 model Document {
@@ -235,10 +252,28 @@ enum LoanStatus {
   REJECTED
 }
 
+enum LoanSource {
+  CLIENT_ONLINE
+  STAFF_MANUAL
+}
+
+enum DisbursementMethod {
+  MOBILE_MONEY
+}
+
 enum RepaymentStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+enum RepaymentSource {
+  STAFF_MANUAL
+  CLIENT_ONLINE
+}
+
+enum OnlinePaymentProvider {
+  MOBILE_MONEY
 }
 
 enum DocumentOwnerType {

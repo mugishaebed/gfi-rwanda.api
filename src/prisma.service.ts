@@ -3,6 +3,11 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import { PrismaClient } from './generated/prisma/client';
 
+const PRISMA_TRANSACTION_OPTIONS = {
+  maxWait: 10_000,
+  timeout: 15_000,
+} as const;
+
 @Injectable()
 export class PrismaService
   extends PrismaClient
@@ -26,7 +31,10 @@ export class PrismaService
     });
 
     const adapter = new PrismaPg(pool);
-    super({ adapter });
+    super({
+      adapter,
+      transactionOptions: PRISMA_TRANSACTION_OPTIONS,
+    });
 
     this.pool = pool;
   }

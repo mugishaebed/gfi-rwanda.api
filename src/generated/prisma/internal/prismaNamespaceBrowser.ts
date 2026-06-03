@@ -116,6 +116,7 @@ export const ClientScalarFieldEnum = {
   phoneNumber: 'phoneNumber',
   address: 'address',
   accountNumber: 'accountNumber',
+  userId: 'userId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -172,6 +173,7 @@ export const LoanScalarFieldEnum = {
   id: 'id',
   clientId: 'clientId',
   amount: 'amount',
+  currency: 'currency',
   totalRepaidAmount: 'totalRepaidAmount',
   outstandingBalance: 'outstandingBalance',
   purpose: 'purpose',
@@ -196,6 +198,10 @@ export const LoanScalarFieldEnum = {
   earlyRepaymentFeePercent: 'earlyRepaymentFeePercent',
   defaultPenaltyFeePercentPerDay: 'defaultPenaltyFeePercentPerDay',
   spouseName: 'spouseName',
+  termsAccepted: 'termsAccepted',
+  termsVersion: 'termsVersion',
+  disbursementMethod: 'disbursementMethod',
+  source: 'source',
   status: 'status',
   activatedAt: 'activatedAt',
   createdAt: 'createdAt',
@@ -225,6 +231,10 @@ export const RepaymentScalarFieldEnum = {
   amountPaid: 'amountPaid',
   paymentDate: 'paymentDate',
   notes: 'notes',
+  source: 'source',
+  paymentProvider: 'paymentProvider',
+  paymentReference: 'paymentReference',
+  paymentPhoneNumber: 'paymentPhoneNumber',
   status: 'status',
   approvedAt: 'approvedAt',
   createdAt: 'createdAt'

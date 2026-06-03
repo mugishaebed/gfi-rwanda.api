@@ -8,6 +8,7 @@ import {
   Post,
   Query,
   ParseIntPipe,
+  ParseEnumPipe,
   Req,
   Put,
   UploadedFiles,
@@ -23,6 +24,7 @@ import {
 } from '@nestjs/swagger';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ClientsService } from './clients.service';
+import { ClientSourceFilter } from './clients.service';
 import {
   CreateIndividualClientDto,
   CreateBusinessClientDto,
@@ -68,11 +70,71 @@ export class ClientsController {
     example: 10,
     description: 'Maximum number of records per page.',
   })
+  @ApiQuery({
+    name: 'source',
+    enum: ClientSourceFilter,
+    required: false,
+    description: 'Optional client source filter.',
+  })
   getClients(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Query(
+      'source',
+      new DefaultValuePipe(ClientSourceFilter.ALL),
+      new ParseEnumPipe(ClientSourceFilter),
+    )
+    source: ClientSourceFilter,
   ) {
-    return this.clientsService.getClients(page, limit);
+    return this.clientsService.getClients(page, limit, source);
+  }
+
+  @Roles('LOAN_OFFICER')
+  @Get('pending-approval')
+  @ApiOperation({
+    summary: 'Retrieve client profiles pending loan officer approval',
+    description:
+      'Returns completed client profiles whose linked client account is waiting for approval.',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    example: 1,
+    description: 'Page number to retrieve.',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    example: 10,
+    description: 'Maximum number of records per page.',
+  })
+  getPendingApprovalClients(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  ) {
+    return this.clientsService.getPendingApprovalClients(page, limit);
+  }
+
+  @Roles('CLIENT')
+  @Get('me/profile')
+  @ApiOperation({
+    summary: 'Retrieve current client user profile',
+    description:
+      'Returns the authenticated client user fields and the matching client profile when it has been completed.',
+  })
+  getMyProfile(@Req() req: AuthenticatedRequest) {
+    return this.clientsService.getMyProfile(req.user.userId);
+  }
+
+  @Roles('LOAN_OFFICER', 'GENERAL_MANAGER')
+  @Get(':id')
+  @ApiOperation({
+    summary: 'Retrieve a single client profile',
+    description:
+      'Returns a client profile by id, including individual or business details and uploaded documents.',
+  })
+  getClientById(@Param('id') id: string) {
+    return this.clientsService.getClientById(id);
   }
 
   @Roles('LOAN_OFFICER')

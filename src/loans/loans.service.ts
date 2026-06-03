@@ -9,15 +9,47 @@ import PDFDocument from 'pdfkit';
 import type { Prisma } from '../generated/prisma/client';
 import {
   ClientOnboardingStatus,
+  DisbursementMethod,
   DocumentOwnerType,
+  LoanSource,
   LoanStatus,
+  RepaymentStatus,
   UserRole,
 } from '../generated/prisma/enums';
 import { DocumentsService } from '../documents/documents.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../prisma.service';
+import {
+  CLIENT_LOAN_CURRENCY,
+  CLIENT_LOAN_TERM_IN_MONTHS,
+  CLIENT_LOAN_TERMS_VERSION,
+  ClientLoanRequestDto,
+} from './dto/client-loan-request.dto';
 import { CreateLoanDto } from './dto/create-loan.dto';
+import { formatLoanNumber, withLoanNumber } from './loan-number';
 import { ReviewLoanDto } from './dto/review-loan.dto';
+
+const CLIENT_LOAN_PURPOSE = 'Quick loan application';
+const CLIENT_LOAN_INTEREST_RATE_PERCENT_PER_MONTH = 10;
+const CLIENT_LOAN_DISBURSEMENT_WITHIN_DAYS = 0;
+const CLIENT_LOAN_COLLATERAL_TYPE = 'N/A';
+const CLIENT_LOAN_COLLATERAL_LOCATION = 'N/A';
+const CLIENT_LOAN_FEE_PERCENT = 0;
+const CLIENT_LOAN_OFFER_AVAILABLE_LIMIT = 500000;
+const CLIENT_LOAN_OFFER_MINIMUM_REQUEST = 100;
+const CLIENT_LOAN_OFFER_REVIEW_HOURS = 24;
+const RWANDA_TIME_ZONE = 'Africa/Kigali';
+const LOAN_STATUS_TRANSACTION_OPTIONS = {
+  maxWait: 10_000,
+  timeout: 15_000,
+} as const;
+
+type ClientFacingLoanStatus =
+  | 'pending'
+  | 'active'
+  | 'completed'
+  | 'overdue'
+  | 'rejected';
 
 @Injectable()
 export class LoansService {
@@ -27,12 +59,20 @@ export class LoansService {
     private readonly documentsService: DocumentsService,
   ) {}
 
-  async findAll(page = 1, limit = 10, status?: LoanStatus) {
+  async findAll(
+    page = 1,
+    limit = 10,
+    status?: LoanStatus,
+    source?: LoanSource,
+  ) {
     const safePage = Math.max(page, 1);
     const safeLimit = Math.min(Math.max(limit, 1), 100);
     const skip = (safePage - 1) * safeLimit;
 
-    const where = status ? { status } : undefined;
+    const where: Prisma.LoanWhereInput = {
+      ...(status ? { status } : {}),
+      ...(source ? { source } : {}),
+    };
 
     const [loans, total] = await Promise.all([
       this.prisma.loan.findMany({
@@ -63,7 +103,7 @@ export class LoansService {
     return {
       data: await this.documentsService.attachDocuments(
         DocumentOwnerType.LOAN,
-        loans,
+        loans.map((loan) => withLoanNumber(loan)),
       ),
       meta: {
         page: safePage,
@@ -75,15 +115,15 @@ export class LoansService {
   }
 
   async findMyLoans(
-    clientEmail: string,
+    clientUserId: string,
     page = 1,
     limit = 10,
     status?: LoanStatus,
   ) {
-    await this.ensureClientAccountIsActive(clientEmail);
+    await this.ensureClientAccountIsActive(clientUserId);
 
     const client = await this.prisma.client.findUnique({
-      where: { email: clientEmail },
+      where: { userId: clientUserId },
       select: { id: true },
     });
 
@@ -127,7 +167,7 @@ export class LoansService {
     return {
       data: await this.documentsService.attachDocuments(
         DocumentOwnerType.LOAN,
-        loans,
+        loans.map((loan) => withLoanNumber(loan)),
       ),
       meta: {
         page: safePage,
@@ -163,7 +203,7 @@ export class LoansService {
 
     return (
       await this.documentsService.attachDocuments(DocumentOwnerType.LOAN, [
-        loan,
+        withLoanNumber(loan),
       ])
     )[0];
   }
@@ -189,9 +229,8 @@ export class LoansService {
   }
 
   async requestLoanAsClient(
-    data: CreateLoanDto,
+    data: ClientLoanRequestDto,
     createdByUserId: string,
-    clientEmail: string,
     files: Array<{
       buffer: Buffer;
       originalname: string;
@@ -199,30 +238,31 @@ export class LoansService {
       size: number;
     }> = [],
   ) {
-    await this.ensureClientAccountIsActive(clientEmail);
+    await this.ensureClientAccountIsActive(createdByUserId);
 
     const client = await this.prisma.client.findUnique({
-      where: { email: clientEmail },
-      select: { id: true },
+      where: { userId: createdByUserId },
+      select: {
+        id: true,
+        phoneNumber: true,
+      },
     });
 
     if (!client) {
       throw new NotFoundException('Client profile not found for this account');
     }
 
-    return this.createLoanInternal(
+    return this.createClientLoanRequestInternal(
       data,
-      client.id,
+      client,
       createdByUserId,
       files,
-      LoanStatus.PENDING,
-      null,
     );
   }
 
-  private async ensureClientAccountIsActive(clientEmail: string) {
+  private async ensureClientAccountIsActive(clientUserId: string) {
     const user = await this.prisma.user.findUnique({
-      where: { email: clientEmail },
+      where: { id: clientUserId },
       select: { clientOnboardingStatus: true, roles: true },
     });
 
@@ -317,7 +357,7 @@ export class LoansService {
     review: ReviewLoanDto,
     reviewedByUserId: string,
   ) {
-    const loan = await this.prisma.$transaction(async (tx) => {
+    const loanId = await this.prisma.$transaction(async (tx) => {
       const existingLoan = await tx.loan.findUnique({
         where: { id },
       });
@@ -360,24 +400,10 @@ export class LoansService {
         },
       });
 
-      return tx.loan.findUniqueOrThrow({
-        where: { id: existingLoan.id },
-        include: {
-          client: {
-            include: {
-              individual: true,
-              business: true,
-            },
-          },
-          user: true,
-          statusLogs: {
-            orderBy: {
-              createdAt: 'desc',
-            },
-          },
-        },
-      });
-    });
+      return existingLoan.id;
+    }, LOAN_STATUS_TRANSACTION_OPTIONS);
+
+    const loan = await this.findLoanForReviewResponse(loanId);
 
     await this.generateAndAttachLoanContractPdf(loan.id, reviewedByUserId);
 
@@ -391,7 +417,7 @@ export class LoansService {
 
     return (
       await this.documentsService.attachDocuments(DocumentOwnerType.LOAN, [
-        loan,
+        withLoanNumber(loan),
       ])
     )[0];
   }
@@ -433,7 +459,7 @@ export class LoansService {
       );
     }
 
-    const loan = await this.prisma.$transaction(async (tx) => {
+    await this.prisma.$transaction(async (tx) => {
       await tx.loanStatusLog.create({
         data: {
           loanId: existingLoan.id,
@@ -452,25 +478,9 @@ export class LoansService {
           activatedAt: nextStatus === LoanStatus.APPROVED ? new Date() : null,
         },
       });
+    }, LOAN_STATUS_TRANSACTION_OPTIONS);
 
-      return tx.loan.findUniqueOrThrow({
-        where: { id: existingLoan.id },
-        include: {
-          client: {
-            include: {
-              individual: true,
-              business: true,
-            },
-          },
-          user: true,
-          statusLogs: {
-            orderBy: {
-              createdAt: 'desc',
-            },
-          },
-        },
-      });
-    });
+    const loan = await this.findLoanForReviewResponse(existingLoan.id);
 
     if (nextStatus === LoanStatus.APPROVED) {
       await this.generateAndAttachLoanContractPdf(loan.id, reviewedByUserId);
@@ -486,9 +496,121 @@ export class LoansService {
 
     return (
       await this.documentsService.attachDocuments(DocumentOwnerType.LOAN, [
-        loan,
+        withLoanNumber(loan),
       ])
     )[0];
+  }
+
+  private findLoanForReviewResponse(id: string) {
+    return this.prisma.loan.findUniqueOrThrow({
+      where: { id },
+      include: {
+        client: {
+          include: {
+            individual: true,
+            business: true,
+          },
+        },
+        user: true,
+        statusLogs: {
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+      },
+    });
+  }
+
+  private async createClientLoanRequestInternal(
+    data: ClientLoanRequestDto,
+    client: { id: string; phoneNumber: string },
+    createdByUserId: string,
+    files: Array<{
+      buffer: Buffer;
+      originalname: string;
+      mimetype: string;
+      size: number;
+    }>,
+  ) {
+    const loanId = randomUUID();
+    const calculation = this.calculateClientLoanRequest(data.amount);
+    const preparedDocuments = await this.documentsService.prepareDocuments({
+      ownerType: DocumentOwnerType.LOAN,
+      ownerId: loanId,
+      files,
+      uploadedByUserId: createdByUserId,
+    });
+
+    try {
+      const loan = await this.prisma.$transaction(async (tx) => {
+        const createdLoan = await tx.loan.create({
+          data: {
+            id: loanId,
+            clientId: client.id,
+            amount: data.amount,
+            currency: data.currency,
+            totalRepaidAmount: 0,
+            outstandingBalance: calculation.repaymentAmountPerMonth,
+            purpose: CLIENT_LOAN_PURPOSE,
+            interestRatePercentPerMonth:
+              CLIENT_LOAN_INTEREST_RATE_PERCENT_PER_MONTH,
+            termInMonths: CLIENT_LOAN_TERM_IN_MONTHS,
+            termStartDate: calculation.termStartDate,
+            termEndDate: calculation.termEndDate,
+            disbursementWithinDays: CLIENT_LOAN_DISBURSEMENT_WITHIN_DAYS,
+            collateralType: CLIENT_LOAN_COLLATERAL_TYPE,
+            collateralEstimatedValue: 0,
+            collateralLocation: CLIENT_LOAN_COLLATERAL_LOCATION,
+            repaymentInstallmentsCount:
+              calculation.repaymentTerms.installmentsCount,
+            repaymentAmountPerMonth: calculation.repaymentAmountPerMonth,
+            repaymentPeriodMonths: calculation.repaymentTerms.periodMonths,
+            paymentDayOfMonth: calculation.paymentDayOfMonth,
+            loanProcessingFeePercent: CLIENT_LOAN_FEE_PERCENT,
+            administrativeFeePercent: CLIENT_LOAN_FEE_PERCENT,
+            loanApplicationFeePercent: CLIENT_LOAN_FEE_PERCENT,
+            earlyRepaymentFeePercent: CLIENT_LOAN_FEE_PERCENT,
+            defaultPenaltyFeePercentPerDay: CLIENT_LOAN_FEE_PERCENT,
+            repaymentTerms: calculation.repaymentTerms as Prisma.InputJsonValue,
+            termsAccepted: data.termsAccepted,
+            termsVersion: data.termsVersion,
+            disbursementMethod: data.disbursementMethod,
+            source: LoanSource.CLIENT_ONLINE,
+            status: LoanStatus.PENDING,
+          },
+          include: {
+            client: {
+              include: {
+                individual: true,
+                business: true,
+              },
+            },
+            user: true,
+            statusLogs: {
+              orderBy: {
+                createdAt: 'desc',
+              },
+            },
+          },
+        });
+
+        await this.documentsService.createMany(preparedDocuments, tx);
+
+        return createdLoan;
+      });
+
+      await this.notificationsService.notifyLoanOfficersLoanPendingReview({
+        loanId: loan.id,
+        amount: loan.amount,
+        purpose: loan.purpose,
+        clientName: this.getClientDisplayName(loan.client),
+      });
+
+      return this.serializeClientLoanRequest(loan, client.phoneNumber);
+    } catch (error) {
+      await this.documentsService.cleanupPreparedDocuments(preparedDocuments);
+      throw error;
+    }
   }
 
   private async createLoanInternal(
@@ -555,6 +677,7 @@ export class LoansService {
               | Prisma.InputJsonValue
               | undefined,
             comments: data.comments,
+            source: LoanSource.STAFF_MANUAL,
             status: initialStatus,
             userId: assignedLoanOfficerId,
           },
@@ -590,13 +713,654 @@ export class LoansService {
 
       return (
         await this.documentsService.attachDocuments(DocumentOwnerType.LOAN, [
-          loan,
+          withLoanNumber(loan),
         ])
       )[0];
     } catch (error) {
       await this.documentsService.cleanupPreparedDocuments(preparedDocuments);
       throw error;
     }
+  }
+
+  private calculateClientLoanRequest(amount: number) {
+    const termStartDate = this.getCurrentRwandaDateOnly();
+    const termEndDate = this.addUtcDays(
+      this.addUtcMonthsClamped(termStartDate, CLIENT_LOAN_TERM_IN_MONTHS),
+      -1,
+    );
+    const paymentDayOfMonth = termEndDate.getUTCDate();
+    const interestAmount = this.roundCurrencyAmount(
+      amount *
+        (CLIENT_LOAN_INTEREST_RATE_PERCENT_PER_MONTH / 100) *
+        CLIENT_LOAN_TERM_IN_MONTHS,
+    );
+    const repaymentAmountPerMonth = this.roundCurrencyAmount(
+      amount + interestAmount,
+    );
+
+    return {
+      termStartDate,
+      termEndDate,
+      paymentDayOfMonth,
+      repaymentAmountPerMonth,
+      repaymentTerms: {
+        currency: CLIENT_LOAN_CURRENCY,
+        installmentsCount: CLIENT_LOAN_TERM_IN_MONTHS,
+        amountPerInstallment: repaymentAmountPerMonth,
+        periodMonths: CLIENT_LOAN_TERM_IN_MONTHS,
+        paymentDayOfMonth,
+        schedule: [
+          {
+            installmentNo: 1,
+            dueDate: this.formatDateOnly(termEndDate),
+            amount: repaymentAmountPerMonth,
+          },
+        ],
+      },
+    };
+  }
+
+  private serializeClientLoanRequest(
+    loan: {
+      id: string;
+      amount: number;
+      currency: string;
+      purpose: string;
+      status: LoanStatus;
+      interestRatePercentPerMonth: number;
+      termInMonths: number;
+      termStartDate: Date;
+      termEndDate: Date;
+      paymentDayOfMonth: number;
+      repaymentAmountPerMonth: number;
+      repaymentTerms: Prisma.JsonValue;
+      disbursementMethod: DisbursementMethod;
+      outstandingBalance: number;
+      createdAt: Date;
+      updatedAt: Date;
+    },
+    disbursementPhone: string,
+  ) {
+    const normalizedStatus = this.normalizeLoanStatus(
+      loan.status,
+      loan.outstandingBalance,
+      loan.repaymentTerms,
+    );
+
+    return {
+      data: {
+        id: loan.id,
+        loanNumber: formatLoanNumber(loan),
+        amount: loan.amount,
+        currency: loan.currency,
+        purpose: loan.purpose,
+        status: normalizedStatus,
+        workflowStatus: loan.status,
+        totalRepayment: loan.repaymentAmountPerMonth,
+        interest: this.roundCurrencyAmount(
+          loan.repaymentAmountPerMonth - loan.amount,
+        ),
+        interestRatePercentPerMonth: loan.interestRatePercentPerMonth,
+        termInMonths: loan.termInMonths,
+        termStartDate: this.formatDateOnly(loan.termStartDate),
+        termEndDate: this.formatDateOnly(loan.termEndDate),
+        paymentDayOfMonth: loan.paymentDayOfMonth,
+        repaymentAmountPerMonth: loan.repaymentAmountPerMonth,
+        repaymentTerms: loan.repaymentTerms,
+        disbursementMethod: loan.disbursementMethod,
+        disbursementPhone: this.maskPhoneNumber(disbursementPhone),
+        createdAt: loan.createdAt.toISOString(),
+        updatedAt: loan.updatedAt.toISOString(),
+      },
+    };
+  }
+
+  private normalizeLoanStatus(
+    status: LoanStatus,
+    outstandingBalance: number,
+    repaymentTerms: Prisma.JsonValue,
+  ): ClientFacingLoanStatus {
+    if (
+      status === LoanStatus.REJECTED ||
+      status === LoanStatus.LOAN_OFFICER_REJECTED
+    ) {
+      return 'rejected';
+    }
+
+    if (
+      status === LoanStatus.PENDING ||
+      status === LoanStatus.LOAN_OFFICER_APPROVED
+    ) {
+      return 'pending';
+    }
+
+    if (status === LoanStatus.APPROVED) {
+      if (outstandingBalance <= 0) {
+        return 'completed';
+      }
+
+      if (this.isLoanOverdue(repaymentTerms)) {
+        return 'overdue';
+      }
+
+      return 'active';
+    }
+
+    return 'pending';
+  }
+
+  private isLoanOverdue(repaymentTerms: Prisma.JsonValue) {
+    const schedule =
+      (repaymentTerms as { schedule?: Array<{ dueDate: string }> })?.schedule ??
+      [];
+    const now = new Date();
+
+    return schedule.some((item) => {
+      const dueDate = new Date(item.dueDate);
+      return dueDate.getTime() < now.getTime();
+    });
+  }
+
+  private async getClientInfo(clientUserId: string) {
+    await this.ensureClientAccountIsActive(clientUserId);
+
+    const client = await this.prisma.client.findUnique({
+      where: { userId: clientUserId },
+      select: { id: true, phoneNumber: true },
+    });
+
+    if (!client) {
+      throw new NotFoundException('Client profile not found for this account');
+    }
+
+    return client;
+  }
+
+  async getClientLoanOffer(clientUserId: string) {
+    const client = await this.getClientInfo(clientUserId);
+
+    return {
+      availableLimit: CLIENT_LOAN_OFFER_AVAILABLE_LIMIT,
+      minimumRequest: CLIENT_LOAN_OFFER_MINIMUM_REQUEST,
+      currency: CLIENT_LOAN_CURRENCY,
+      interestRatePercent: CLIENT_LOAN_INTEREST_RATE_PERCENT_PER_MONTH,
+      termMonths: CLIENT_LOAN_TERM_IN_MONTHS,
+      termsVersion: CLIENT_LOAN_TERMS_VERSION,
+      disbursementMethod: DisbursementMethod.MOBILE_MONEY,
+      disbursementPhone: this.maskPhoneNumber(client.phoneNumber),
+      expectedReviewHours: CLIENT_LOAN_OFFER_REVIEW_HOURS,
+    };
+  }
+
+  async findMyLoansForClient(
+    clientUserId: string,
+    page = 1,
+    limit = 10,
+    status?: string,
+  ) {
+    const client = await this.getClientInfo(clientUserId);
+
+    const safePage = Math.max(page, 1);
+    const safeLimit = Math.min(Math.max(limit, 1), 100);
+    const skip = (safePage - 1) * safeLimit;
+
+    const where: Prisma.LoanWhereInput = {
+      clientId: client.id,
+    };
+
+    if (status) {
+      const normalized = status.toLowerCase();
+      if (normalized === 'pending') {
+        where.status = {
+          in: [LoanStatus.PENDING, LoanStatus.LOAN_OFFICER_APPROVED],
+        };
+      } else if (normalized === 'rejected') {
+        where.status = {
+          in: [LoanStatus.REJECTED, LoanStatus.LOAN_OFFICER_REJECTED],
+        };
+      } else if (
+        normalized === 'active' ||
+        normalized === 'completed' ||
+        normalized === 'overdue'
+      ) {
+        where.status = LoanStatus.APPROVED;
+      }
+    }
+
+    const loans = await this.prisma.loan.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        client: {
+          include: {
+            individual: true,
+            business: true,
+          },
+        },
+        user: true,
+        statusLogs: {
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+      },
+    });
+
+    const filteredLoans = status
+      ? loans.filter(
+          (loan) =>
+            this.normalizeLoanStatus(
+              loan.status,
+              loan.outstandingBalance,
+              loan.repaymentTerms,
+            ) === status.toLowerCase(),
+        )
+      : loans;
+
+    const total = filteredLoans.length;
+    const paginatedLoans = filteredLoans.slice(skip, skip + safeLimit);
+    const attachedLoans = await this.documentsService.attachDocuments(
+      DocumentOwnerType.LOAN,
+      paginatedLoans,
+    );
+
+    return {
+      data: attachedLoans.map((loan) => this.serializeClientLoanListItem(loan)),
+      meta: {
+        page: safePage,
+        limit: safeLimit,
+        total,
+        totalPages: Math.ceil(total / safeLimit),
+      },
+    };
+  }
+
+  async findMyLoanDetailForClient(clientUserId: string, loanId: string) {
+    const client = await this.getClientInfo(clientUserId);
+
+    const loan = await this.prisma.loan.findUnique({
+      where: { id: loanId },
+      include: {
+        repayments: {
+          orderBy: {
+            paymentDate: 'asc',
+          },
+        },
+        statusLogs: {
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+      },
+    });
+
+    if (!loan || loan.clientId !== client.id) {
+      throw new NotFoundException('Loan not found');
+    }
+
+    return this.serializeClientLoanDetail(loan);
+  }
+
+  async getClientLoanDashboard(clientUserId: string) {
+    const client = await this.getClientInfo(clientUserId);
+
+    const loans = await this.prisma.loan.findMany({
+      where: { clientId: client.id },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        repayments: {
+          orderBy: {
+            paymentDate: 'asc',
+          },
+        },
+        statusLogs: {
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+      },
+    });
+
+    const normalizedLoans = loans.map((loan) => ({
+      loan,
+      normalizedStatus: this.normalizeLoanStatus(
+        loan.status,
+        loan.outstandingBalance,
+        loan.repaymentTerms,
+      ),
+    }));
+
+    const activeLoans = normalizedLoans.filter(
+      (entry) => entry.normalizedStatus === 'active',
+    );
+
+    const nextPaymentDate = activeLoans
+      .map((entry) => this.getLoanNextPayment(entry.loan))
+      .filter(
+        (
+          payment,
+        ): payment is { dueDate: Date; amount: number; status: string } =>
+          Boolean(payment),
+      )
+      .map((payment) => payment.dueDate)
+      .sort((a, b) => a.getTime() - b.getTime())[0];
+
+    const daysRemaining = nextPaymentDate
+      ? Math.max(
+          0,
+          Math.ceil(
+            (nextPaymentDate.getTime() - new Date().getTime()) /
+              (1000 * 60 * 60 * 24),
+          ),
+        )
+      : 0;
+
+    return {
+      activeLoan: activeLoans.reduce(
+        (sum, entry) => sum + entry.loan.amount,
+        0,
+      ),
+      outstandingBalance: activeLoans.reduce(
+        (sum, entry) => sum + entry.loan.outstandingBalance,
+        0,
+      ),
+      nextPaymentDate: nextPaymentDate
+        ? nextPaymentDate.toISOString().slice(0, 10)
+        : null,
+      daysRemaining,
+      loansCount: loans.length,
+      recentLoans: loans.slice(0, 3).map((loan) => ({
+        id: loan.id,
+        loanNumber: formatLoanNumber(loan),
+        amount: loan.amount,
+        currency: loan.currency,
+        status: this.normalizeLoanStatus(
+          loan.status,
+          loan.outstandingBalance,
+          loan.repaymentTerms,
+        ),
+        workflowStatus: loan.status,
+        createdAt: loan.createdAt.toISOString(),
+      })),
+    };
+  }
+
+  private getLoanNextPayment(loan: {
+    repaymentTerms: Prisma.JsonValue;
+  }): { dueDate: Date; amount: number; status: string } | null {
+    const schedule =
+      (
+        loan.repaymentTerms as {
+          schedule?: Array<{ dueDate: string; amount: number }>;
+        }
+      )?.schedule ?? [];
+    if (!schedule.length) {
+      return null;
+    }
+
+    const items = schedule
+      .map((item) => ({
+        dueDate: new Date(item.dueDate),
+        amount: item.amount,
+      }))
+      .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
+
+    const now = new Date();
+    const next = items.find((item) => item.dueDate.getTime() >= now.getTime());
+    const candidate = next ?? items[items.length - 1];
+
+    return {
+      dueDate: candidate.dueDate,
+      amount: candidate.amount,
+      status:
+        candidate.dueDate.getTime() < now.getTime() ? 'overdue' : 'pending',
+    };
+  }
+
+  private serializeClientLoanListItem(loan: {
+    id: string;
+    amount: number;
+    currency: string;
+    purpose: string;
+    status: LoanStatus;
+    outstandingBalance: number;
+    repaymentAmountPerMonth: number;
+    repaymentTerms: Prisma.JsonValue;
+    createdAt: Date;
+  }) {
+    const normalizedStatus = this.normalizeLoanStatus(
+      loan.status,
+      loan.outstandingBalance,
+      loan.repaymentTerms,
+    );
+    const nextPayment = this.getLoanNextPayment(loan);
+
+    return {
+      id: loan.id,
+      loanNumber: formatLoanNumber(loan),
+      amount: loan.amount,
+      currency: loan.currency,
+      purpose: loan.purpose,
+      status: normalizedStatus,
+      workflowStatus: loan.status,
+      remainingBalance: loan.outstandingBalance,
+      totalPayable: loan.repaymentAmountPerMonth,
+      interest: this.roundCurrencyAmount(
+        loan.repaymentAmountPerMonth - loan.amount,
+      ),
+      nextPayment: nextPayment
+        ? {
+            dueDate: this.formatDateOnly(nextPayment.dueDate),
+            amount: nextPayment.amount,
+            status: nextPayment.status,
+          }
+        : null,
+      createdAt: loan.createdAt.toISOString(),
+    };
+  }
+
+  private serializeClientLoanDetail(loan: {
+    id: string;
+    amount: number;
+    currency: string;
+    purpose: string;
+    status: LoanStatus;
+    outstandingBalance: number;
+    repaymentAmountPerMonth: number;
+    repaymentTerms: Prisma.JsonValue;
+    repayments: Array<{
+      id: string;
+      amountPaid: number;
+      paymentDate: Date;
+      notes: string | null;
+      status: RepaymentStatus;
+    }>;
+    statusLogs: Array<{
+      id: string;
+      note: string | null;
+      createdAt: Date;
+    }>;
+    createdAt: Date;
+  }) {
+    const normalizedStatus = this.normalizeLoanStatus(
+      loan.status,
+      loan.outstandingBalance,
+      loan.repaymentTerms,
+    );
+
+    const approvedRepayments = loan.repayments.filter(
+      (repayment) => repayment.status === RepaymentStatus.APPROVED,
+    );
+    const repaymentSchedule = this.formatRepaymentSchedule(
+      loan.repaymentTerms,
+      approvedRepayments,
+    );
+
+    return {
+      id: loan.id,
+      loanNumber: formatLoanNumber(loan),
+      amount: loan.amount,
+      currency: loan.currency,
+      purpose: loan.purpose,
+      status: normalizedStatus,
+      workflowStatus: loan.status,
+      trackerStep: this.getLoanTrackerStep(normalizedStatus),
+      interest: this.roundCurrencyAmount(
+        loan.repaymentAmountPerMonth - loan.amount,
+      ),
+      totalPayable: loan.repaymentAmountPerMonth,
+      remainingBalance: loan.outstandingBalance,
+      repaymentSchedule,
+      paymentHistory: this.formatRepaymentHistory(loan.repayments),
+      officerNotes: loan.statusLogs
+        .filter((log) => Boolean(log.note))
+        .map((log) => ({
+          id: log.id,
+          message: log.note ?? '',
+          createdAt: log.createdAt.toISOString(),
+        })),
+    };
+  }
+
+  private formatRepaymentSchedule(
+    repaymentTerms: Prisma.JsonValue,
+    repayments: Array<{ amountPaid: number; paymentDate: Date }>,
+  ) {
+    const schedule =
+      (
+        repaymentTerms as {
+          schedule?: Array<{
+            installmentNo?: number;
+            dueDate: string;
+            amount: number;
+          }>;
+        }
+      )?.schedule ?? [];
+    const sortedRepayments = [...repayments].sort(
+      (a, b) => a.paymentDate.getTime() - b.paymentDate.getTime(),
+    );
+
+    return schedule.map((item) => {
+      const dueDate = new Date(item.dueDate);
+      const isPaid = sortedRepayments.some(
+        (repayment) => repayment.paymentDate.getTime() <= dueDate.getTime(),
+      );
+
+      return {
+        installmentNo: item.installmentNo,
+        dueDate: item.dueDate,
+        amount: item.amount,
+        status: isPaid
+          ? 'Paid'
+          : dueDate.getTime() < new Date().getTime()
+            ? 'Overdue'
+            : 'Pending',
+      };
+    });
+  }
+
+  private formatRepaymentHistory(
+    repayments: Array<{
+      id: string;
+      amountPaid: number;
+      paymentDate: Date;
+      notes: string | null;
+      status: RepaymentStatus;
+    }>,
+  ) {
+    return repayments
+      .slice()
+      .sort((a, b) => b.paymentDate.getTime() - a.paymentDate.getTime())
+      .map((repayment) => ({
+        paidAt: repayment.paymentDate.toISOString(),
+        amount: repayment.amountPaid,
+        method: 'Mobile Money',
+        reference: repayment.notes ?? repayment.id,
+        status: repayment.status,
+      }));
+  }
+
+  private getLoanTrackerStep(status: ClientFacingLoanStatus) {
+    switch (status) {
+      case 'pending':
+        return 'Application';
+      case 'active':
+      case 'overdue':
+        return 'Repayment';
+      case 'completed':
+        return 'Completed';
+      case 'rejected':
+        return 'Rejected';
+      default:
+        return 'Application';
+    }
+  }
+
+  private getCurrentRwandaDateOnly(now = new Date()) {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: RWANDA_TIME_ZONE,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).formatToParts(now);
+    const dateParts = new Map(
+      parts
+        .filter((part) => part.type !== 'literal')
+        .map((part) => [part.type, Number(part.value)]),
+    );
+
+    return new Date(
+      Date.UTC(
+        dateParts.get('year') ?? now.getUTCFullYear(),
+        (dateParts.get('month') ?? now.getUTCMonth() + 1) - 1,
+        dateParts.get('day') ?? now.getUTCDate(),
+      ),
+    );
+  }
+
+  private addUtcMonthsClamped(date: Date, months: number) {
+    const targetMonthIndex = date.getUTCMonth() + months;
+    const targetYear =
+      date.getUTCFullYear() + Math.floor(targetMonthIndex / 12);
+    const targetMonth = ((targetMonthIndex % 12) + 12) % 12;
+    const lastDayOfTargetMonth = new Date(
+      Date.UTC(targetYear, targetMonth + 1, 0),
+    ).getUTCDate();
+
+    return new Date(
+      Date.UTC(
+        targetYear,
+        targetMonth,
+        Math.min(date.getUTCDate(), lastDayOfTargetMonth),
+      ),
+    );
+  }
+
+  private addUtcDays(date: Date, days: number) {
+    const nextDate = new Date(date);
+    nextDate.setUTCDate(nextDate.getUTCDate() + days);
+    return nextDate;
+  }
+
+  private roundCurrencyAmount(amount: number) {
+    return Math.round(amount);
+  }
+
+  private maskPhoneNumber(phoneNumber: string) {
+    const digits = phoneNumber.replace(/\D/g, '');
+    let localNumber = digits;
+
+    if (digits.startsWith('250') && digits.length === 12) {
+      localNumber = `0${digits.slice(3)}`;
+    } else if (digits.startsWith('7') && digits.length === 9) {
+      localNumber = `0${digits}`;
+    }
+
+    if (localNumber.length < 4) {
+      return 'XXXX XXX XXX';
+    }
+
+    return `${localNumber.slice(0, 4)} XXX XXX`;
   }
 
   private getClientDisplayName(client: {

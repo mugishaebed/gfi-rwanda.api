@@ -55,6 +55,21 @@ export const LoanStatus = {
 export type LoanStatus = (typeof LoanStatus)[keyof typeof LoanStatus]
 
 
+export const LoanSource = {
+  CLIENT_ONLINE: 'CLIENT_ONLINE',
+  STAFF_MANUAL: 'STAFF_MANUAL'
+} as const
+
+export type LoanSource = (typeof LoanSource)[keyof typeof LoanSource]
+
+
+export const DisbursementMethod = {
+  MOBILE_MONEY: 'MOBILE_MONEY'
+} as const
+
+export type DisbursementMethod = (typeof DisbursementMethod)[keyof typeof DisbursementMethod]
+
+
 export const RepaymentStatus = {
   PENDING: 'PENDING',
   APPROVED: 'APPROVED',
@@ -62,6 +77,21 @@ export const RepaymentStatus = {
 } as const
 
 export type RepaymentStatus = (typeof RepaymentStatus)[keyof typeof RepaymentStatus]
+
+
+export const RepaymentSource = {
+  STAFF_MANUAL: 'STAFF_MANUAL',
+  CLIENT_ONLINE: 'CLIENT_ONLINE'
+} as const
+
+export type RepaymentSource = (typeof RepaymentSource)[keyof typeof RepaymentSource]
+
+
+export const OnlinePaymentProvider = {
+  MOBILE_MONEY: 'MOBILE_MONEY'
+} as const
+
+export type OnlinePaymentProvider = (typeof OnlinePaymentProvider)[keyof typeof OnlinePaymentProvider]
 
 
 export const DocumentOwnerType = {
