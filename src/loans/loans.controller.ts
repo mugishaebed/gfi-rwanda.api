@@ -223,4 +223,14 @@ export class LoansController {
       req.user.userId,
     );
   }
+
+  @Roles('GENERAL_MANAGER')
+  @Post(':id/retry-disbursement')
+  @ApiOperation({
+    summary:
+      'Retry a failed MoMo disbursement for an approved loan as GM',
+  })
+  retryDisbursement(@Param('id') id: string) {
+    return this.loansService.retryDisbursement(id);
+  }
 }

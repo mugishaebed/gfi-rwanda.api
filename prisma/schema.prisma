@@ -127,6 +127,7 @@ model Loan {
   termsAccepted                  Boolean            @default(false)
   termsVersion                   String?
   disbursementMethod             DisbursementMethod @default(MOBILE_MONEY)
+  disbursementReference          String?            @unique
   source                         LoanSource         @default(STAFF_MANUAL)
   status                         LoanStatus         @default(PENDING)
   activatedAt                    DateTime?

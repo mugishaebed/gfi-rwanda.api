@@ -145,6 +145,41 @@ export class NotificationsService {
     });
   }
 
+  async notifyGeneralManagersDisbursementFailed(details: {
+    loanId: string;
+    amount: number;
+    clientName: string;
+    phoneNumber: string;
+    disbursementReference: string;
+  }) {
+    const recipientEmails = await this.getRecipientEmails(
+      UserRole.GENERAL_MANAGER,
+    );
+
+    if (recipientEmails.length === 0) {
+      this.logger.warn(
+        'No general manager emails found for disbursement failure notification',
+      );
+      return;
+    }
+
+    await this.sendMail({
+      to: recipientEmails,
+      subject: `ACTION REQUIRED: MoMo disbursement failed for ${details.clientName}`,
+      text: [
+        'A MoMo loan disbursement has failed and requires manual action.',
+        '',
+        `Loan ID: ${details.loanId}`,
+        `Client: ${details.clientName}`,
+        `Amount: ${details.amount}`,
+        `Phone Number: ${details.phoneNumber}`,
+        `MoMo Reference: ${details.disbursementReference}`,
+        '',
+        'Please retry the disbursement from the admin panel or contact the client to verify their MoMo account.',
+      ].join('\n'),
+    });
+  }
+
   async notifyLoanOfficerRepaymentApproved(details: {
     repaymentId: string;
     loanId: string;

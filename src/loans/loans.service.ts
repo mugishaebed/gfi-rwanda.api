@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { randomUUID } from 'crypto';
@@ -17,6 +18,7 @@ import {
   UserRole,
 } from '../generated/prisma/enums';
 import { DocumentsService } from '../documents/documents.service';
+import { MomoDisbursementsService } from '../momo/momo-disbursements.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../prisma.service';
 import {
@@ -53,10 +55,13 @@ type ClientFacingLoanStatus =
 
 @Injectable()
 export class LoansService {
+  private readonly logger = new Logger(LoansService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
     private readonly documentsService: DocumentsService,
+    private readonly momoDisbursements: MomoDisbursementsService,
   ) {}
 
   async findAll(
@@ -415,6 +420,8 @@ export class LoansService {
       loanOfficerName: loan.user?.name,
     });
 
+    await this.disburseMomoLoan(loan.id);
+
     return (
       await this.documentsService.attachDocuments(DocumentOwnerType.LOAN, [
         withLoanNumber(loan),
@@ -492,6 +499,8 @@ export class LoansService {
         loanOfficerEmail: loan.user?.email,
         loanOfficerName: loan.user?.name,
       });
+
+      await this.disburseMomoLoan(loan.id);
     }
 
     return (
@@ -2315,6 +2324,116 @@ export class LoansService {
         return `${day}rd`;
       default:
         return `${day}th`;
+    }
+  }
+
+  async retryDisbursement(loanId: string) {
+    const loan = await this.prisma.loan.findUnique({
+      where: { id: loanId },
+      select: { id: true, status: true, disbursementReference: true },
+    });
+
+    if (!loan) {
+      throw new NotFoundException('Loan not found');
+    }
+
+    if (loan.status !== LoanStatus.APPROVED) {
+      throw new BadRequestException(
+        'Disbursement can only be retried for approved loans',
+      );
+    }
+
+    // Clear the old reference so disburseMomoLoan will proceed
+    await this.prisma.loan.update({
+      where: { id: loanId },
+      data: { disbursementReference: null },
+    });
+
+    await this.disburseMomoLoan(loanId);
+
+    return this.findOne(loanId);
+  }
+
+  async disburseMomoLoan(loanId: string) {
+    const loan = await this.prisma.loan.findUnique({
+      where: { id: loanId },
+      include: {
+        client: { include: { individual: true, business: true } },
+      },
+    });
+
+    if (!loan) {
+      this.logger.error(`disburseMomoLoan: loan ${loanId} not found`);
+      return;
+    }
+
+    if (loan.disbursementMethod !== DisbursementMethod.MOBILE_MONEY) {
+      return;
+    }
+
+    if (loan.disbursementReference) {
+      this.logger.warn(
+        `disburseMomoLoan: loan ${loanId} already has disbursementReference`,
+      );
+      return;
+    }
+
+    try {
+      const { referenceId } = await this.momoDisbursements.transfer({
+        amount: loan.amount,
+        currency: loan.currency,
+        phoneNumber: loan.client.phoneNumber,
+        externalId: loan.id,
+        payerMessage: `GFI Rwanda loan disbursement`,
+        payeeNote: `Loan amount: ${loan.amount} ${loan.currency}`,
+      });
+
+      await this.prisma.loan.update({
+        where: { id: loan.id },
+        data: { disbursementReference: referenceId },
+      });
+
+      this.logger.log(
+        `MoMo disbursement initiated for loan ${loanId}, referenceId: ${referenceId}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `MoMo disbursement failed for loan ${loanId}: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  async handleMomoDisbursementCallback(referenceId: string, status: string) {
+    const loan = await this.prisma.loan.findUnique({
+      where: { disbursementReference: referenceId },
+      include: {
+        client: { include: { individual: true, business: true } },
+      },
+    });
+
+    if (!loan) {
+      this.logger.warn(
+        `MoMo disbursement callback: no loan found for reference ${referenceId}`,
+      );
+      return;
+    }
+
+    if (status === 'SUCCESSFUL') {
+      this.logger.log(
+        `MoMo disbursement SUCCESSFUL for loan ${loan.id}, reference ${referenceId}`,
+      );
+    } else if (status === 'FAILED') {
+      this.logger.error(
+        `MoMo disbursement FAILED for loan ${loan.id}, reference ${referenceId}. Staff review required.`,
+      );
+
+      await this.notificationsService.notifyGeneralManagersDisbursementFailed({
+        loanId: loan.id,
+        amount: loan.amount,
+        clientName: this.getClientDisplayName(loan.client),
+        phoneNumber: loan.client.phoneNumber,
+        disbursementReference: referenceId,
+      });
     }
   }
 }
