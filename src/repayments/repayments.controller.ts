@@ -28,6 +28,7 @@ import { RepaymentSource, RepaymentStatus } from '../generated/prisma/enums';
 import { RepaymentsService } from './repayments.service';
 import { CreateRepaymentDto } from './dto/create-repayment.dto';
 import { ReviewRepaymentDto } from './dto/review-repayment.dto';
+import { OverrideOnlineRepaymentDto } from './dto/override-online-repayment.dto';
 import { createDocumentUploadOptions } from '../documents/document-upload';
 
 type AuthenticatedRequest = {
@@ -131,5 +132,18 @@ export class RepaymentsController {
   @ApiOperation({ summary: 'Reject a pending repayment as general manager' })
   rejectRepayment(@Param('id') id: string, @Body() dto: ReviewRepaymentDto) {
     return this.repaymentsService.rejectRepayment(id, dto);
+  }
+
+  @Roles('GENERAL_MANAGER')
+  @Post(':id/override')
+  @ApiOperation({
+    summary:
+      'Manually approve or reject a stuck PENDING online repayment whose MoMo callback never arrived',
+  })
+  overrideOnlineRepayment(
+    @Param('id') id: string,
+    @Body() dto: OverrideOnlineRepaymentDto,
+  ) {
+    return this.repaymentsService.overrideOnlineRepayment(id, dto.action);
   }
 }

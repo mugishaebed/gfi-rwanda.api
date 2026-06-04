@@ -201,6 +201,7 @@ export const LoanScalarFieldEnum = {
   termsAccepted: 'termsAccepted',
   termsVersion: 'termsVersion',
   disbursementMethod: 'disbursementMethod',
+  disbursementReference: 'disbursementReference',
   source: 'source',
   status: 'status',
   activatedAt: 'activatedAt',

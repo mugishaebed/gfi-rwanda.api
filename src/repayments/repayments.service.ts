@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { randomUUID } from 'crypto';
@@ -13,6 +14,7 @@ import {
   UserRole,
 } from '../generated/prisma/enums';
 import { DocumentsService } from '../documents/documents.service';
+import { MomoCollectionsService } from '../momo/momo-collections.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../prisma.service';
 import { withLoanNumber } from '../loans/loan-number';
@@ -22,10 +24,13 @@ import { ReviewRepaymentDto } from './dto/review-repayment.dto';
 
 @Injectable()
 export class RepaymentsService {
+  private readonly logger = new Logger(RepaymentsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
     private readonly documentsService: DocumentsService,
+    private readonly momoCollections: MomoCollectionsService,
   ) {}
 
   async findAll(
@@ -271,77 +276,55 @@ export class RepaymentsService {
     }
 
     const repaymentId = randomUUID();
-    const paymentDate = new Date();
-    const paymentReference = this.normalizePaymentReference(
-      data.paymentReference,
-      repaymentId,
-    );
     const paymentPhoneNumber =
       data.paymentPhoneNumber?.trim() || client.phoneNumber;
 
-    await this.ensurePaymentReferenceIsAvailable(paymentReference);
+    // Initiate MoMo USSD push — this returns immediately with a referenceId.
+    // The actual deduction from the loan happens only after the webhook confirms SUCCESSFUL.
+    const { referenceId } = await this.momoCollections.requestToPay({
+      amount: data.amountPaid,
+      currency: loan.currency,
+      phoneNumber: paymentPhoneNumber,
+      externalId: repaymentId,
+      payerMessage: `Loan repayment for loan ${loan.id}`,
+      payeeNote: `GFI Rwanda loan repayment`,
+    });
 
-    const repayment = await this.prisma.$transaction(async (tx) => {
-      const loanDeduction = await tx.loan.updateMany({
-        where: {
-          id: loan.id,
-          outstandingBalance: {
-            gte: data.amountPaid,
-          },
-        },
-        data: {
-          outstandingBalance: {
-            decrement: data.amountPaid,
-          },
-          totalRepaidAmount: {
-            increment: data.amountPaid,
-          },
-        },
-      });
+    await this.ensurePaymentReferenceIsAvailable(referenceId);
 
-      if (loanDeduction.count === 0) {
-        throw new BadRequestException(
-          'Payment amount exceeds outstanding loan balance',
-        );
-      }
-
-      const createdRepayment = await tx.repayment.create({
-        data: {
-          id: repaymentId,
-          loanId: loan.id,
-          amountPaid: data.amountPaid,
-          paymentDate,
-          notes: this.buildOnlinePaymentNotes(data, paymentReference),
-          source: RepaymentSource.CLIENT_ONLINE,
-          paymentProvider: data.paymentProvider,
-          paymentReference,
-          paymentPhoneNumber,
-          status: RepaymentStatus.APPROVED,
-          approvedAt: paymentDate,
-        },
-        include: {
-          loan: {
-            select: {
-              id: true,
-              createdAt: true,
-              amount: true,
-              outstandingBalance: true,
-              totalRepaidAmount: true,
-              purpose: true,
-              status: true,
-              user: true,
-              client: {
-                include: {
-                  individual: true,
-                  business: true,
-                },
+    const repayment = await this.prisma.repayment.create({
+      data: {
+        id: repaymentId,
+        loanId: loan.id,
+        amountPaid: data.amountPaid,
+        paymentDate: new Date(),
+        notes: this.buildOnlinePaymentNotes(data, referenceId),
+        source: RepaymentSource.CLIENT_ONLINE,
+        paymentProvider: data.paymentProvider,
+        paymentReference: referenceId,
+        paymentPhoneNumber,
+        status: RepaymentStatus.PENDING,
+      },
+      include: {
+        loan: {
+          select: {
+            id: true,
+            createdAt: true,
+            amount: true,
+            outstandingBalance: true,
+            totalRepaidAmount: true,
+            purpose: true,
+            status: true,
+            user: true,
+            client: {
+              include: {
+                individual: true,
+                business: true,
               },
             },
           },
         },
-      });
-
-      return createdRepayment;
+      },
     });
 
     return (
@@ -349,6 +332,151 @@ export class RepaymentsService {
         this.addLoanNumberToRepayment(repayment),
       ])
     )[0];
+  }
+
+  async overrideOnlineRepayment(
+    repaymentId: string,
+    action: 'approve' | 'reject',
+  ) {
+    const repayment = await this.prisma.repayment.findUnique({
+      where: { id: repaymentId },
+      include: {
+        loan: {
+          include: { client: { include: { individual: true, business: true } } },
+        },
+      },
+    });
+
+    if (!repayment) {
+      throw new NotFoundException('Repayment not found');
+    }
+
+    if (repayment.source !== RepaymentSource.CLIENT_ONLINE) {
+      throw new BadRequestException(
+        'Override is only applicable to online repayments',
+      );
+    }
+
+    if (repayment.status !== RepaymentStatus.PENDING) {
+      throw new BadRequestException(
+        `Repayment is already ${repayment.status.toLowerCase()} and cannot be overridden`,
+      );
+    }
+
+    if (action === 'approve') {
+      await this.prisma.$transaction(async (tx) => {
+        const loanDeduction = await tx.loan.updateMany({
+          where: {
+            id: repayment.loanId,
+            outstandingBalance: { gte: repayment.amountPaid },
+          },
+          data: {
+            outstandingBalance: { decrement: repayment.amountPaid },
+            totalRepaidAmount: { increment: repayment.amountPaid },
+          },
+        });
+
+        if (loanDeduction.count === 0) {
+          throw new BadRequestException(
+            'Repayment amount exceeds outstanding loan balance',
+          );
+        }
+
+        await tx.repayment.update({
+          where: { id: repayment.id },
+          data: {
+            status: RepaymentStatus.APPROVED,
+            approvedAt: new Date(),
+            notes: [repayment.notes, 'Manually approved by staff (MoMo override).']
+              .filter(Boolean)
+              .join('\n'),
+          },
+        });
+      });
+    } else {
+      await this.prisma.repayment.update({
+        where: { id: repayment.id },
+        data: {
+          status: RepaymentStatus.REJECTED,
+          notes: [repayment.notes, 'Manually rejected by staff (MoMo override).']
+            .filter(Boolean)
+            .join('\n'),
+        },
+      });
+    }
+
+    return this.findOne(repaymentId);
+  }
+
+  async handleMomoCollectionCallback(referenceId: string, status: string) {
+    const repayment = await this.prisma.repayment.findUnique({
+      where: { paymentReference: referenceId },
+      include: {
+        loan: {
+          include: {
+            client: { include: { individual: true, business: true } },
+            user: true,
+          },
+        },
+      },
+    });
+
+    if (!repayment) {
+      this.logger.warn(
+        `MoMo collection callback: no repayment found for reference ${referenceId}`,
+      );
+      return;
+    }
+
+    if (repayment.status !== RepaymentStatus.PENDING) {
+      this.logger.warn(
+        `MoMo collection callback: repayment ${repayment.id} already in status ${repayment.status}`,
+      );
+      return;
+    }
+
+    if (status === 'SUCCESSFUL') {
+      await this.prisma.$transaction(async (tx) => {
+        const loanDeduction = await tx.loan.updateMany({
+          where: {
+            id: repayment.loanId,
+            outstandingBalance: { gte: repayment.amountPaid },
+          },
+          data: {
+            outstandingBalance: { decrement: repayment.amountPaid },
+            totalRepaidAmount: { increment: repayment.amountPaid },
+          },
+        });
+
+        if (loanDeduction.count === 0) {
+          this.logger.error(
+            `MoMo callback: outstanding balance already insufficient for repayment ${repayment.id}`,
+          );
+          return;
+        }
+
+        await tx.repayment.update({
+          where: { id: repayment.id },
+          data: {
+            status: RepaymentStatus.APPROVED,
+            approvedAt: new Date(),
+          },
+        });
+      });
+
+      this.logger.log(
+        `MoMo collection confirmed: repayment ${repayment.id} approved`,
+      );
+    } else if (status === 'FAILED') {
+      await this.prisma.repayment.update({
+        where: { id: repayment.id },
+        data: { status: RepaymentStatus.REJECTED },
+      });
+
+      this.logger.warn(
+        `MoMo collection failed: repayment ${repayment.id} rejected`,
+      );
+    }
   }
 
   async createManualRepayment(
