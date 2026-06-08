@@ -686,6 +686,11 @@ export class LoansService {
               | Prisma.InputJsonValue
               | undefined,
             comments: data.comments,
+            disbursedAmount: data.disbursedAmount ?? data.amount,
+            disbursedAt: data.disbursedAt ?? null,
+            totalInterestExpected:
+              data.repaymentAmountPerMonth * data.repaymentInstallmentsCount -
+              data.amount,
             source: LoanSource.STAFF_MANUAL,
             status: initialStatus,
             userId: assignedLoanOfficerId,

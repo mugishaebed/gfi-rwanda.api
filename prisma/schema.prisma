@@ -128,6 +128,11 @@ model Loan {
   termsVersion                   String?
   disbursementMethod             DisbursementMethod @default(MOBILE_MONEY)
   disbursementReference          String?            @unique
+  disbursedAmount                Float?
+  disbursedAt                    DateTime?
+  totalInterestExpected          Float?
+  totalInterestReceived          Float              @default(0)
+  totalPrincipalRecovered        Float              @default(0)
   source                         LoanSource         @default(STAFF_MANUAL)
   status                         LoanStatus         @default(PENDING)
   activatedAt                    DateTime?
@@ -157,6 +162,8 @@ model Repayment {
   id                 String                 @id @default(uuid())
   loanId             String
   amountPaid         Float
+  principalPaid      Float?
+  interestPaid       Float?
   paymentDate        DateTime
   notes              String?
   source             RepaymentSource        @default(STAFF_MANUAL)

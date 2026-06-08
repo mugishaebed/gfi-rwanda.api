@@ -521,6 +521,8 @@ export class RepaymentsService {
             id: repaymentId,
             loanId: data.loanId,
             amountPaid: data.amountPaid,
+            principalPaid: data.principalPaid ?? null,
+            interestPaid: data.interestPaid ?? null,
             paymentDate: data.paymentDate,
             notes: data.notes,
             source: RepaymentSource.STAFF_MANUAL,
@@ -623,6 +625,12 @@ export class RepaymentsService {
             },
             totalRepaidAmount: {
               increment: repayment.amountPaid,
+            },
+            totalInterestReceived: {
+              increment: repayment.interestPaid ?? 0,
+            },
+            totalPrincipalRecovered: {
+              increment: repayment.principalPaid ?? 0,
             },
           },
         });

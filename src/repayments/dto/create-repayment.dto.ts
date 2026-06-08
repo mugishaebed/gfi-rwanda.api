@@ -41,6 +41,26 @@ export class CreateRepaymentDto {
   paymentDate!: Date;
 
   @ApiPropertyOptional({
+    example: 40000,
+    description: 'Portion of amountPaid applied to principal.',
+  })
+  @IsOptional()
+  @ParseNumber()
+  @IsNumber()
+  @Min(0)
+  principalPaid?: number;
+
+  @ApiPropertyOptional({
+    example: 10000,
+    description: 'Portion of amountPaid applied to interest.',
+  })
+  @IsOptional()
+  @ParseNumber()
+  @IsNumber()
+  @Min(0)
+  interestPaid?: number;
+
+  @ApiPropertyOptional({
     description: 'Optional notes entered by the loan officer',
     example: 'Cash payment received at branch.',
   })

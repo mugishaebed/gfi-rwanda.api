@@ -295,6 +295,25 @@ export class CreateLoanDto {
   repaymentTerms!: RepaymentTermsDto;
 
   @ApiPropertyOptional({
+    example: 490000,
+    description: 'Actual net amount disbursed to the client after fee deductions. Defaults to the approved amount if not provided.',
+  })
+  @IsOptional()
+  @ParseNumber()
+  @IsNumber()
+  @Min(0.01)
+  disbursedAmount?: number;
+
+  @ApiPropertyOptional({
+    example: '2026-06-01',
+    description: 'Date the funds were actually handed to or transferred to the client.',
+  })
+  @IsOptional()
+  @ParseDate()
+  @IsDate()
+  disbursedAt?: Date;
+
+  @ApiPropertyOptional({
     description: 'Optional guarantor information captured as structured JSON',
     example: {
       fullName: 'Jane Doe',
