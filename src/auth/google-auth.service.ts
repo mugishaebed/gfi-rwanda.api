@@ -340,7 +340,9 @@ export class GoogleAuthService {
   }
 
   private getDefaultRedirectForRoles(roles: string[]) {
-    const baseUrl = roles.includes(UserRole.BLOG_EDITOR)
+    const isMainWebsiteUser =
+      roles.includes(UserRole.BLOG_EDITOR) || roles.includes(UserRole.CLIENT);
+    const baseUrl = isMainWebsiteUser
       ? this.getRequiredEnv('MAIN_WEBSITE_URL')
       : this.getRequiredEnv('FRONTEND_URL');
 
