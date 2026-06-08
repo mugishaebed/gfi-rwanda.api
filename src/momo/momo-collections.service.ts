@@ -63,6 +63,7 @@ export class MomoCollectionsService {
     payeeNote: string;
   }): Promise<MomoRequestToPayResult> {
     const referenceId = randomUUID();
+    this.logger.log(`MoMo requestToPay: amount=${Math.round(params.amount)}, currency=${this.currency}, msisdn=${this.normalizeMsisdn(params.phoneNumber)}`);
     const token = await this.getAccessToken();
 
     const response = await fetch(
@@ -78,7 +79,7 @@ export class MomoCollectionsService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          amount: String(params.amount),
+          amount: String(Math.round(params.amount)),
           currency: this.currency,
           externalId: params.externalId,
           payer: {

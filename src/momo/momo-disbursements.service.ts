@@ -78,7 +78,7 @@ export class MomoDisbursementsService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          amount: String(params.amount),
+          amount: String(Math.round(params.amount)),
           currency: this.currency,
           externalId: params.externalId,
           payee: {
