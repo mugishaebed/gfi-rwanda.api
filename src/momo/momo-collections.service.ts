@@ -61,8 +61,9 @@ export class MomoCollectionsService {
     externalId: string;
     payerMessage: string;
     payeeNote: string;
+    referenceId?: string;
   }): Promise<MomoRequestToPayResult> {
-    const referenceId = randomUUID();
+    const referenceId = params.referenceId ?? randomUUID();
     this.logger.log(`MoMo requestToPay: amount=${Math.round(params.amount)}, currency=${this.currency}, msisdn=${this.normalizeMsisdn(params.phoneNumber)}`);
     const token = await this.getAccessToken();
 

@@ -276,22 +276,12 @@ export class RepaymentsService {
     }
 
     const repaymentId = randomUUID();
+    const referenceId = randomUUID();
     const paymentPhoneNumber =
       data.paymentPhoneNumber?.trim() || client.phoneNumber;
 
-    // Initiate MoMo USSD push — this returns immediately with a referenceId.
-    // The actual deduction from the loan happens only after the webhook confirms SUCCESSFUL.
-    const { referenceId } = await this.momoCollections.requestToPay({
-      amount: data.amountPaid,
-      currency: loan.currency,
-      phoneNumber: paymentPhoneNumber,
-      externalId: repaymentId,
-      payerMessage: `Loan repayment for loan ${loan.id}`,
-      payeeNote: `GFI Rwanda loan repayment`,
-    });
-
-    await this.ensurePaymentReferenceIsAvailable(referenceId);
-
+    // Create the repayment record BEFORE calling MoMo so the callback can
+    // always find it, even when the sandbox responds within milliseconds.
     const repayment = await this.prisma.repayment.create({
       data: {
         id: repaymentId,
@@ -325,6 +315,18 @@ export class RepaymentsService {
           },
         },
       },
+    });
+
+    // Initiate MoMo USSD push after the repayment record exists in the DB,
+    // so the callback can always find it regardless of response speed.
+    await this.momoCollections.requestToPay({
+      amount: data.amountPaid,
+      currency: loan.currency,
+      phoneNumber: paymentPhoneNumber,
+      externalId: repaymentId,
+      payerMessage: `Loan repayment for loan ${loan.id}`,
+      payeeNote: `GFI Rwanda loan repayment`,
+      referenceId,
     });
 
     return (
