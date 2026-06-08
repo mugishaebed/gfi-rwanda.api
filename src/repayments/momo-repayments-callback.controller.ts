@@ -38,6 +38,8 @@ export class MomoRepaymentsCallbackController {
       return { received: true };
     }
 
+    this.logger.log(`MoMo collection callback: status=${status}, reason=${JSON.stringify(body.reason)}`);
+
     await this.repaymentsService.handleMomoCollectionCallback(
       repaymentId,
       status,
