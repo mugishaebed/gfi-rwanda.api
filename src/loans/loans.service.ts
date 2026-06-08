@@ -2420,11 +2420,11 @@ export class LoansService {
 
     if (status === 'SUCCESSFUL') {
       this.logger.log(
-        `MoMo disbursement SUCCESSFUL for loan ${loan.id}, reference ${referenceId}`,
+        `MoMo disbursement SUCCESSFUL for loan ${loan.id}`,
       );
     } else if (status === 'FAILED') {
       this.logger.error(
-        `MoMo disbursement FAILED for loan ${loan.id}, reference ${referenceId}. Staff review required.`,
+        `MoMo disbursement FAILED for loan ${loan.id}. Staff review required.`,
       );
 
       await this.notificationsService.notifyGeneralManagersDisbursementFailed({
@@ -2432,7 +2432,7 @@ export class LoansService {
         amount: loan.amount,
         clientName: this.getClientDisplayName(loan.client),
         phoneNumber: loan.client.phoneNumber,
-        disbursementReference: referenceId,
+        disbursementReference: loanId,
       });
     }
   }
