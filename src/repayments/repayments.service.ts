@@ -408,9 +408,9 @@ export class RepaymentsService {
     return this.findOne(repaymentId);
   }
 
-  async handleMomoCollectionCallback(referenceId: string, status: string) {
+  async handleMomoCollectionCallback(repaymentId: string, status: string) {
     const repayment = await this.prisma.repayment.findUnique({
-      where: { paymentReference: referenceId },
+      where: { id: repaymentId },
       include: {
         loan: {
           include: {
@@ -423,7 +423,7 @@ export class RepaymentsService {
 
     if (!repayment) {
       this.logger.warn(
-        `MoMo collection callback: no repayment found for reference ${referenceId}`,
+        `MoMo collection callback: no repayment found for id ${repaymentId}`,
       );
       return;
     }

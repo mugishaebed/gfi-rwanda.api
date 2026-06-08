@@ -2403,9 +2403,9 @@ export class LoansService {
     }
   }
 
-  async handleMomoDisbursementCallback(referenceId: string, status: string) {
+  async handleMomoDisbursementCallback(loanId: string, status: string) {
     const loan = await this.prisma.loan.findUnique({
-      where: { disbursementReference: referenceId },
+      where: { id: loanId },
       include: {
         client: { include: { individual: true, business: true } },
       },
@@ -2413,7 +2413,7 @@ export class LoansService {
 
     if (!loan) {
       this.logger.warn(
-        `MoMo disbursement callback: no loan found for reference ${referenceId}`,
+        `MoMo disbursement callback: no loan found for id ${loanId}`,
       );
       return;
     }

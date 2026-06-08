@@ -30,15 +30,15 @@ export class MomoLoansCallbackController {
     summary: 'MTN MoMo disbursement webhook — called by MTN, no auth required',
   })
   async handleCallback(@Body() body: MomoDisbursementCallbackBody) {
-    const referenceId = body.referenceId ?? body.externalId;
+    const loanId = body.externalId;
     const status = body.status;
 
-    if (!referenceId || !status) {
+    if (!loanId || !status) {
       this.logger.warn('MoMo disbursement callback missing fields', body);
       return { received: true };
     }
 
-    await this.loansService.handleMomoDisbursementCallback(referenceId, status);
+    await this.loansService.handleMomoDisbursementCallback(loanId, status);
 
     return { received: true };
   }
