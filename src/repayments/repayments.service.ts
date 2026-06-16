@@ -247,7 +247,7 @@ export class RepaymentsService {
       throw new NotFoundException('Loan not found');
     }
 
-    if (loan.status !== LoanStatus.APPROVED) {
+    if (loan.status !== LoanStatus.ACTIVE) {
       throw new BadRequestException(
         'Online payment can only be made for active or overdue loans',
       );
@@ -499,9 +499,9 @@ export class RepaymentsService {
       throw new NotFoundException('Loan not found');
     }
 
-    if (loan.status !== LoanStatus.APPROVED) {
+    if (loan.status !== LoanStatus.ACTIVE) {
       throw new BadRequestException(
-        'Manual repayment can only be recorded for approved loans',
+        'Manual repayment can only be recorded for active loans',
       );
     }
 

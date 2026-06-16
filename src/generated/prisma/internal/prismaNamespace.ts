@@ -1395,6 +1395,7 @@ export const LoanScalarFieldEnum = {
   totalInterestReceived: 'totalInterestReceived',
   totalPrincipalRecovered: 'totalPrincipalRecovered',
   source: 'source',
+  sector: 'sector',
   status: 'status',
   activatedAt: 'activatedAt',
   createdAt: 'createdAt',
@@ -1716,6 +1717,20 @@ export type EnumLoanSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$Prism
  * Reference to a field of type 'LoanSource[]'
  */
 export type ListEnumLoanSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LoanSource[]'>
+    
+
+
+/**
+ * Reference to a field of type 'LoanSector'
+ */
+export type EnumLoanSectorFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LoanSector'>
+    
+
+
+/**
+ * Reference to a field of type 'LoanSector[]'
+ */
+export type ListEnumLoanSectorFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LoanSector[]'>
     
 
 

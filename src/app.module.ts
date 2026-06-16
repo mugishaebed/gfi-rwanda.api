@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { BlogsModule } from './blogs/blogs.module';
 import { ClientsModule } from './clients/clients.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 import { DocumentsModule } from './documents/documents.module';
 import { LoansModule } from './loans/loans.module';
 import { NotificationsModule } from './notifications/notifications.module';
@@ -19,6 +20,7 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     BlogsModule,
     ClientsModule,
+    DashboardModule,
     LoansModule,
     RepaymentsModule,
     NotificationsModule,

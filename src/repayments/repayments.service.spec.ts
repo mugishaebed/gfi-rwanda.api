@@ -10,7 +10,12 @@ jest.mock('../documents/documents.service', () => ({
   DocumentsService: class DocumentsService {},
 }));
 
+jest.mock('../momo/momo-collections.service', () => ({
+  MomoCollectionsService: class MomoCollectionsService {},
+}));
+
 import { Test, TestingModule } from '@nestjs/testing';
+import { MomoCollectionsService } from '../momo/momo-collections.service';
 import {
   ClientOnboardingStatus,
   DocumentOwnerType,
@@ -39,6 +44,7 @@ describe('RepaymentsService', () => {
       count: jest.Mock;
       aggregate: jest.Mock;
       findUnique: jest.Mock;
+      create: jest.Mock;
     };
     loan: {
       findUnique: jest.Mock;
@@ -51,6 +57,9 @@ describe('RepaymentsService', () => {
   };
   let documentsService: {
     attachDocuments: jest.Mock;
+  };
+  let momoCollections: {
+    requestToPay: jest.Mock;
   };
 
   beforeEach(async () => {
@@ -66,6 +75,7 @@ describe('RepaymentsService', () => {
         count: jest.fn(),
         aggregate: jest.fn(),
         findUnique: jest.fn(),
+        create: jest.fn(),
       },
       loan: {
         findUnique: jest.fn(),
@@ -78,6 +88,9 @@ describe('RepaymentsService', () => {
     };
     documentsService = {
       attachDocuments: jest.fn(),
+    };
+    momoCollections = {
+      requestToPay: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -99,6 +112,10 @@ describe('RepaymentsService', () => {
             createMany: jest.fn(),
             cleanupPreparedDocuments: jest.fn(),
           },
+        },
+        {
+          provide: MomoCollectionsService,
+          useValue: momoCollections,
         },
       ],
     }).compile();
@@ -136,7 +153,7 @@ describe('RepaymentsService', () => {
         outstandingBalance: 100000,
         totalRepaidAmount: 0,
         purpose: 'Quick loan application',
-        status: 'APPROVED',
+        status: 'ACTIVE',
         client: {
           individual: null,
           business: null,
@@ -166,7 +183,7 @@ describe('RepaymentsService', () => {
             outstandingBalance: 100000,
             totalRepaidAmount: 0,
             purpose: 'Quick loan application',
-            status: 'APPROVED',
+            status: 'ACTIVE',
             client: {
               individual: null,
               business: null,
@@ -214,7 +231,7 @@ describe('RepaymentsService', () => {
     );
   });
 
-  it('approves online repayments immediately and deducts the loan balance', async () => {
+  it('records an online repayment as pending and initiates the MoMo charge', async () => {
     const now = new Date('2026-05-14T08:00:00.000Z');
     jest.useFakeTimers().setSystemTime(now);
 
@@ -229,7 +246,8 @@ describe('RepaymentsService', () => {
     prisma.loan.findUnique.mockResolvedValue({
       id: 'loan-1',
       clientId: 'client-1',
-      status: LoanStatus.APPROVED,
+      status: LoanStatus.ACTIVE,
+      currency: 'RWF',
       outstandingBalance: 100000,
       user: null,
       client: {
@@ -242,34 +260,29 @@ describe('RepaymentsService', () => {
     });
     prisma.repayment.findUnique.mockResolvedValue(null);
 
-    const tx = {
-      loan: {
-        updateMany: jest.fn().mockResolvedValue({ count: 1 }),
-      },
-      repayment: {
-        create: jest.fn().mockImplementation(({ data }) =>
-          Promise.resolve({
-            ...data,
-            createdAt: now,
-            loan: {
-              id: 'loan-1',
-              createdAt: now,
-              amount: 100000,
-              outstandingBalance: 75000,
-              totalRepaidAmount: 25000,
-              purpose: 'Quick loan application',
-              status: LoanStatus.APPROVED,
-              user: null,
-              client: {
-                individual: { fullName: 'Client One' },
-                business: null,
-              },
-            },
-          }),
-        ),
-      },
-    };
-    prisma.$transaction.mockImplementation((callback) => callback(tx));
+    // The repayment is persisted as PENDING before MoMo is called; it only
+    // becomes APPROVED once the provider callback confirms the charge.
+    prisma.repayment.create.mockImplementation(({ data }) =>
+      Promise.resolve({
+        ...data,
+        createdAt: now,
+        loan: {
+          id: 'loan-1',
+          createdAt: now,
+          amount: 100000,
+          outstandingBalance: 100000,
+          totalRepaidAmount: 0,
+          purpose: 'Quick loan application',
+          status: LoanStatus.ACTIVE,
+          user: null,
+          client: {
+            individual: { fullName: 'Client One' },
+            business: null,
+          },
+        },
+      }),
+    );
+    momoCollections.requestToPay.mockResolvedValue({ referenceId: 'momo-ref' });
     documentsService.attachDocuments.mockImplementation((_, repayments) =>
       Promise.resolve(repayments),
     );
@@ -290,41 +303,30 @@ describe('RepaymentsService', () => {
         amountPaid: 25000,
         source: RepaymentSource.CLIENT_ONLINE,
         paymentProvider: OnlinePaymentProvider.MOBILE_MONEY,
-        paymentReference: 'MOMO-123',
-        status: RepaymentStatus.APPROVED,
-        approvedAt: now,
+        status: RepaymentStatus.PENDING,
         loan: expect.objectContaining({
           id: 'loan-1',
           loanNumber: 'LN-2026-LOAN1',
-          outstandingBalance: 75000,
-          totalRepaidAmount: 25000,
         }),
       }),
     );
 
-    expect(tx.loan.updateMany).toHaveBeenCalledWith({
-      where: {
-        id: 'loan-1',
-        outstandingBalance: {
-          gte: 25000,
-        },
-      },
-      data: {
-        outstandingBalance: {
-          decrement: 25000,
-        },
-        totalRepaidAmount: {
-          increment: 25000,
-        },
-      },
-    });
-    expect(tx.repayment.create).toHaveBeenCalledWith(
+    // The repayment record is created before the MoMo charge so a fast callback
+    // can always find it.
+    expect(prisma.repayment.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          status: RepaymentStatus.APPROVED,
-          approvedAt: now,
+          loanId: 'loan-1',
+          amountPaid: 25000,
+          status: RepaymentStatus.PENDING,
           source: RepaymentSource.CLIENT_ONLINE,
         }),
+      }),
+    );
+    expect(momoCollections.requestToPay).toHaveBeenCalledWith(
+      expect.objectContaining({
+        amount: 25000,
+        phoneNumber: '0788123456',
       }),
     );
     expect(

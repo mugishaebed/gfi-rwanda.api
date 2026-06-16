@@ -351,6 +351,13 @@ export type EnumLoanSourceFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumLoanSourceFilter<$PrismaModel> | $Enums.LoanSource
 }
 
+export type EnumLoanSectorNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.LoanSector | Prisma.EnumLoanSectorFieldRefInput<$PrismaModel> | null
+  in?: $Enums.LoanSector[] | Prisma.ListEnumLoanSectorFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.LoanSector[] | Prisma.ListEnumLoanSectorFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumLoanSectorNullableFilter<$PrismaModel> | $Enums.LoanSector | null
+}
+
 export type EnumLoanStatusFilter<$PrismaModel = never> = {
   equals?: $Enums.LoanStatus | Prisma.EnumLoanStatusFieldRefInput<$PrismaModel>
   in?: $Enums.LoanStatus[] | Prisma.ListEnumLoanStatusFieldRefInput<$PrismaModel>
@@ -451,6 +458,16 @@ export type EnumLoanSourceWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumLoanSourceFilter<$PrismaModel>
   _max?: Prisma.NestedEnumLoanSourceFilter<$PrismaModel>
+}
+
+export type EnumLoanSectorNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LoanSector | Prisma.EnumLoanSectorFieldRefInput<$PrismaModel> | null
+  in?: $Enums.LoanSector[] | Prisma.ListEnumLoanSectorFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.LoanSector[] | Prisma.ListEnumLoanSectorFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumLoanSectorNullableWithAggregatesFilter<$PrismaModel> | $Enums.LoanSector | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLoanSectorNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLoanSectorNullableFilter<$PrismaModel>
 }
 
 export type EnumLoanStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -846,6 +863,13 @@ export type NestedEnumLoanSourceFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumLoanSourceFilter<$PrismaModel> | $Enums.LoanSource
 }
 
+export type NestedEnumLoanSectorNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.LoanSector | Prisma.EnumLoanSectorFieldRefInput<$PrismaModel> | null
+  in?: $Enums.LoanSector[] | Prisma.ListEnumLoanSectorFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.LoanSector[] | Prisma.ListEnumLoanSectorFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumLoanSectorNullableFilter<$PrismaModel> | $Enums.LoanSector | null
+}
+
 export type NestedEnumLoanStatusFilter<$PrismaModel = never> = {
   equals?: $Enums.LoanStatus | Prisma.EnumLoanStatusFieldRefInput<$PrismaModel>
   in?: $Enums.LoanStatus[] | Prisma.ListEnumLoanStatusFieldRefInput<$PrismaModel>
@@ -943,6 +967,16 @@ export type NestedEnumLoanSourceWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumLoanSourceFilter<$PrismaModel>
   _max?: Prisma.NestedEnumLoanSourceFilter<$PrismaModel>
+}
+
+export type NestedEnumLoanSectorNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LoanSector | Prisma.EnumLoanSectorFieldRefInput<$PrismaModel> | null
+  in?: $Enums.LoanSector[] | Prisma.ListEnumLoanSectorFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.LoanSector[] | Prisma.ListEnumLoanSectorFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumLoanSectorNullableWithAggregatesFilter<$PrismaModel> | $Enums.LoanSector | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLoanSectorNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLoanSectorNullableFilter<$PrismaModel>
 }
 
 export type NestedEnumLoanStatusWithAggregatesFilter<$PrismaModel = never> = {

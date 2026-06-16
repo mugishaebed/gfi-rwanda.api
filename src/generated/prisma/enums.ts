@@ -45,11 +45,13 @@ export type ClientType = (typeof ClientType)[keyof typeof ClientType]
 
 
 export const LoanStatus = {
-  PENDING: 'PENDING',
-  LOAN_OFFICER_APPROVED: 'LOAN_OFFICER_APPROVED',
-  LOAN_OFFICER_REJECTED: 'LOAN_OFFICER_REJECTED',
+  PENDING_OFFICER_REVIEW: 'PENDING_OFFICER_REVIEW',
+  PENDING_GM_APPROVAL: 'PENDING_GM_APPROVAL',
+  REJECTED: 'REJECTED',
   APPROVED: 'APPROVED',
-  REJECTED: 'REJECTED'
+  DISBURSING: 'DISBURSING',
+  DISBURSEMENT_FAILED: 'DISBURSEMENT_FAILED',
+  ACTIVE: 'ACTIVE'
 } as const
 
 export type LoanStatus = (typeof LoanStatus)[keyof typeof LoanStatus]
@@ -61,6 +63,18 @@ export const LoanSource = {
 } as const
 
 export type LoanSource = (typeof LoanSource)[keyof typeof LoanSource]
+
+
+export const LoanSector = {
+  COFFEE: 'COFFEE',
+  GENERAL_TRADE: 'GENERAL_TRADE',
+  CONSTRUCTION: 'CONSTRUCTION',
+  REAL_ESTATE: 'REAL_ESTATE',
+  TENDERS: 'TENDERS',
+  HOSPITALITY: 'HOSPITALITY'
+} as const
+
+export type LoanSector = (typeof LoanSector)[keyof typeof LoanSector]
 
 
 export const DisbursementMethod = {

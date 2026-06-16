@@ -25,7 +25,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { LoanSource, LoanStatus } from '../generated/prisma/enums';
+import { LoanSector, LoanSource, LoanStatus } from '../generated/prisma/enums';
 import { LoansService } from './loans.service';
 import { ClientLoanRequestDto } from './dto/client-loan-request.dto';
 import { CreateLoanDto } from './dto/create-loan.dto';
@@ -74,6 +74,12 @@ export class LoansController {
     enum: LoanSource,
     description: 'Optional loan source filter.',
   })
+  @ApiQuery({
+    name: 'sector',
+    required: false,
+    enum: LoanSector,
+    description: 'Optional economic sector filter.',
+  })
   findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
@@ -81,8 +87,42 @@ export class LoansController {
     status?: LoanStatus,
     @Query('source', new ParseEnumPipe(LoanSource, { optional: true }))
     source?: LoanSource,
+    @Query('sector', new ParseEnumPipe(LoanSector, { optional: true }))
+    sector?: LoanSector,
   ) {
-    return this.loansService.findAll(page, limit, status, source);
+    return this.loansService.findAll(page, limit, status, source, sector);
+  }
+
+  @Roles('LOAN_OFFICER', 'GENERAL_MANAGER')
+  @Get('insights/sectors')
+  @ApiOperation({
+    summary: 'Per-sector loan aggregates (counts, status mix, amounts)',
+  })
+  getSectorInsights() {
+    return this.loansService.getSectorInsights();
+  }
+
+  @Roles('LOAN_OFFICER', 'GENERAL_MANAGER')
+  @Get('manual-ledger')
+  @ApiOperation({
+    summary:
+      'Manual-loan ledger: sheet-style columns per manual loan, with totals',
+  })
+  @ApiQuery({ name: 'page', required: false, example: 1 })
+  @ApiQuery({ name: 'limit', required: false, example: 20 })
+  @ApiQuery({
+    name: 'sector',
+    required: false,
+    enum: LoanSector,
+    description: 'Optional economic sector filter.',
+  })
+  getManualLoanLedger(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+    @Query('sector', new ParseEnumPipe(LoanSector, { optional: true }))
+    sector?: LoanSector,
+  ) {
+    return this.loansService.getManualLoanLedger(page, limit, sector);
   }
 
   @Roles('CLIENT')
@@ -149,7 +189,7 @@ export class LoansController {
   @ApiConsumes('multipart/form-data')
   @ApiOperation({
     summary:
-      'Create a loan on behalf of client as loan officer (starts at pending)',
+      'Create a loan on behalf of client as loan officer (enters GM approval directly; no officer self-approval)',
   })
   createLoan(
     @Body() dto: CreateLoanDto,
@@ -169,7 +209,7 @@ export class LoansController {
   @Post(':id/officer-approve')
   @ApiOperation({
     summary:
-      'Approve a pending loan (client-submitted or officer-created) as loan officer',
+      'Approve a client-submitted loan under review and forward it to the GM',
   })
   approveLoanByOfficer(
     @Param('id') id: string,
@@ -182,8 +222,7 @@ export class LoansController {
   @Roles('LOAN_OFFICER')
   @Post(':id/officer-reject')
   @ApiOperation({
-    summary:
-      'Reject a pending loan (client-submitted or officer-created) as loan officer',
+    summary: 'Reject a client-submitted loan under review as loan officer',
   })
   rejectLoanByOfficer(
     @Param('id') id: string,
@@ -195,7 +234,10 @@ export class LoansController {
 
   @Roles('GENERAL_MANAGER')
   @Post(':id/approve')
-  @ApiOperation({ summary: 'Approve a loan officer-approved loan as GM' })
+  @ApiOperation({
+    summary:
+      'Approve a loan awaiting GM approval as GM (must differ from the originating officer)',
+  })
   approveLoanByGeneralManager(
     @Param('id') id: string,
     @Body() dto: ReviewLoanDto,
@@ -205,7 +247,6 @@ export class LoansController {
       id,
       dto,
       req.user.userId,
-      req.user.roles,
     );
   }
 
@@ -227,10 +268,12 @@ export class LoansController {
   @Roles('GENERAL_MANAGER')
   @Post(':id/retry-disbursement')
   @ApiOperation({
-    summary:
-      'Retry a failed MoMo disbursement for an approved loan as GM',
+    summary: 'Retry a failed MoMo disbursement as GM',
   })
-  retryDisbursement(@Param('id') id: string) {
-    return this.loansService.retryDisbursement(id);
+  retryDisbursement(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.loansService.retryDisbursement(id, req.user.userId);
   }
 }

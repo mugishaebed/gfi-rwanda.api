@@ -109,6 +109,7 @@ export type LoanMinAggregateOutputType = {
   totalInterestReceived: number | null
   totalPrincipalRecovered: number | null
   source: $Enums.LoanSource | null
+  sector: $Enums.LoanSector | null
   status: $Enums.LoanStatus | null
   activatedAt: Date | null
   createdAt: Date | null
@@ -153,6 +154,7 @@ export type LoanMaxAggregateOutputType = {
   totalInterestReceived: number | null
   totalPrincipalRecovered: number | null
   source: $Enums.LoanSource | null
+  sector: $Enums.LoanSector | null
   status: $Enums.LoanStatus | null
   activatedAt: Date | null
   createdAt: Date | null
@@ -199,6 +201,7 @@ export type LoanCountAggregateOutputType = {
   totalInterestReceived: number
   totalPrincipalRecovered: number
   source: number
+  sector: number
   status: number
   activatedAt: number
   createdAt: number
@@ -291,6 +294,7 @@ export type LoanMinAggregateInputType = {
   totalInterestReceived?: true
   totalPrincipalRecovered?: true
   source?: true
+  sector?: true
   status?: true
   activatedAt?: true
   createdAt?: true
@@ -335,6 +339,7 @@ export type LoanMaxAggregateInputType = {
   totalInterestReceived?: true
   totalPrincipalRecovered?: true
   source?: true
+  sector?: true
   status?: true
   activatedAt?: true
   createdAt?: true
@@ -381,6 +386,7 @@ export type LoanCountAggregateInputType = {
   totalInterestReceived?: true
   totalPrincipalRecovered?: true
   source?: true
+  sector?: true
   status?: true
   activatedAt?: true
   createdAt?: true
@@ -514,6 +520,7 @@ export type LoanGroupByOutputType = {
   totalInterestReceived: number
   totalPrincipalRecovered: number
   source: $Enums.LoanSource
+  sector: $Enums.LoanSector | null
   status: $Enums.LoanStatus
   activatedAt: Date | null
   createdAt: Date
@@ -583,6 +590,7 @@ export type LoanWhereInput = {
   totalInterestReceived?: Prisma.FloatFilter<"Loan"> | number
   totalPrincipalRecovered?: Prisma.FloatFilter<"Loan"> | number
   source?: Prisma.EnumLoanSourceFilter<"Loan"> | $Enums.LoanSource
+  sector?: Prisma.EnumLoanSectorNullableFilter<"Loan"> | $Enums.LoanSector | null
   status?: Prisma.EnumLoanStatusFilter<"Loan"> | $Enums.LoanStatus
   activatedAt?: Prisma.DateTimeNullableFilter<"Loan"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Loan"> | Date | string
@@ -633,6 +641,7 @@ export type LoanOrderByWithRelationInput = {
   totalInterestReceived?: Prisma.SortOrder
   totalPrincipalRecovered?: Prisma.SortOrder
   source?: Prisma.SortOrder
+  sector?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   activatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -686,6 +695,7 @@ export type LoanWhereUniqueInput = Prisma.AtLeast<{
   totalInterestReceived?: Prisma.FloatFilter<"Loan"> | number
   totalPrincipalRecovered?: Prisma.FloatFilter<"Loan"> | number
   source?: Prisma.EnumLoanSourceFilter<"Loan"> | $Enums.LoanSource
+  sector?: Prisma.EnumLoanSectorNullableFilter<"Loan"> | $Enums.LoanSector | null
   status?: Prisma.EnumLoanStatusFilter<"Loan"> | $Enums.LoanStatus
   activatedAt?: Prisma.DateTimeNullableFilter<"Loan"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Loan"> | Date | string
@@ -736,6 +746,7 @@ export type LoanOrderByWithAggregationInput = {
   totalInterestReceived?: Prisma.SortOrder
   totalPrincipalRecovered?: Prisma.SortOrder
   source?: Prisma.SortOrder
+  sector?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   activatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -790,6 +801,7 @@ export type LoanScalarWhereWithAggregatesInput = {
   totalInterestReceived?: Prisma.FloatWithAggregatesFilter<"Loan"> | number
   totalPrincipalRecovered?: Prisma.FloatWithAggregatesFilter<"Loan"> | number
   source?: Prisma.EnumLoanSourceWithAggregatesFilter<"Loan"> | $Enums.LoanSource
+  sector?: Prisma.EnumLoanSectorNullableWithAggregatesFilter<"Loan"> | $Enums.LoanSector | null
   status?: Prisma.EnumLoanStatusWithAggregatesFilter<"Loan"> | $Enums.LoanStatus
   activatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Loan"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Loan"> | Date | string
@@ -835,6 +847,7 @@ export type LoanCreateInput = {
   totalInterestReceived?: number
   totalPrincipalRecovered?: number
   source?: $Enums.LoanSource
+  sector?: $Enums.LoanSector | null
   status?: $Enums.LoanStatus
   activatedAt?: Date | string | null
   createdAt?: Date | string
@@ -884,6 +897,7 @@ export type LoanUncheckedCreateInput = {
   totalInterestReceived?: number
   totalPrincipalRecovered?: number
   source?: $Enums.LoanSource
+  sector?: $Enums.LoanSector | null
   status?: $Enums.LoanStatus
   activatedAt?: Date | string | null
   createdAt?: Date | string
@@ -931,6 +945,7 @@ export type LoanUpdateInput = {
   totalInterestReceived?: Prisma.FloatFieldUpdateOperationsInput | number
   totalPrincipalRecovered?: Prisma.FloatFieldUpdateOperationsInput | number
   source?: Prisma.EnumLoanSourceFieldUpdateOperationsInput | $Enums.LoanSource
+  sector?: Prisma.NullableEnumLoanSectorFieldUpdateOperationsInput | $Enums.LoanSector | null
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -980,6 +995,7 @@ export type LoanUncheckedUpdateInput = {
   totalInterestReceived?: Prisma.FloatFieldUpdateOperationsInput | number
   totalPrincipalRecovered?: Prisma.FloatFieldUpdateOperationsInput | number
   source?: Prisma.EnumLoanSourceFieldUpdateOperationsInput | $Enums.LoanSource
+  sector?: Prisma.NullableEnumLoanSectorFieldUpdateOperationsInput | $Enums.LoanSector | null
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1028,6 +1044,7 @@ export type LoanCreateManyInput = {
   totalInterestReceived?: number
   totalPrincipalRecovered?: number
   source?: $Enums.LoanSource
+  sector?: $Enums.LoanSector | null
   status?: $Enums.LoanStatus
   activatedAt?: Date | string | null
   createdAt?: Date | string
@@ -1073,6 +1090,7 @@ export type LoanUpdateManyMutationInput = {
   totalInterestReceived?: Prisma.FloatFieldUpdateOperationsInput | number
   totalPrincipalRecovered?: Prisma.FloatFieldUpdateOperationsInput | number
   source?: Prisma.EnumLoanSourceFieldUpdateOperationsInput | $Enums.LoanSource
+  sector?: Prisma.NullableEnumLoanSectorFieldUpdateOperationsInput | $Enums.LoanSector | null
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1118,6 +1136,7 @@ export type LoanUncheckedUpdateManyInput = {
   totalInterestReceived?: Prisma.FloatFieldUpdateOperationsInput | number
   totalPrincipalRecovered?: Prisma.FloatFieldUpdateOperationsInput | number
   source?: Prisma.EnumLoanSourceFieldUpdateOperationsInput | $Enums.LoanSource
+  sector?: Prisma.NullableEnumLoanSectorFieldUpdateOperationsInput | $Enums.LoanSector | null
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1174,6 +1193,7 @@ export type LoanCountOrderByAggregateInput = {
   totalInterestReceived?: Prisma.SortOrder
   totalPrincipalRecovered?: Prisma.SortOrder
   source?: Prisma.SortOrder
+  sector?: Prisma.SortOrder
   status?: Prisma.SortOrder
   activatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -1241,6 +1261,7 @@ export type LoanMaxOrderByAggregateInput = {
   totalInterestReceived?: Prisma.SortOrder
   totalPrincipalRecovered?: Prisma.SortOrder
   source?: Prisma.SortOrder
+  sector?: Prisma.SortOrder
   status?: Prisma.SortOrder
   activatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -1285,6 +1306,7 @@ export type LoanMinOrderByAggregateInput = {
   totalInterestReceived?: Prisma.SortOrder
   totalPrincipalRecovered?: Prisma.SortOrder
   source?: Prisma.SortOrder
+  sector?: Prisma.SortOrder
   status?: Prisma.SortOrder
   activatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -1436,6 +1458,10 @@ export type EnumLoanSourceFieldUpdateOperationsInput = {
   set?: $Enums.LoanSource
 }
 
+export type NullableEnumLoanSectorFieldUpdateOperationsInput = {
+  set?: $Enums.LoanSector | null
+}
+
 export type EnumLoanStatusFieldUpdateOperationsInput = {
   set?: $Enums.LoanStatus
 }
@@ -1506,6 +1532,7 @@ export type LoanCreateWithoutUserInput = {
   totalInterestReceived?: number
   totalPrincipalRecovered?: number
   source?: $Enums.LoanSource
+  sector?: $Enums.LoanSector | null
   status?: $Enums.LoanStatus
   activatedAt?: Date | string | null
   createdAt?: Date | string
@@ -1554,6 +1581,7 @@ export type LoanUncheckedCreateWithoutUserInput = {
   totalInterestReceived?: number
   totalPrincipalRecovered?: number
   source?: $Enums.LoanSource
+  sector?: $Enums.LoanSector | null
   status?: $Enums.LoanStatus
   activatedAt?: Date | string | null
   createdAt?: Date | string
@@ -1630,6 +1658,7 @@ export type LoanScalarWhereInput = {
   totalInterestReceived?: Prisma.FloatFilter<"Loan"> | number
   totalPrincipalRecovered?: Prisma.FloatFilter<"Loan"> | number
   source?: Prisma.EnumLoanSourceFilter<"Loan"> | $Enums.LoanSource
+  sector?: Prisma.EnumLoanSectorNullableFilter<"Loan"> | $Enums.LoanSector | null
   status?: Prisma.EnumLoanStatusFilter<"Loan"> | $Enums.LoanStatus
   activatedAt?: Prisma.DateTimeNullableFilter<"Loan"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Loan"> | Date | string
@@ -1675,6 +1704,7 @@ export type LoanCreateWithoutClientInput = {
   totalInterestReceived?: number
   totalPrincipalRecovered?: number
   source?: $Enums.LoanSource
+  sector?: $Enums.LoanSector | null
   status?: $Enums.LoanStatus
   activatedAt?: Date | string | null
   createdAt?: Date | string
@@ -1722,6 +1752,7 @@ export type LoanUncheckedCreateWithoutClientInput = {
   totalInterestReceived?: number
   totalPrincipalRecovered?: number
   source?: $Enums.LoanSource
+  sector?: $Enums.LoanSector | null
   status?: $Enums.LoanStatus
   activatedAt?: Date | string | null
   createdAt?: Date | string
@@ -1795,6 +1826,7 @@ export type LoanCreateWithoutStatusLogsInput = {
   totalInterestReceived?: number
   totalPrincipalRecovered?: number
   source?: $Enums.LoanSource
+  sector?: $Enums.LoanSector | null
   status?: $Enums.LoanStatus
   activatedAt?: Date | string | null
   createdAt?: Date | string
@@ -1843,6 +1875,7 @@ export type LoanUncheckedCreateWithoutStatusLogsInput = {
   totalInterestReceived?: number
   totalPrincipalRecovered?: number
   source?: $Enums.LoanSource
+  sector?: $Enums.LoanSector | null
   status?: $Enums.LoanStatus
   activatedAt?: Date | string | null
   createdAt?: Date | string
@@ -1905,6 +1938,7 @@ export type LoanUpdateWithoutStatusLogsInput = {
   totalInterestReceived?: Prisma.FloatFieldUpdateOperationsInput | number
   totalPrincipalRecovered?: Prisma.FloatFieldUpdateOperationsInput | number
   source?: Prisma.EnumLoanSourceFieldUpdateOperationsInput | $Enums.LoanSource
+  sector?: Prisma.NullableEnumLoanSectorFieldUpdateOperationsInput | $Enums.LoanSector | null
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1953,6 +1987,7 @@ export type LoanUncheckedUpdateWithoutStatusLogsInput = {
   totalInterestReceived?: Prisma.FloatFieldUpdateOperationsInput | number
   totalPrincipalRecovered?: Prisma.FloatFieldUpdateOperationsInput | number
   source?: Prisma.EnumLoanSourceFieldUpdateOperationsInput | $Enums.LoanSource
+  sector?: Prisma.NullableEnumLoanSectorFieldUpdateOperationsInput | $Enums.LoanSector | null
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1999,6 +2034,7 @@ export type LoanCreateWithoutRepaymentsInput = {
   totalInterestReceived?: number
   totalPrincipalRecovered?: number
   source?: $Enums.LoanSource
+  sector?: $Enums.LoanSector | null
   status?: $Enums.LoanStatus
   activatedAt?: Date | string | null
   createdAt?: Date | string
@@ -2047,6 +2083,7 @@ export type LoanUncheckedCreateWithoutRepaymentsInput = {
   totalInterestReceived?: number
   totalPrincipalRecovered?: number
   source?: $Enums.LoanSource
+  sector?: $Enums.LoanSector | null
   status?: $Enums.LoanStatus
   activatedAt?: Date | string | null
   createdAt?: Date | string
@@ -2109,6 +2146,7 @@ export type LoanUpdateWithoutRepaymentsInput = {
   totalInterestReceived?: Prisma.FloatFieldUpdateOperationsInput | number
   totalPrincipalRecovered?: Prisma.FloatFieldUpdateOperationsInput | number
   source?: Prisma.EnumLoanSourceFieldUpdateOperationsInput | $Enums.LoanSource
+  sector?: Prisma.NullableEnumLoanSectorFieldUpdateOperationsInput | $Enums.LoanSector | null
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2157,6 +2195,7 @@ export type LoanUncheckedUpdateWithoutRepaymentsInput = {
   totalInterestReceived?: Prisma.FloatFieldUpdateOperationsInput | number
   totalPrincipalRecovered?: Prisma.FloatFieldUpdateOperationsInput | number
   source?: Prisma.EnumLoanSourceFieldUpdateOperationsInput | $Enums.LoanSource
+  sector?: Prisma.NullableEnumLoanSectorFieldUpdateOperationsInput | $Enums.LoanSector | null
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2204,6 +2243,7 @@ export type LoanCreateManyUserInput = {
   totalInterestReceived?: number
   totalPrincipalRecovered?: number
   source?: $Enums.LoanSource
+  sector?: $Enums.LoanSector | null
   status?: $Enums.LoanStatus
   activatedAt?: Date | string | null
   createdAt?: Date | string
@@ -2248,6 +2288,7 @@ export type LoanUpdateWithoutUserInput = {
   totalInterestReceived?: Prisma.FloatFieldUpdateOperationsInput | number
   totalPrincipalRecovered?: Prisma.FloatFieldUpdateOperationsInput | number
   source?: Prisma.EnumLoanSourceFieldUpdateOperationsInput | $Enums.LoanSource
+  sector?: Prisma.NullableEnumLoanSectorFieldUpdateOperationsInput | $Enums.LoanSector | null
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2296,6 +2337,7 @@ export type LoanUncheckedUpdateWithoutUserInput = {
   totalInterestReceived?: Prisma.FloatFieldUpdateOperationsInput | number
   totalPrincipalRecovered?: Prisma.FloatFieldUpdateOperationsInput | number
   source?: Prisma.EnumLoanSourceFieldUpdateOperationsInput | $Enums.LoanSource
+  sector?: Prisma.NullableEnumLoanSectorFieldUpdateOperationsInput | $Enums.LoanSector | null
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2343,6 +2385,7 @@ export type LoanUncheckedUpdateManyWithoutUserInput = {
   totalInterestReceived?: Prisma.FloatFieldUpdateOperationsInput | number
   totalPrincipalRecovered?: Prisma.FloatFieldUpdateOperationsInput | number
   source?: Prisma.EnumLoanSourceFieldUpdateOperationsInput | $Enums.LoanSource
+  sector?: Prisma.NullableEnumLoanSectorFieldUpdateOperationsInput | $Enums.LoanSector | null
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2387,6 +2430,7 @@ export type LoanCreateManyClientInput = {
   totalInterestReceived?: number
   totalPrincipalRecovered?: number
   source?: $Enums.LoanSource
+  sector?: $Enums.LoanSector | null
   status?: $Enums.LoanStatus
   activatedAt?: Date | string | null
   createdAt?: Date | string
@@ -2432,6 +2476,7 @@ export type LoanUpdateWithoutClientInput = {
   totalInterestReceived?: Prisma.FloatFieldUpdateOperationsInput | number
   totalPrincipalRecovered?: Prisma.FloatFieldUpdateOperationsInput | number
   source?: Prisma.EnumLoanSourceFieldUpdateOperationsInput | $Enums.LoanSource
+  sector?: Prisma.NullableEnumLoanSectorFieldUpdateOperationsInput | $Enums.LoanSector | null
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2479,6 +2524,7 @@ export type LoanUncheckedUpdateWithoutClientInput = {
   totalInterestReceived?: Prisma.FloatFieldUpdateOperationsInput | number
   totalPrincipalRecovered?: Prisma.FloatFieldUpdateOperationsInput | number
   source?: Prisma.EnumLoanSourceFieldUpdateOperationsInput | $Enums.LoanSource
+  sector?: Prisma.NullableEnumLoanSectorFieldUpdateOperationsInput | $Enums.LoanSector | null
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2526,6 +2572,7 @@ export type LoanUncheckedUpdateManyWithoutClientInput = {
   totalInterestReceived?: Prisma.FloatFieldUpdateOperationsInput | number
   totalPrincipalRecovered?: Prisma.FloatFieldUpdateOperationsInput | number
   source?: Prisma.EnumLoanSourceFieldUpdateOperationsInput | $Enums.LoanSource
+  sector?: Prisma.NullableEnumLoanSectorFieldUpdateOperationsInput | $Enums.LoanSector | null
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2612,6 +2659,7 @@ export type LoanSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   totalInterestReceived?: boolean
   totalPrincipalRecovered?: boolean
   source?: boolean
+  sector?: boolean
   status?: boolean
   activatedAt?: boolean
   createdAt?: boolean
@@ -2663,6 +2711,7 @@ export type LoanSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   totalInterestReceived?: boolean
   totalPrincipalRecovered?: boolean
   source?: boolean
+  sector?: boolean
   status?: boolean
   activatedAt?: boolean
   createdAt?: boolean
@@ -2711,6 +2760,7 @@ export type LoanSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   totalInterestReceived?: boolean
   totalPrincipalRecovered?: boolean
   source?: boolean
+  sector?: boolean
   status?: boolean
   activatedAt?: boolean
   createdAt?: boolean
@@ -2759,6 +2809,7 @@ export type LoanSelectScalar = {
   totalInterestReceived?: boolean
   totalPrincipalRecovered?: boolean
   source?: boolean
+  sector?: boolean
   status?: boolean
   activatedAt?: boolean
   createdAt?: boolean
@@ -2766,7 +2817,7 @@ export type LoanSelectScalar = {
   userId?: boolean
 }
 
-export type LoanOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clientId" | "amount" | "currency" | "totalRepaidAmount" | "outstandingBalance" | "purpose" | "repaymentTerms" | "guarantorInfo" | "comments" | "interestRatePercentPerMonth" | "termInMonths" | "termStartDate" | "termEndDate" | "disbursementWithinDays" | "collateralType" | "collateralEstimatedValue" | "collateralLocation" | "repaymentInstallmentsCount" | "repaymentAmountPerMonth" | "repaymentPeriodMonths" | "paymentDayOfMonth" | "loanProcessingFeePercent" | "administrativeFeePercent" | "loanApplicationFeePercent" | "earlyRepaymentFeePercent" | "defaultPenaltyFeePercentPerDay" | "spouseName" | "termsAccepted" | "termsVersion" | "disbursementMethod" | "disbursementReference" | "disbursedAmount" | "disbursedAt" | "totalInterestExpected" | "totalInterestReceived" | "totalPrincipalRecovered" | "source" | "status" | "activatedAt" | "createdAt" | "updatedAt" | "userId", ExtArgs["result"]["loan"]>
+export type LoanOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clientId" | "amount" | "currency" | "totalRepaidAmount" | "outstandingBalance" | "purpose" | "repaymentTerms" | "guarantorInfo" | "comments" | "interestRatePercentPerMonth" | "termInMonths" | "termStartDate" | "termEndDate" | "disbursementWithinDays" | "collateralType" | "collateralEstimatedValue" | "collateralLocation" | "repaymentInstallmentsCount" | "repaymentAmountPerMonth" | "repaymentPeriodMonths" | "paymentDayOfMonth" | "loanProcessingFeePercent" | "administrativeFeePercent" | "loanApplicationFeePercent" | "earlyRepaymentFeePercent" | "defaultPenaltyFeePercentPerDay" | "spouseName" | "termsAccepted" | "termsVersion" | "disbursementMethod" | "disbursementReference" | "disbursedAmount" | "disbursedAt" | "totalInterestExpected" | "totalInterestReceived" | "totalPrincipalRecovered" | "source" | "sector" | "status" | "activatedAt" | "createdAt" | "updatedAt" | "userId", ExtArgs["result"]["loan"]>
 export type LoanInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
   user?: boolean | Prisma.Loan$userArgs<ExtArgs>
@@ -2830,6 +2881,7 @@ export type $LoanPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     totalInterestReceived: number
     totalPrincipalRecovered: number
     source: $Enums.LoanSource
+    sector: $Enums.LoanSector | null
     status: $Enums.LoanStatus
     activatedAt: Date | null
     createdAt: Date
@@ -3300,6 +3352,7 @@ export interface LoanFieldRefs {
   readonly totalInterestReceived: Prisma.FieldRef<"Loan", 'Float'>
   readonly totalPrincipalRecovered: Prisma.FieldRef<"Loan", 'Float'>
   readonly source: Prisma.FieldRef<"Loan", 'LoanSource'>
+  readonly sector: Prisma.FieldRef<"Loan", 'LoanSector'>
   readonly status: Prisma.FieldRef<"Loan", 'LoanStatus'>
   readonly activatedAt: Prisma.FieldRef<"Loan", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Loan", 'DateTime'>

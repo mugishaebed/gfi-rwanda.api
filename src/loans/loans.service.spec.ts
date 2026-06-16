@@ -10,8 +10,13 @@ jest.mock('../documents/documents.service', () => ({
   DocumentsService: class DocumentsService {},
 }));
 
+jest.mock('../momo/momo-disbursements.service', () => ({
+  MomoDisbursementsService: class MomoDisbursementsService {},
+}));
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { DocumentsService } from '../documents/documents.service';
+import { MomoDisbursementsService } from '../momo/momo-disbursements.service';
 import {
   ClientOnboardingStatus,
   DisbursementMethod,
@@ -96,6 +101,10 @@ describe('LoansService', () => {
           provide: DocumentsService,
           useValue: documentsService,
         },
+        {
+          provide: MomoDisbursementsService,
+          useValue: {},
+        },
       ],
     }).compile();
 
@@ -164,7 +173,7 @@ describe('LoansService', () => {
         currency: 'RWF',
         purpose: 'Quick loan application',
         status: 'pending',
-        workflowStatus: LoanStatus.PENDING,
+        workflowStatus: LoanStatus.PENDING_OFFICER_REVIEW,
         totalRepayment: 165000,
         interest: 15000,
         interestRatePercentPerMonth: 10,
@@ -233,7 +242,7 @@ describe('LoansService', () => {
     const loan = {
       id: 'loan-1',
       createdAt,
-      status: LoanStatus.PENDING,
+      status: LoanStatus.PENDING_OFFICER_REVIEW,
       source: LoanSource.CLIENT_ONLINE,
     };
 
@@ -244,7 +253,7 @@ describe('LoansService', () => {
     );
 
     await expect(
-      service.findAll(2, 5, LoanStatus.PENDING, LoanSource.CLIENT_ONLINE),
+      service.findAll(2, 5, LoanStatus.PENDING_OFFICER_REVIEW, LoanSource.CLIENT_ONLINE),
     ).resolves.toEqual({
       data: [
         {
@@ -263,7 +272,7 @@ describe('LoansService', () => {
     expect(prisma.loan.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: {
-          status: LoanStatus.PENDING,
+          status: LoanStatus.PENDING_OFFICER_REVIEW,
           source: LoanSource.CLIENT_ONLINE,
         },
         skip: 5,
@@ -272,7 +281,7 @@ describe('LoansService', () => {
     );
     expect(prisma.loan.count).toHaveBeenCalledWith({
       where: {
-        status: LoanStatus.PENDING,
+        status: LoanStatus.PENDING_OFFICER_REVIEW,
         source: LoanSource.CLIENT_ONLINE,
       },
     });

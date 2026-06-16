@@ -12,6 +12,7 @@ import {
   ClientOnboardingStatus,
   DisbursementMethod,
   DocumentOwnerType,
+  LoanSector,
   LoanSource,
   LoanStatus,
   RepaymentStatus,
@@ -41,10 +42,31 @@ const CLIENT_LOAN_OFFER_AVAILABLE_LIMIT = 500000;
 const CLIENT_LOAN_OFFER_MINIMUM_REQUEST = 100;
 const CLIENT_LOAN_OFFER_REVIEW_HOURS = 24;
 const RWANDA_TIME_ZONE = 'Africa/Kigali';
+// Recorded as the actor on status logs driven by the MoMo provider webhook
+// rather than a human user.
+const MOMO_CALLBACK_ACTOR = 'system:momo-callback';
 const LOAN_STATUS_TRANSACTION_OPTIONS = {
   maxWait: 10_000,
   timeout: 15_000,
 } as const;
+
+// Single source of truth for the loan lifecycle. Every status change — officer
+// review, GM approval, disbursement, repayment activation — must be a move that
+// appears here, and every move flows through transitionLoanStatus().
+const LOAN_STATUS_TRANSITIONS: Record<LoanStatus, readonly LoanStatus[]> = {
+  [LoanStatus.PENDING_OFFICER_REVIEW]: [
+    LoanStatus.PENDING_GM_APPROVAL,
+    LoanStatus.REJECTED,
+  ],
+  [LoanStatus.PENDING_GM_APPROVAL]: [LoanStatus.APPROVED, LoanStatus.REJECTED],
+  // APPROVED -> DISBURSING for online loans (MoMo payout); APPROVED -> ACTIVE
+  // for manual loans, which are disbursed out-of-band and only recorded.
+  [LoanStatus.APPROVED]: [LoanStatus.DISBURSING, LoanStatus.ACTIVE],
+  [LoanStatus.DISBURSING]: [LoanStatus.ACTIVE, LoanStatus.DISBURSEMENT_FAILED],
+  [LoanStatus.DISBURSEMENT_FAILED]: [LoanStatus.DISBURSING],
+  [LoanStatus.ACTIVE]: [],
+  [LoanStatus.REJECTED]: [],
+};
 
 type ClientFacingLoanStatus =
   | 'pending'
@@ -69,6 +91,7 @@ export class LoansService {
     limit = 10,
     status?: LoanStatus,
     source?: LoanSource,
+    sector?: LoanSector,
   ) {
     const safePage = Math.max(page, 1);
     const safeLimit = Math.min(Math.max(limit, 1), 100);
@@ -77,6 +100,7 @@ export class LoansService {
     const where: Prisma.LoanWhereInput = {
       ...(status ? { status } : {}),
       ...(source ? { source } : {}),
+      ...(sector ? { sector } : {}),
     };
 
     const [loans, total] = await Promise.all([
@@ -183,6 +207,160 @@ export class LoansService {
     };
   }
 
+  /**
+   * Per-sector loan aggregates for the loan-officer dashboard and insights:
+   * how many loans each sector holds, their status mix, and the money flowing
+   * through them. Loans without a sector (client quick-loans, legacy rows) are
+   * excluded.
+   */
+  async getSectorInsights() {
+    const grouped = await this.prisma.loan.groupBy({
+      by: ['sector', 'status'],
+      where: { sector: { not: null } },
+      _count: { _all: true },
+      _sum: {
+        amount: true,
+        disbursedAmount: true,
+        outstandingBalance: true,
+        totalRepaidAmount: true,
+      },
+    });
+
+    const bySector = new Map<
+      LoanSector,
+      {
+        sector: LoanSector;
+        totalLoans: number;
+        activeLoans: number;
+        pendingLoans: number;
+        rejectedLoans: number;
+        totalAmount: number;
+        totalDisbursed: number;
+        outstandingBalance: number;
+        totalRepaid: number;
+      }
+    >();
+
+    for (const sector of Object.values(LoanSector)) {
+      bySector.set(sector, {
+        sector,
+        totalLoans: 0,
+        activeLoans: 0,
+        pendingLoans: 0,
+        rejectedLoans: 0,
+        totalAmount: 0,
+        totalDisbursed: 0,
+        outstandingBalance: 0,
+        totalRepaid: 0,
+      });
+    }
+
+    for (const row of grouped) {
+      if (!row.sector) {
+        continue;
+      }
+      const entry = bySector.get(row.sector);
+      if (!entry) {
+        continue;
+      }
+      const count = row._count._all;
+      entry.totalLoans += count;
+      entry.totalAmount += row._sum.amount ?? 0;
+      entry.totalDisbursed += row._sum.disbursedAmount ?? 0;
+      entry.outstandingBalance += row._sum.outstandingBalance ?? 0;
+      entry.totalRepaid += row._sum.totalRepaidAmount ?? 0;
+
+      if (row.status === LoanStatus.ACTIVE) {
+        entry.activeLoans += count;
+      } else if (row.status === LoanStatus.REJECTED) {
+        entry.rejectedLoans += count;
+      } else {
+        // Everything before disbursement completes counts as pending.
+        entry.pendingLoans += count;
+      }
+    }
+
+    return { sectors: Array.from(bySector.values()) };
+  }
+
+  /**
+   * GM manual-loan ledger: one row per manual loan with exactly the columns the
+   * internal tracking sheet uses, in sheet order, plus summed totals over the
+   * whole (filtered) set. Period is reported in months, as captured at creation.
+   */
+  async getManualLoanLedger(page = 1, limit = 20, sector?: LoanSector) {
+    const safePage = Math.max(page, 1);
+    const safeLimit = Math.min(Math.max(limit, 1), 100);
+    const skip = (safePage - 1) * safeLimit;
+
+    const where: Prisma.LoanWhereInput = {
+      source: LoanSource.STAFF_MANUAL,
+      ...(sector ? { sector } : {}),
+    };
+
+    const [loans, total, totals] = await Promise.all([
+      this.prisma.loan.findMany({
+        where,
+        skip,
+        take: safeLimit,
+        orderBy: { createdAt: 'asc' },
+        include: {
+          client: { include: { individual: true, business: true } },
+        },
+      }),
+      this.prisma.loan.count({ where }),
+      this.prisma.loan.aggregate({
+        where,
+        _sum: {
+          amount: true,
+          disbursedAmount: true,
+          outstandingBalance: true,
+          totalInterestExpected: true,
+          totalInterestReceived: true,
+          totalPrincipalRecovered: true,
+        },
+      }),
+    ]);
+
+    const data = loans.map((loan) => ({
+      // Sheet columns, in order:
+      no: loan.client.accountNumber,
+      loanNumber: formatLoanNumber(loan),
+      customerName: this.getClientDisplayName(loan.client),
+      sector: loan.sector,
+      loanApproved: loan.amount,
+      disbursedAmount: loan.disbursedAmount,
+      outstanding: loan.outstandingBalance,
+      disbursementDate: loan.disbursedAt ? this.formatDateOnly(loan.disbursedAt) : null,
+      periodMonths: loan.termInMonths,
+      interestRate: loan.interestRatePercentPerMonth,
+      totalInterestToBeEarned: loan.totalInterestExpected,
+      interestReceived: loan.totalInterestReceived,
+      principalRecovered: loan.totalPrincipalRecovered,
+      // Extras for the frontend (row key / navigation / context):
+      loanId: loan.id,
+      status: loan.status,
+    }));
+
+    return {
+      data,
+      totals: {
+        loanApproved: totals._sum.amount ?? 0,
+        disbursedAmount: totals._sum.disbursedAmount ?? 0,
+        outstanding: totals._sum.outstandingBalance ?? 0,
+        totalInterestToBeEarned: totals._sum.totalInterestExpected ?? 0,
+        interestReceived: totals._sum.totalInterestReceived ?? 0,
+        principalRecovered: totals._sum.totalPrincipalRecovered ?? 0,
+      },
+      meta: {
+        page: safePage,
+        limit: safeLimit,
+        total,
+        totalPages: Math.ceil(total / safeLimit),
+      },
+    };
+  }
+
   async findOne(id: string) {
     const loan = await this.prisma.loan.findUnique({
       where: { id },
@@ -223,13 +401,16 @@ export class LoansService {
       size: number;
     }> = [],
   ) {
+    // A loan officer creating a manual loan IS the underwriting endorsement, so
+    // it skips officer review and enters the GM gate directly. The creating
+    // officer is recorded as the originator (enforced distinct from the GM).
     return this.createLoanInternal(
       data,
       data.clientId,
       createdByUserId,
       files,
-      LoanStatus.PENDING,
-      null,
+      LoanStatus.PENDING_GM_APPROVAL,
+      createdByUserId,
     );
   }
 
@@ -287,14 +468,18 @@ export class LoansService {
     review: ReviewLoanDto,
     reviewedByUserId: string,
   ) {
-    const loan = await this.updateLoanStatus(
-      id,
-      LoanStatus.LOAN_OFFICER_APPROVED,
-      review,
-      reviewedByUserId,
-      [LoanStatus.PENDING],
-      true,
-    );
+    // Officer review only applies to client-submitted applications. Approving
+    // makes the reviewing officer the loan's originator and forwards it to the
+    // GM, who must be a different person (enforced at GM approval).
+    await this.transitionLoanStatus({
+      loanId: id,
+      toStatus: LoanStatus.PENDING_GM_APPROVAL,
+      changedBy: reviewedByUserId,
+      note: review.note,
+      data: { userId: reviewedByUserId },
+    });
+
+    const loan = await this.findLoanForReviewResponse(id);
 
     await this.notificationsService.notifyGeneralManagersLoanPendingApproval({
       loanId: loan.id,
@@ -304,7 +489,7 @@ export class LoansService {
       loanOfficerName: loan.user?.name,
     });
 
-    return loan;
+    return this.attachLoanDocuments(loan);
   }
 
   async rejectLoanByOfficer(
@@ -312,103 +497,47 @@ export class LoansService {
     review: ReviewLoanDto,
     reviewedByUserId: string,
   ) {
-    return this.updateLoanStatus(
-      id,
-      LoanStatus.LOAN_OFFICER_REJECTED,
-      review,
-      reviewedByUserId,
-      [LoanStatus.PENDING],
-      true,
-    );
+    await this.transitionLoanStatus({
+      loanId: id,
+      toStatus: LoanStatus.REJECTED,
+      changedBy: reviewedByUserId,
+      note: review.note,
+      data: { userId: reviewedByUserId },
+    });
+
+    return this.attachLoanDocuments(await this.findLoanForReviewResponse(id));
   }
 
   async approveLoanByGeneralManager(
     id: string,
     review: ReviewLoanDto,
     reviewedByUserId: string,
-    reviewedByUserRoles: string[] = [],
   ) {
-    if (reviewedByUserRoles.includes(UserRole.LOAN_OFFICER)) {
-      const loan = await this.prisma.loan.findUnique({
-        where: { id },
-        select: { status: true },
-      });
+    const existingLoan = await this.prisma.loan.findUnique({
+      where: { id },
+      select: { userId: true },
+    });
 
-      if (!loan) {
-        throw new NotFoundException('Loan not found');
-      }
-
-      if (loan.status === LoanStatus.PENDING) {
-        return this.approvePendingLoanByDualRoleUser(
-          id,
-          review,
-          reviewedByUserId,
-        );
-      }
+    if (!existingLoan) {
+      throw new NotFoundException('Loan not found');
     }
 
-    return this.updateLoanStatus(
-      id,
-      LoanStatus.APPROVED,
-      review,
-      reviewedByUserId,
-      [LoanStatus.LOAN_OFFICER_APPROVED],
-      false,
-    );
-  }
+    // Separation of duties: the GM approving cannot be the person who
+    // originated the loan (the manual creator, or the officer who reviewed it).
+    if (existingLoan.userId && existingLoan.userId === reviewedByUserId) {
+      throw new BadRequestException(
+        'The general manager approving a loan must be different from the loan officer who originated it',
+      );
+    }
 
-  private async approvePendingLoanByDualRoleUser(
-    id: string,
-    review: ReviewLoanDto,
-    reviewedByUserId: string,
-  ) {
-    const loanId = await this.prisma.$transaction(async (tx) => {
-      const existingLoan = await tx.loan.findUnique({
-        where: { id },
-      });
+    await this.transitionLoanStatus({
+      loanId: id,
+      toStatus: LoanStatus.APPROVED,
+      changedBy: reviewedByUserId,
+      note: review.note,
+    });
 
-      if (!existingLoan) {
-        throw new NotFoundException('Loan not found');
-      }
-
-      if (existingLoan.status !== LoanStatus.PENDING) {
-        throw new BadRequestException(
-          `Loan cannot be moved from ${existingLoan.status} to ${LoanStatus.APPROVED}`,
-        );
-      }
-
-      await tx.loanStatusLog.createMany({
-        data: [
-          {
-            loanId: existingLoan.id,
-            fromStatus: LoanStatus.PENDING,
-            toStatus: LoanStatus.LOAN_OFFICER_APPROVED,
-            changedBy: reviewedByUserId,
-            note: review.note,
-          },
-          {
-            loanId: existingLoan.id,
-            fromStatus: LoanStatus.LOAN_OFFICER_APPROVED,
-            toStatus: LoanStatus.APPROVED,
-            changedBy: reviewedByUserId,
-            note: review.note,
-          },
-        ],
-      });
-
-      await tx.loan.update({
-        where: { id: existingLoan.id },
-        data: {
-          status: LoanStatus.APPROVED,
-          userId: existingLoan.userId ?? reviewedByUserId,
-          activatedAt: new Date(),
-        },
-      });
-
-      return existingLoan.id;
-    }, LOAN_STATUS_TRANSACTION_OPTIONS);
-
-    const loan = await this.findLoanForReviewResponse(loanId);
+    const loan = await this.findLoanForReviewResponse(id);
 
     await this.generateAndAttachLoanContractPdf(loan.id, reviewedByUserId);
 
@@ -420,13 +549,28 @@ export class LoansService {
       loanOfficerName: loan.user?.name,
     });
 
-    await this.disburseMomoLoan(loan.id);
+    if (loan.source === LoanSource.STAFF_MANUAL) {
+      // Manual loans are disbursed out-of-band (cash/bank) by staff and only
+      // recorded in the system — no MoMo payout. The GM decides the actual
+      // disbursed amount/date at approval (it isn't known at creation), and
+      // approval activates the loan directly.
+      const now = new Date();
+      await this.transitionLoanStatus({
+        loanId: loan.id,
+        toStatus: LoanStatus.ACTIVE,
+        changedBy: reviewedByUserId,
+        note: 'Manual disbursement recorded on GM approval',
+        data: {
+          activatedAt: now,
+          disbursedAt: review.disbursedAt ?? now,
+          disbursedAmount: review.disbursedAmount ?? loan.amount,
+        },
+      });
+    } else {
+      await this.disburseMomoLoan(loan.id, reviewedByUserId);
+    }
 
-    return (
-      await this.documentsService.attachDocuments(DocumentOwnerType.LOAN, [
-        withLoanNumber(loan),
-      ])
-    )[0];
+    return this.attachLoanDocuments(await this.findLoanForReviewResponse(id));
   }
 
   async rejectLoanByGeneralManager(
@@ -434,75 +578,77 @@ export class LoansService {
     review: ReviewLoanDto,
     reviewedByUserId: string,
   ) {
-    return this.updateLoanStatus(
-      id,
-      LoanStatus.REJECTED,
-      review,
-      reviewedByUserId,
-      [LoanStatus.LOAN_OFFICER_APPROVED],
-      false,
-    );
-  }
-
-  private async updateLoanStatus(
-    id: string,
-    nextStatus: LoanStatus,
-    review: ReviewLoanDto,
-    reviewedByUserId: string,
-    allowedFromStatuses: LoanStatus[],
-    setReviewingOfficer: boolean,
-  ) {
-    const existingLoan = await this.prisma.loan.findUnique({
-      where: { id },
+    await this.transitionLoanStatus({
+      loanId: id,
+      toStatus: LoanStatus.REJECTED,
+      changedBy: reviewedByUserId,
+      note: review.note,
     });
 
-    if (!existingLoan) {
-      throw new NotFoundException('Loan not found');
-    }
+    return this.attachLoanDocuments(await this.findLoanForReviewResponse(id));
+  }
 
-    if (!allowedFromStatuses.includes(existingLoan.status)) {
-      throw new BadRequestException(
-        `Loan cannot be moved from ${existingLoan.status} to ${nextStatus}`,
-      );
-    }
+  /**
+   * The single guarded entry point for every loan status change. Validates the
+   * move against {@link LOAN_STATUS_TRANSITIONS}, writes an audit log entry and
+   * updates the loan in one transaction. Optional `data` applies side-effect
+   * field updates (originator, disbursement timestamps, references) atomically
+   * with the transition. Pass an existing `tx` to enlist in a caller's
+   * transaction.
+   */
+  private async transitionLoanStatus(params: {
+    loanId: string;
+    toStatus: LoanStatus;
+    changedBy: string;
+    note?: string | null;
+    data?: Prisma.LoanUncheckedUpdateInput;
+    tx?: Prisma.TransactionClient;
+  }) {
+    const run = async (tx: Prisma.TransactionClient) => {
+      const existingLoan = await tx.loan.findUnique({
+        where: { id: params.loanId },
+        select: { id: true, status: true },
+      });
 
-    await this.prisma.$transaction(async (tx) => {
+      if (!existingLoan) {
+        throw new NotFoundException('Loan not found');
+      }
+
+      if (
+        !LOAN_STATUS_TRANSITIONS[existingLoan.status].includes(params.toStatus)
+      ) {
+        throw new BadRequestException(
+          `Loan cannot be moved from ${existingLoan.status} to ${params.toStatus}`,
+        );
+      }
+
       await tx.loanStatusLog.create({
         data: {
           loanId: existingLoan.id,
           fromStatus: existingLoan.status,
-          toStatus: nextStatus,
-          changedBy: reviewedByUserId,
-          note: review.note,
+          toStatus: params.toStatus,
+          changedBy: params.changedBy,
+          note: params.note ?? null,
         },
       });
 
       await tx.loan.update({
         where: { id: existingLoan.id },
         data: {
-          status: nextStatus,
-          ...(setReviewingOfficer ? { userId: reviewedByUserId } : {}),
-          activatedAt: nextStatus === LoanStatus.APPROVED ? new Date() : null,
+          status: params.toStatus,
+          ...(params.data ?? {}),
         },
       });
-    }, LOAN_STATUS_TRANSACTION_OPTIONS);
+    };
 
-    const loan = await this.findLoanForReviewResponse(existingLoan.id);
-
-    if (nextStatus === LoanStatus.APPROVED) {
-      await this.generateAndAttachLoanContractPdf(loan.id, reviewedByUserId);
-
-      await this.notificationsService.notifyLoanOfficerLoanApproved({
-        loanId: loan.id,
-        amount: loan.amount,
-        clientName: this.getClientDisplayName(loan.client),
-        loanOfficerEmail: loan.user?.email,
-        loanOfficerName: loan.user?.name,
-      });
-
-      await this.disburseMomoLoan(loan.id);
+    if (params.tx) {
+      return run(params.tx);
     }
 
+    return this.prisma.$transaction(run, LOAN_STATUS_TRANSACTION_OPTIONS);
+  }
+
+  private async attachLoanDocuments<T extends { id: string }>(loan: T) {
     return (
       await this.documentsService.attachDocuments(DocumentOwnerType.LOAN, [
         withLoanNumber(loan),
@@ -585,7 +731,7 @@ export class LoansService {
             termsVersion: data.termsVersion,
             disbursementMethod: data.disbursementMethod,
             source: LoanSource.CLIENT_ONLINE,
-            status: LoanStatus.PENDING,
+            status: LoanStatus.PENDING_OFFICER_REVIEW,
           },
           include: {
             client: {
@@ -686,12 +832,11 @@ export class LoansService {
               | Prisma.InputJsonValue
               | undefined,
             comments: data.comments,
-            disbursedAmount: data.disbursedAmount ?? data.amount,
-            disbursedAt: data.disbursedAt ?? null,
             totalInterestExpected:
               data.repaymentAmountPerMonth * data.repaymentInstallmentsCount -
               data.amount,
             source: LoanSource.STAFF_MANUAL,
+            sector: data.sector,
             status: initialStatus,
             userId: assignedLoanOfficerId,
           },
@@ -716,7 +861,19 @@ export class LoansService {
         return createdLoan;
       });
 
-      if (initialStatus === LoanStatus.PENDING) {
+      // Manual loans enter at the GM gate, so the GM is notified directly.
+      // (Client-submitted applications notify officers from their own path.)
+      if (initialStatus === LoanStatus.PENDING_GM_APPROVAL) {
+        await this.notificationsService.notifyGeneralManagersLoanPendingApproval(
+          {
+            loanId: loan.id,
+            amount: loan.amount,
+            purpose: loan.purpose,
+            clientName: this.getClientDisplayName(loan.client),
+            loanOfficerName: loan.user?.name,
+          },
+        );
+      } else if (initialStatus === LoanStatus.PENDING_OFFICER_REVIEW) {
         await this.notificationsService.notifyLoanOfficersLoanPendingReview({
           loanId: loan.id,
           amount: loan.amount,
@@ -725,11 +882,7 @@ export class LoansService {
         });
       }
 
-      return (
-        await this.documentsService.attachDocuments(DocumentOwnerType.LOAN, [
-          withLoanNumber(loan),
-        ])
-      )[0];
+      return this.attachLoanDocuments(loan);
     } catch (error) {
       await this.documentsService.cleanupPreparedDocuments(preparedDocuments);
       throw error;
@@ -834,21 +987,13 @@ export class LoansService {
     outstandingBalance: number,
     repaymentTerms: Prisma.JsonValue,
   ): ClientFacingLoanStatus {
-    if (
-      status === LoanStatus.REJECTED ||
-      status === LoanStatus.LOAN_OFFICER_REJECTED
-    ) {
+    if (status === LoanStatus.REJECTED) {
       return 'rejected';
     }
 
-    if (
-      status === LoanStatus.PENDING ||
-      status === LoanStatus.LOAN_OFFICER_APPROVED
-    ) {
-      return 'pending';
-    }
-
-    if (status === LoanStatus.APPROVED) {
+    // The loan is "live" with the client only once disbursement succeeds.
+    // completed/overdue remain derived from balance and schedule.
+    if (status === LoanStatus.ACTIVE) {
       if (outstandingBalance <= 0) {
         return 'completed';
       }
@@ -860,6 +1005,8 @@ export class LoansService {
       return 'active';
     }
 
+    // Everything before disbursement completes (review, GM approval, approved,
+    // disbursing, disbursement failed) reads as pending to the client.
     return 'pending';
   }
 
@@ -926,18 +1073,22 @@ export class LoansService {
       const normalized = status.toLowerCase();
       if (normalized === 'pending') {
         where.status = {
-          in: [LoanStatus.PENDING, LoanStatus.LOAN_OFFICER_APPROVED],
+          in: [
+            LoanStatus.PENDING_OFFICER_REVIEW,
+            LoanStatus.PENDING_GM_APPROVAL,
+            LoanStatus.APPROVED,
+            LoanStatus.DISBURSING,
+            LoanStatus.DISBURSEMENT_FAILED,
+          ],
         };
       } else if (normalized === 'rejected') {
-        where.status = {
-          in: [LoanStatus.REJECTED, LoanStatus.LOAN_OFFICER_REJECTED],
-        };
+        where.status = LoanStatus.REJECTED;
       } else if (
         normalized === 'active' ||
         normalized === 'completed' ||
         normalized === 'overdue'
       ) {
-        where.status = LoanStatus.APPROVED;
+        where.status = LoanStatus.ACTIVE;
       }
     }
 
@@ -2332,34 +2483,35 @@ export class LoansService {
     }
   }
 
-  async retryDisbursement(loanId: string) {
+  async retryDisbursement(loanId: string, actorUserId: string) {
     const loan = await this.prisma.loan.findUnique({
       where: { id: loanId },
-      select: { id: true, status: true, disbursementReference: true },
+      select: { id: true, status: true },
     });
 
     if (!loan) {
       throw new NotFoundException('Loan not found');
     }
 
-    if (loan.status !== LoanStatus.APPROVED) {
+    if (loan.status !== LoanStatus.DISBURSEMENT_FAILED) {
       throw new BadRequestException(
-        'Disbursement can only be retried for approved loans',
+        'Disbursement can only be retried for loans whose disbursement failed',
       );
     }
 
-    // Clear the old reference so disburseMomoLoan will proceed
-    await this.prisma.loan.update({
-      where: { id: loanId },
-      data: { disbursementReference: null },
-    });
-
-    await this.disburseMomoLoan(loanId);
+    await this.disburseMomoLoan(loanId, actorUserId);
 
     return this.findOne(loanId);
   }
 
-  async disburseMomoLoan(loanId: string) {
+  /**
+   * Moves an approved (or previously failed) loan into DISBURSING and fires the
+   * MoMo transfer. The status is advanced to DISBURSING *before* the transfer
+   * call so that a fast provider callback always finds the loan in flight;
+   * success/failure is then resolved by {@link handleMomoDisbursementCallback}
+   * or, for a synchronous transfer error, here.
+   */
+  async disburseMomoLoan(loanId: string, actorUserId: string) {
     const loan = await this.prisma.loan.findUnique({
       where: { id: loanId },
       include: {
@@ -2376,12 +2528,15 @@ export class LoansService {
       return;
     }
 
-    if (loan.disbursementReference) {
-      this.logger.warn(
-        `disburseMomoLoan: loan ${loanId} already has disbursementReference`,
-      );
-      return;
-    }
+    // Enter the in-flight state and clear any stale reference from a prior
+    // attempt. The transition guard rejects loans that are not APPROVED or in
+    // DISBURSEMENT_FAILED, so this is safe to call idempotently.
+    await this.transitionLoanStatus({
+      loanId: loan.id,
+      toStatus: LoanStatus.DISBURSING,
+      changedBy: actorUserId,
+      data: { disbursementReference: null },
+    });
 
     try {
       const { referenceId } = await this.momoDisbursements.transfer({
@@ -2405,6 +2560,8 @@ export class LoansService {
       this.logger.error(
         `MoMo disbursement failed for loan ${loanId}: ${(error as Error).message}`,
       );
+
+      await this.markDisbursementFailed(loan, actorUserId);
     }
   }
 
@@ -2423,22 +2580,63 @@ export class LoansService {
       return;
     }
 
-    if (status === 'SUCCESSFUL') {
-      this.logger.log(
-        `MoMo disbursement SUCCESSFUL for loan ${loan.id}`,
+    // Webhooks can be redelivered; only act when the loan is still in flight.
+    if (loan.status !== LoanStatus.DISBURSING) {
+      this.logger.warn(
+        `MoMo disbursement callback for loan ${loan.id} ignored: status is ${loan.status}, not DISBURSING`,
       );
+      return;
+    }
+
+    if (status === 'SUCCESSFUL') {
+      const now = new Date();
+      await this.transitionLoanStatus({
+        loanId: loan.id,
+        toStatus: LoanStatus.ACTIVE,
+        changedBy: MOMO_CALLBACK_ACTOR,
+        note: 'MoMo disbursement successful',
+        data: {
+          disbursedAt: now,
+          activatedAt: now,
+          disbursedAmount: loan.disbursedAmount ?? loan.amount,
+        },
+      });
+
+      this.logger.log(`MoMo disbursement SUCCESSFUL for loan ${loan.id}`);
     } else if (status === 'FAILED') {
       this.logger.error(
         `MoMo disbursement FAILED for loan ${loan.id}. Staff review required.`,
       );
 
-      await this.notificationsService.notifyGeneralManagersDisbursementFailed({
-        loanId: loan.id,
-        amount: loan.amount,
-        clientName: this.getClientDisplayName(loan.client),
-        phoneNumber: loan.client.phoneNumber,
-        disbursementReference: loanId,
-      });
+      await this.markDisbursementFailed(loan, MOMO_CALLBACK_ACTOR);
     }
+  }
+
+  private async markDisbursementFailed(
+    loan: {
+      id: string;
+      amount: number;
+      client: {
+        phoneNumber: string;
+        individual?: { fullName: string } | null;
+        business?: { businessName: string } | null;
+      };
+    },
+    actorUserId: string,
+  ) {
+    await this.transitionLoanStatus({
+      loanId: loan.id,
+      toStatus: LoanStatus.DISBURSEMENT_FAILED,
+      changedBy: actorUserId,
+      note: 'MoMo disbursement failed',
+    });
+
+    await this.notificationsService.notifyGeneralManagersDisbursementFailed({
+      loanId: loan.id,
+      amount: loan.amount,
+      clientName: this.getClientDisplayName(loan.client),
+      phoneNumber: loan.client.phoneNumber,
+      disbursementReference: loan.id,
+    });
   }
 }

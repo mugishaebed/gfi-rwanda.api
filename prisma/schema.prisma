@@ -134,7 +134,8 @@ model Loan {
   totalInterestReceived          Float              @default(0)
   totalPrincipalRecovered        Float              @default(0)
   source                         LoanSource         @default(STAFF_MANUAL)
-  status                         LoanStatus         @default(PENDING)
+  sector                         LoanSector?
+  status                         LoanStatus         @default(PENDING_OFFICER_REVIEW)
   activatedAt                    DateTime?
   createdAt                      DateTime           @default(now())
   updatedAt                      DateTime           @updatedAt
@@ -145,6 +146,7 @@ model Loan {
   repayments                     Repayment[]
 
   @@index([source, status, createdAt])
+  @@index([sector, status])
 }
 
 model LoanStatusLog {
@@ -253,16 +255,27 @@ enum ClientType {
 }
 
 enum LoanStatus {
-  PENDING
-  LOAN_OFFICER_APPROVED
-  LOAN_OFFICER_REJECTED
-  APPROVED
+  PENDING_OFFICER_REVIEW
+  PENDING_GM_APPROVAL
   REJECTED
+  APPROVED
+  DISBURSING
+  DISBURSEMENT_FAILED
+  ACTIVE
 }
 
 enum LoanSource {
   CLIENT_ONLINE
   STAFF_MANUAL
+}
+
+enum LoanSector {
+  COFFEE
+  GENERAL_TRADE
+  CONSTRUCTION
+  REAL_ESTATE
+  TENDERS
+  HOSPITALITY
 }
 
 enum DisbursementMethod {

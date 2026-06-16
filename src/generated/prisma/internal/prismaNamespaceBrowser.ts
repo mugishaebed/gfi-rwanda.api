@@ -208,6 +208,7 @@ export const LoanScalarFieldEnum = {
   totalInterestReceived: 'totalInterestReceived',
   totalPrincipalRecovered: 'totalPrincipalRecovered',
   source: 'source',
+  sector: 'sector',
   status: 'status',
   activatedAt: 'activatedAt',
   createdAt: 'createdAt',
