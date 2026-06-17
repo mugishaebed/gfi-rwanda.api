@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   ParseEnumPipe,
+  ParseFloatPipe,
   ParseIntPipe,
   Post,
   Query,
@@ -80,6 +81,26 @@ export class RepaymentsController {
     source?: RepaymentSource,
   ) {
     return this.repaymentsService.findAll(page, limit, status, source);
+  }
+
+  @Roles('LOAN_OFFICER', 'GENERAL_MANAGER')
+  @Get('loans/:loanId/suggested-split')
+  @ApiOperation({
+    summary:
+      'Suggested principal/interest split for a prospective manual repayment',
+  })
+  @ApiQuery({
+    name: 'amount',
+    required: true,
+    example: 50000,
+    description:
+      'Prospective amount paid to split into principal and interest.',
+  })
+  getSuggestedSplit(
+    @Param('loanId') loanId: string,
+    @Query('amount', ParseFloatPipe) amount: number,
+  ) {
+    return this.repaymentsService.getSuggestedSplit(loanId, amount);
   }
 
   @Roles('LOAN_OFFICER', 'GENERAL_MANAGER')

@@ -344,7 +344,9 @@ export class RepaymentsService {
       where: { id: repaymentId },
       include: {
         loan: {
-          include: { client: { include: { individual: true, business: true } } },
+          include: {
+            client: { include: { individual: true, business: true } },
+          },
         },
       },
     });
@@ -389,7 +391,10 @@ export class RepaymentsService {
           data: {
             status: RepaymentStatus.APPROVED,
             approvedAt: new Date(),
-            notes: [repayment.notes, 'Manually approved by staff (MoMo override).']
+            notes: [
+              repayment.notes,
+              'Manually approved by staff (MoMo override).',
+            ]
               .filter(Boolean)
               .join('\n'),
           },
@@ -400,7 +405,10 @@ export class RepaymentsService {
         where: { id: repayment.id },
         data: {
           status: RepaymentStatus.REJECTED,
-          notes: [repayment.notes, 'Manually rejected by staff (MoMo override).']
+          notes: [
+            repayment.notes,
+            'Manually rejected by staff (MoMo override).',
+          ]
             .filter(Boolean)
             .join('\n'),
         },
@@ -505,6 +513,8 @@ export class RepaymentsService {
       );
     }
 
+    const { principalPaid, interestPaid } = this.resolveManualSplit(loan, data);
+
     const repaymentId = randomUUID();
     const preparedDocuments = await this.documentsService.prepareDocuments({
       ownerType: DocumentOwnerType.REPAYMENT,
@@ -521,8 +531,8 @@ export class RepaymentsService {
             id: repaymentId,
             loanId: data.loanId,
             amountPaid: data.amountPaid,
-            principalPaid: data.principalPaid ?? null,
-            interestPaid: data.interestPaid ?? null,
+            principalPaid,
+            interestPaid,
             paymentDate: data.paymentDate,
             notes: data.notes,
             source: RepaymentSource.STAFF_MANUAL,
@@ -612,16 +622,22 @@ export class RepaymentsService {
         .join('\n');
 
       if (nextStatus === RepaymentStatus.APPROVED) {
+        // outstandingBalance always tracks principal, so it is reduced only by
+        // the principal portion. Repayments without a recorded split (e.g.
+        // online) fall back to the full amount to preserve prior behavior.
+        const principalPortion =
+          repayment.principalPaid ?? repayment.amountPaid;
+
         const loanDeduction = await tx.loan.updateMany({
           where: {
             id: repayment.loanId,
             outstandingBalance: {
-              gte: repayment.amountPaid,
+              gte: principalPortion,
             },
           },
           data: {
             outstandingBalance: {
-              decrement: repayment.amountPaid,
+              decrement: principalPortion,
             },
             totalRepaidAmount: {
               increment: repayment.amountPaid,
@@ -637,7 +653,7 @@ export class RepaymentsService {
 
         if (loanDeduction.count === 0) {
           throw new BadRequestException(
-            'Repayment amount exceeds outstanding loan balance',
+            'Repayment principal exceeds outstanding loan balance',
           );
         }
       }
@@ -777,5 +793,120 @@ export class RepaymentsService {
     return (
       client.individual?.fullName ?? client.business?.businessName ?? 'Client'
     );
+  }
+
+  private roundCurrencyAmount(amount: number) {
+    return Math.round(amount);
+  }
+
+  /**
+   * Declining-balance split for a manual repayment: the payment first settles
+   * the interest accrued on the current outstanding principal for one period,
+   * and whatever remains reduces the principal. Computed from the loan's live
+   * principal balance so early/partial/balloon payments are handled correctly.
+   */
+  private computeRepaymentSplit(
+    outstandingPrincipal: number,
+    interestRatePercentPerMonth: number,
+    amountPaid: number,
+  ): { principalPaid: number; interestPaid: number } {
+    const interestDue = this.roundCurrencyAmount(
+      outstandingPrincipal * (interestRatePercentPerMonth / 100),
+    );
+    const interestPaid = Math.min(amountPaid, Math.max(interestDue, 0));
+    const principalPaid = this.roundCurrencyAmount(amountPaid - interestPaid);
+    return { principalPaid, interestPaid };
+  }
+
+  /**
+   * Resolves the principal/interest split to store for a manual repayment.
+   * When staff supply the split it is validated; when omitted it falls back to
+   * the computed declining-balance suggestion. In all cases the two portions
+   * must sum exactly to the amount paid and the principal portion cannot exceed
+   * the outstanding principal balance.
+   */
+  private resolveManualSplit(
+    loan: { outstandingBalance: number; interestRatePercentPerMonth: number },
+    data: { amountPaid: number; principalPaid?: number; interestPaid?: number },
+  ): { principalPaid: number; interestPaid: number } {
+    const staffProvidedSplit =
+      data.principalPaid !== undefined || data.interestPaid !== undefined;
+
+    let principalPaid: number;
+    let interestPaid: number;
+
+    if (staffProvidedSplit) {
+      // Allow staff to send just one side; the other is the remainder.
+      interestPaid =
+        data.interestPaid ?? data.amountPaid - (data.principalPaid ?? 0);
+      principalPaid =
+        data.principalPaid ?? data.amountPaid - (data.interestPaid ?? 0);
+    } else {
+      ({ principalPaid, interestPaid } = this.computeRepaymentSplit(
+        loan.outstandingBalance,
+        loan.interestRatePercentPerMonth,
+        data.amountPaid,
+      ));
+    }
+
+    if (principalPaid < 0 || interestPaid < 0) {
+      throw new BadRequestException(
+        'principalPaid and interestPaid cannot be negative',
+      );
+    }
+
+    // Tolerate sub-unit rounding only; every franc paid must be allocated.
+    if (Math.abs(principalPaid + interestPaid - data.amountPaid) > 0.5) {
+      throw new BadRequestException(
+        'principalPaid and interestPaid must sum to amountPaid',
+      );
+    }
+
+    if (principalPaid > loan.outstandingBalance) {
+      throw new BadRequestException(
+        'principalPaid cannot exceed the outstanding principal balance',
+      );
+    }
+
+    return { principalPaid, interestPaid };
+  }
+
+  /**
+   * Returns the suggested principal/interest split for a prospective manual
+   * repayment so the staff form can pre-fill the fields. Staff may override the
+   * suggestion before submitting.
+   */
+  async getSuggestedSplit(loanId: string, amount: number) {
+    if (!(amount > 0)) {
+      throw new BadRequestException('amount must be greater than 0');
+    }
+
+    const loan = await this.prisma.loan.findUnique({
+      where: { id: loanId },
+      select: {
+        id: true,
+        status: true,
+        outstandingBalance: true,
+        interestRatePercentPerMonth: true,
+      },
+    });
+
+    if (!loan) {
+      throw new NotFoundException('Loan not found');
+    }
+
+    const split = this.computeRepaymentSplit(
+      loan.outstandingBalance,
+      loan.interestRatePercentPerMonth,
+      amount,
+    );
+
+    return {
+      loanId: loan.id,
+      amountPaid: amount,
+      outstandingPrincipal: loan.outstandingBalance,
+      interestRatePercentPerMonth: loan.interestRatePercentPerMonth,
+      ...split,
+    };
   }
 }

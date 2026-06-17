@@ -42,7 +42,8 @@ export class CreateRepaymentDto {
 
   @ApiPropertyOptional({
     example: 40000,
-    description: 'Portion of amountPaid applied to principal.',
+    description:
+      'Portion of amountPaid applied to principal. If omitted, it is computed via the declining-balance split. If provided, principalPaid + interestPaid must equal amountPaid and principalPaid cannot exceed the outstanding principal balance.',
   })
   @IsOptional()
   @ParseNumber()
@@ -52,7 +53,8 @@ export class CreateRepaymentDto {
 
   @ApiPropertyOptional({
     example: 10000,
-    description: 'Portion of amountPaid applied to interest.',
+    description:
+      'Portion of amountPaid applied to interest. If omitted, it is computed via the declining-balance split. If provided, principalPaid + interestPaid must equal amountPaid.',
   })
   @IsOptional()
   @ParseNumber()
@@ -71,7 +73,8 @@ export class CreateRepaymentDto {
 
   @ApiPropertyOptional({
     type: [String],
-    description: 'Optional labels matching the uploaded repayment proof documents.',
+    description:
+      'Optional labels matching the uploaded repayment proof documents.',
     example: ['Mobile Money Receipt'],
   })
   @IsOptional()

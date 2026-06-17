@@ -131,6 +131,257 @@ describe('RepaymentsService', () => {
     expect(service).toBeDefined();
   });
 
+  describe('manual repayment principal/interest split', () => {
+    const activeManualLoan = (overrides = {}) => ({
+      id: 'loan-1',
+      status: LoanStatus.ACTIVE,
+      outstandingBalance: 200_000_000,
+      interestRatePercentPerMonth: 7,
+      amount: 200_000_000,
+      client: { individual: { fullName: 'Client One' }, business: null },
+      user: null,
+      ...overrides,
+    });
+
+    const setupManualCreate = () => {
+      prisma.$transaction.mockImplementation((fn: (tx: unknown) => unknown) =>
+        fn(prisma),
+      );
+      prisma.repayment.create.mockImplementation(({ data }: { data: any }) =>
+        Promise.resolve({
+          ...data,
+          createdAt: new Date('2026-06-05T08:00:00.000Z'),
+          loan: {
+            id: 'loan-1',
+            amount: 200_000_000,
+            outstandingBalance: 200_000_000,
+            totalRepaidAmount: 0,
+            purpose: 'Working capital',
+            status: LoanStatus.ACTIVE,
+            user: null,
+            client: { individual: { fullName: 'Client One' }, business: null },
+          },
+        }),
+      );
+      documentsService.attachDocuments.mockImplementation(
+        (_: unknown, r: unknown) => Promise.resolve(r),
+      );
+    };
+
+    it('suggests an interest-first declining-balance split', async () => {
+      prisma.loan.findUnique.mockResolvedValue(activeManualLoan());
+
+      await expect(
+        service.getSuggestedSplit('loan-1', 14_000_000),
+      ).resolves.toEqual(
+        expect.objectContaining({
+          outstandingPrincipal: 200_000_000,
+          interestPaid: 14_000_000,
+          principalPaid: 0,
+        }),
+      );
+
+      await expect(
+        service.getSuggestedSplit('loan-1', 214_000_000),
+      ).resolves.toEqual(
+        expect.objectContaining({
+          interestPaid: 14_000_000,
+          principalPaid: 200_000_000,
+        }),
+      );
+    });
+
+    it('computes the split when staff omit it', async () => {
+      prisma.loan.findUnique.mockResolvedValue(activeManualLoan());
+      setupManualCreate();
+
+      await service.createManualRepayment(
+        {
+          loanId: 'loan-1',
+          amountPaid: 14_000_000,
+          paymentDate: new Date('2026-06-05T08:00:00.000Z'),
+        },
+        'user-1',
+      );
+
+      expect(prisma.repayment.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            amountPaid: 14_000_000,
+            principalPaid: 0,
+            interestPaid: 14_000_000,
+          }),
+        }),
+      );
+    });
+
+    it('honors a valid staff-provided split', async () => {
+      prisma.loan.findUnique.mockResolvedValue(activeManualLoan());
+      setupManualCreate();
+
+      await service.createManualRepayment(
+        {
+          loanId: 'loan-1',
+          amountPaid: 214_000_000,
+          principalPaid: 200_000_000,
+          interestPaid: 14_000_000,
+          paymentDate: new Date('2026-08-05T08:00:00.000Z'),
+        },
+        'user-1',
+      );
+
+      expect(prisma.repayment.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            principalPaid: 200_000_000,
+            interestPaid: 14_000_000,
+          }),
+        }),
+      );
+    });
+
+    it('rejects a split that does not sum to amountPaid', async () => {
+      prisma.loan.findUnique.mockResolvedValue(activeManualLoan());
+
+      await expect(
+        service.createManualRepayment(
+          {
+            loanId: 'loan-1',
+            amountPaid: 14_000_000,
+            principalPaid: 5_000_000,
+            interestPaid: 5_000_000,
+            paymentDate: new Date('2026-06-05T08:00:00.000Z'),
+          },
+          'user-1',
+        ),
+      ).rejects.toThrow('must sum to amountPaid');
+
+      expect(prisma.repayment.create).not.toHaveBeenCalled();
+    });
+
+    it('rejects principal exceeding the outstanding balance', async () => {
+      prisma.loan.findUnique.mockResolvedValue(
+        activeManualLoan({ outstandingBalance: 100_000 }),
+      );
+
+      await expect(
+        service.createManualRepayment(
+          {
+            loanId: 'loan-1',
+            amountPaid: 200_000,
+            principalPaid: 200_000,
+            interestPaid: 0,
+            paymentDate: new Date('2026-06-05T08:00:00.000Z'),
+          },
+          'user-1',
+        ),
+      ).rejects.toThrow('cannot exceed the outstanding principal balance');
+    });
+
+    it('decrements outstanding balance by principal only on approval', async () => {
+      const tx = {
+        repayment: {
+          findUnique: jest.fn().mockResolvedValue({
+            id: 'rep-1',
+            loanId: 'loan-1',
+            amountPaid: 14_000_000,
+            principalPaid: 0,
+            interestPaid: 14_000_000,
+            status: RepaymentStatus.PENDING,
+            notes: null,
+          }),
+          update: jest.fn().mockResolvedValue({}),
+          findUniqueOrThrow: jest.fn().mockResolvedValue({
+            id: 'rep-1',
+            loanId: 'loan-1',
+            amountPaid: 14_000_000,
+            loan: {
+              id: 'loan-1',
+              user: null,
+              client: {
+                individual: { fullName: 'Client One' },
+                business: null,
+              },
+            },
+          }),
+        },
+        loan: { updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
+      };
+      prisma.$transaction.mockImplementation((fn: (tx: unknown) => unknown) =>
+        fn(tx),
+      );
+      documentsService.attachDocuments.mockImplementation(
+        (_: unknown, r: unknown) => Promise.resolve(r),
+      );
+
+      await service.approveRepayment('rep-1', {});
+
+      expect(tx.loan.updateMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            outstandingBalance: { gte: 0 },
+          }),
+          data: expect.objectContaining({
+            outstandingBalance: { decrement: 0 },
+            totalRepaidAmount: { increment: 14_000_000 },
+            totalInterestReceived: { increment: 14_000_000 },
+            totalPrincipalRecovered: { increment: 0 },
+          }),
+        }),
+      );
+    });
+
+    it('falls back to full amount when a repayment has no split (online)', async () => {
+      const tx = {
+        repayment: {
+          findUnique: jest.fn().mockResolvedValue({
+            id: 'rep-2',
+            loanId: 'loan-1',
+            amountPaid: 25_000,
+            principalPaid: null,
+            interestPaid: null,
+            status: RepaymentStatus.PENDING,
+            notes: null,
+          }),
+          update: jest.fn().mockResolvedValue({}),
+          findUniqueOrThrow: jest.fn().mockResolvedValue({
+            id: 'rep-2',
+            loanId: 'loan-1',
+            amountPaid: 25_000,
+            loan: {
+              id: 'loan-1',
+              user: null,
+              client: {
+                individual: { fullName: 'Client One' },
+                business: null,
+              },
+            },
+          }),
+        },
+        loan: { updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
+      };
+      prisma.$transaction.mockImplementation((fn: (tx: unknown) => unknown) =>
+        fn(tx),
+      );
+      documentsService.attachDocuments.mockImplementation(
+        (_: unknown, r: unknown) => Promise.resolve(r),
+      );
+
+      await service.approveRepayment('rep-2', {});
+
+      expect(tx.loan.updateMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            outstandingBalance: { gte: 25_000 },
+          }),
+          data: expect.objectContaining({
+            outstandingBalance: { decrement: 25_000 },
+          }),
+        }),
+      );
+    });
+  });
+
   it('filters repayment listing by status and source', async () => {
     const createdAt = new Date('2026-05-14T08:00:00.000Z');
     const repayment = {

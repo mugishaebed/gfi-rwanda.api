@@ -104,10 +104,14 @@ export class DashboardService {
 
     return {
       kpis: {
+        // Flow metric: amount disbursed within the selected period.
         disbursed: {
           value: disbursedCurr,
           deltaPct: this.deltaPct(disbursedCurr, disbursedPrev),
         },
+        // Cumulative all-time total disbursed across every loan. Monotonic
+        // stock metric — unaffected by repayment or period changes.
+        disbursedTotal: { value: disbursedAll, deltaPct: 0 },
         // Point-in-time stock metric: no historical snapshot to diff against.
         outstanding: { value: bookOutstanding, deltaPct: 0 },
         interestEarned: {
@@ -284,7 +288,14 @@ export class DashboardService {
   private async aggregateSum(
     field: 'outstandingBalance',
   ): Promise<number> {
-    const r = await this.prisma.loan.aggregate({ _sum: { [field]: true } });
+    // Outstanding = principal actually disbursed and still being repaid. Loans
+    // pending review/approval or rejected have not been disbursed, so they must
+    // not inflate the book outstanding figure even though outstandingBalance is
+    // seeded at creation time.
+    const r = await this.prisma.loan.aggregate({
+      _sum: { [field]: true },
+      where: { status: LoanStatus.ACTIVE },
+    });
     return r._sum[field] ?? 0;
   }
 

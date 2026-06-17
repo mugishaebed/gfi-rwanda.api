@@ -331,7 +331,9 @@ export class LoansService {
       loanApproved: loan.amount,
       disbursedAmount: loan.disbursedAmount,
       outstanding: loan.outstandingBalance,
-      disbursementDate: loan.disbursedAt ? this.formatDateOnly(loan.disbursedAt) : null,
+      disbursementDate: loan.disbursedAt
+        ? this.formatDateOnly(loan.disbursedAt)
+        : null,
       periodMonths: loan.termInMonths,
       interestRate: loan.interestRatePercentPerMonth,
       totalInterestToBeEarned: loan.totalInterestExpected,
@@ -832,9 +834,7 @@ export class LoansService {
               | Prisma.InputJsonValue
               | undefined,
             comments: data.comments,
-            totalInterestExpected:
-              data.repaymentAmountPerMonth * data.repaymentInstallmentsCount -
-              data.amount,
+            totalInterestExpected: this.computeExpectedInterest(data),
             source: LoanSource.STAFF_MANUAL,
             sector: data.sector,
             status: initialStatus,
@@ -1509,6 +1509,28 @@ export class LoansService {
 
   private roundCurrencyAmount(amount: number) {
     return Math.round(amount);
+  }
+
+  /**
+   * Total interest expected over the life of the loan. Every franc scheduled
+   * above the principal is interest, so this holds for uneven/balloon schedules
+   * (e.g. interest-only installments with a final principal repayment), not
+   * just equal installments. Falls back to perMonth × count when no detailed
+   * schedule is supplied.
+   */
+  private computeExpectedInterest(data: {
+    amount: number;
+    repaymentAmountPerMonth: number;
+    repaymentInstallmentsCount: number;
+    repaymentTerms?: { schedule?: Array<{ amount: number }> };
+  }) {
+    const schedule = data.repaymentTerms?.schedule;
+    const scheduledTotal =
+      schedule && schedule.length
+        ? schedule.reduce((sum, item) => sum + item.amount, 0)
+        : data.repaymentAmountPerMonth * data.repaymentInstallmentsCount;
+
+    return this.roundCurrencyAmount(scheduledTotal - data.amount);
   }
 
   private maskPhoneNumber(phoneNumber: string) {
