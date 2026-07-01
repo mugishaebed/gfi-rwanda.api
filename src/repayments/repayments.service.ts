@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { randomUUID } from 'crypto';
+import type { Prisma } from '../generated/prisma/client';
 import {
   ClientOnboardingStatus,
   DocumentOwnerType,
@@ -21,6 +22,7 @@ import { withLoanNumber } from '../loans/loan-number';
 import { CreateOnlineRepaymentDto } from './dto/create-online-repayment.dto';
 import { CreateRepaymentDto } from './dto/create-repayment.dto';
 import { ReviewRepaymentDto } from './dto/review-repayment.dto';
+import { UpdateRepaymentDto } from './dto/update-repayment.dto';
 
 @Injectable()
 export class RepaymentsService {
@@ -596,6 +598,121 @@ export class RepaymentsService {
     return this.updateRepaymentStatus(id, RepaymentStatus.REJECTED, review);
   }
 
+  /**
+   * GM-only soft delete. Voiding an APPROVED repayment reverses its effect on the
+   * loan (restoring outstanding balance and the interest/principal counters) in a
+   * transaction; a PENDING one simply becomes VOIDED since it never touched the
+   * balance. The record is kept for audit. Already REJECTED/VOIDED are rejected.
+   */
+  async voidRepayment(id: string, note?: string) {
+    await this.prisma.$transaction(async (tx) => {
+      const repayment = await tx.repayment.findUnique({ where: { id } });
+
+      if (!repayment) {
+        throw new NotFoundException('Repayment not found');
+      }
+
+      if (
+        repayment.status === RepaymentStatus.VOIDED ||
+        repayment.status === RepaymentStatus.REJECTED
+      ) {
+        throw new BadRequestException(
+          `Repayment is already ${repayment.status.toLowerCase()} and cannot be voided`,
+        );
+      }
+
+      if (repayment.status === RepaymentStatus.APPROVED) {
+        await this.applyRepaymentEffect(tx, repayment.loanId, repayment, -1);
+      }
+
+      await tx.repayment.update({
+        where: { id },
+        data: {
+          status: RepaymentStatus.VOIDED,
+          notes: [repayment.notes, note?.trim(), 'Voided by general manager.']
+            .filter(Boolean)
+            .join('\n'),
+        },
+      });
+    });
+
+    return this.findOne(id);
+  }
+
+  /**
+   * GM-only correction. For an APPROVED repayment the old financial effect is
+   * reversed and the new one reapplied in a single transaction, so the loan's
+   * balances stay correct and every ledger/dashboard total derived from them is
+   * updated automatically. PENDING repayments are re-validated but touch no
+   * balance. VOIDED/REJECTED repayments are not editable.
+   */
+  async updateRepayment(id: string, dto: UpdateRepaymentDto) {
+    await this.prisma.$transaction(async (tx) => {
+      const repayment = await tx.repayment.findUnique({ where: { id } });
+
+      if (!repayment) {
+        throw new NotFoundException('Repayment not found');
+      }
+
+      if (
+        repayment.status === RepaymentStatus.VOIDED ||
+        repayment.status === RepaymentStatus.REJECTED
+      ) {
+        throw new BadRequestException(
+          `A ${repayment.status.toLowerCase()} repayment cannot be edited`,
+        );
+      }
+
+      const amountPaid = dto.amountPaid ?? repayment.amountPaid;
+
+      // Reverse first so the loan's outstanding reflects reality before we
+      // validate and apply the corrected split.
+      if (repayment.status === RepaymentStatus.APPROVED) {
+        await this.applyRepaymentEffect(tx, repayment.loanId, repayment, -1);
+      }
+
+      const loan = await tx.loan.findUniqueOrThrow({
+        where: { id: repayment.loanId },
+        select: { outstandingBalance: true, interestRatePercentPerMonth: true },
+      });
+
+      const split = this.resolveEditedSplit(loan, repayment, dto, amountPaid);
+
+      if (repayment.status === RepaymentStatus.APPROVED) {
+        await this.applyRepaymentEffect(
+          tx,
+          repayment.loanId,
+          { amountPaid, ...split },
+          1,
+        );
+      } else {
+        // PENDING: no balance applied, but the principal still cannot exceed the
+        // outstanding principal it will settle once approved.
+        const principalPortion = split.principalPaid ?? amountPaid;
+        if (principalPortion > loan.outstandingBalance) {
+          throw new BadRequestException(
+            'principalPaid cannot exceed the outstanding principal balance',
+          );
+        }
+      }
+
+      await tx.repayment.update({
+        where: { id },
+        data: {
+          amountPaid,
+          principalPaid: split.principalPaid,
+          interestPaid: split.interestPaid,
+          ...(dto.paymentDate ? { paymentDate: dto.paymentDate } : {}),
+          notes: [repayment.notes, dto.note?.trim(), 'Edited by general manager.']
+            .filter(Boolean)
+            .join('\n'),
+        },
+      });
+    });
+
+    return this.findOne(id);
+  }
+
   private async updateRepaymentStatus(
     id: string,
     nextStatus: RepaymentStatus,
@@ -622,40 +739,7 @@ export class RepaymentsService {
         .join('\n');
 
       if (nextStatus === RepaymentStatus.APPROVED) {
-        // outstandingBalance always tracks principal, so it is reduced only by
-        // the principal portion. Repayments without a recorded split (e.g.
-        // online) fall back to the full amount to preserve prior behavior.
-        const principalPortion =
-          repayment.principalPaid ?? repayment.amountPaid;
-
-        const loanDeduction = await tx.loan.updateMany({
-          where: {
-            id: repayment.loanId,
-            outstandingBalance: {
-              gte: principalPortion,
-            },
-          },
-          data: {
-            outstandingBalance: {
-              decrement: principalPortion,
-            },
-            totalRepaidAmount: {
-              increment: repayment.amountPaid,
-            },
-            totalInterestReceived: {
-              increment: repayment.interestPaid ?? 0,
-            },
-            totalPrincipalRecovered: {
-              increment: repayment.principalPaid ?? 0,
-            },
-          },
-        });
-
-        if (loanDeduction.count === 0) {
-          throw new BadRequestException(
-            'Repayment principal exceeds outstanding loan balance',
-          );
-        }
+        await this.applyRepaymentEffect(tx, repayment.loanId, repayment, 1);
       }
 
       await tx.repayment.update({
@@ -797,6 +881,101 @@ export class RepaymentsService {
 
   private roundCurrencyAmount(amount: number) {
     return Math.round(amount);
+  }
+
+  /**
+   * Applies (sign +1) or reverses (sign -1) a repayment's effect on its loan.
+   * outstandingBalance tracks principal, so it moves by the principal portion,
+   * falling back to the full amount when no split was recorded (e.g. online
+   * payments) — this exactly mirrors, and therefore cleanly reverses, the effect
+   * originally booked on approval. Applying is guarded so the principal can never
+   * drive outstanding below zero; reversing is always safe.
+   */
+  private async applyRepaymentEffect(
+    tx: Prisma.TransactionClient,
+    loanId: string,
+    split: {
+      amountPaid: number;
+      principalPaid?: number | null;
+      interestPaid?: number | null;
+    },
+    sign: 1 | -1,
+  ) {
+    const principalPortion = split.principalPaid ?? split.amountPaid;
+
+    if (sign === 1) {
+      const loanDeduction = await tx.loan.updateMany({
+        where: { id: loanId, outstandingBalance: { gte: principalPortion } },
+        data: {
+          outstandingBalance: { decrement: principalPortion },
+          totalRepaidAmount: { increment: split.amountPaid },
+          totalInterestReceived: { increment: split.interestPaid ?? 0 },
+          totalPrincipalRecovered: { increment: split.principalPaid ?? 0 },
+        },
+      });
+
+      if (loanDeduction.count === 0) {
+        throw new BadRequestException(
+          'Repayment principal exceeds outstanding loan balance',
+        );
+      }
+    } else {
+      await tx.loan.update({
+        where: { id: loanId },
+        data: {
+          outstandingBalance: { increment: principalPortion },
+          totalRepaidAmount: { decrement: split.amountPaid },
+          totalInterestReceived: { decrement: split.interestPaid ?? 0 },
+          totalPrincipalRecovered: { decrement: split.principalPaid ?? 0 },
+        },
+      });
+    }
+  }
+
+  /**
+   * Resolves the principal/interest split to persist when a repayment is edited:
+   * - staff supplied a split → validate it against the loan;
+   * - the repayment never tracked a split (online) → keep it untracked;
+   * - it had a split and the amount changed → recompute via declining balance;
+   * - otherwise keep the existing split.
+   */
+  private resolveEditedSplit(
+    loan: { outstandingBalance: number; interestRatePercentPerMonth: number },
+    repayment: {
+      amountPaid: number;
+      principalPaid: number | null;
+      interestPaid: number | null;
+    },
+    dto: UpdateRepaymentDto,
+    amountPaid: number,
+  ): { principalPaid: number | null; interestPaid: number | null } {
+    const staffProvided =
+      dto.principalPaid !== undefined || dto.interestPaid !== undefined;
+
+    if (staffProvided) {
+      return this.resolveManualSplit(loan, {
+        amountPaid,
+        principalPaid: dto.principalPaid,
+        interestPaid: dto.interestPaid,
+      });
+    }
+
+    const hadSplit =
+      repayment.principalPaid != null || repayment.interestPaid != null;
+    if (!hadSplit) {
+      return { principalPaid: null, interestPaid: null };
+    }
+
+    const amountChanged =
+      dto.amountPaid !== undefined && dto.amountPaid !== repayment.amountPaid;
+    if (amountChanged) {
+      return this.resolveManualSplit(loan, { amountPaid });
+    }
+
+    return {
+      principalPaid: repayment.principalPaid,
+      interestPaid: repayment.interestPaid,
+    };
   }
 
   /**

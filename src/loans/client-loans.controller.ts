@@ -61,7 +61,7 @@ export class ClientLoansController {
     required: false,
     example: 'active',
     description:
-      'Optional client-facing loan status filter: pending, active, completed, overdue, rejected.',
+      'Optional client-facing loan status filter: pending, active, completed, overdue, rejected, cancelled.',
   })
   getMyLoans(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,

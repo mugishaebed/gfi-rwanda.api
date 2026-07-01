@@ -6,6 +6,7 @@ import {
   Param,
   ParseEnumPipe,
   ParseIntPipe,
+  Patch,
   Post,
   Query,
   Req,
@@ -29,6 +30,7 @@ import { LoanSector, LoanSource, LoanStatus } from '../generated/prisma/enums';
 import { LoansService } from './loans.service';
 import { ClientLoanRequestDto } from './dto/client-loan-request.dto';
 import { CreateLoanDto } from './dto/create-loan.dto';
+import { UpdateLoanDto } from './dto/update-loan.dto';
 import { ReviewLoanDto } from './dto/review-loan.dto';
 import { createDocumentUploadOptions } from '../documents/document-upload';
 
@@ -263,6 +265,34 @@ export class LoansController {
       dto,
       req.user.userId,
     );
+  }
+
+  @Roles('GENERAL_MANAGER')
+  @Patch(':id')
+  @ApiOperation({
+    summary:
+      'Edit a loan as GM; derived figures (interest expected, outstanding) are recomputed automatically',
+  })
+  updateLoan(
+    @Param('id') id: string,
+    @Body() dto: UpdateLoanDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.loansService.updateLoan(id, dto, req.user.userId);
+  }
+
+  @Roles('GENERAL_MANAGER')
+  @Post(':id/cancel')
+  @ApiOperation({
+    summary:
+      'Cancel (soft-delete) a loan as GM; it leaves the active book and ledger, repayments kept as history',
+  })
+  cancelLoan(
+    @Param('id') id: string,
+    @Body() dto: ReviewLoanDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.loansService.cancelLoan(id, dto, req.user.userId);
   }
 
   @Roles('GENERAL_MANAGER')

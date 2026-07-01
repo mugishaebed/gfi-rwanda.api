@@ -7,6 +7,7 @@ import {
   ParseEnumPipe,
   ParseFloatPipe,
   ParseIntPipe,
+  Patch,
   Post,
   Query,
   Req,
@@ -29,6 +30,7 @@ import { RepaymentSource, RepaymentStatus } from '../generated/prisma/enums';
 import { RepaymentsService } from './repayments.service';
 import { CreateRepaymentDto } from './dto/create-repayment.dto';
 import { ReviewRepaymentDto } from './dto/review-repayment.dto';
+import { UpdateRepaymentDto } from './dto/update-repayment.dto';
 import { OverrideOnlineRepaymentDto } from './dto/override-online-repayment.dto';
 import { createDocumentUploadOptions } from '../documents/document-upload';
 
@@ -153,6 +155,26 @@ export class RepaymentsController {
   @ApiOperation({ summary: 'Reject a pending repayment as general manager' })
   rejectRepayment(@Param('id') id: string, @Body() dto: ReviewRepaymentDto) {
     return this.repaymentsService.rejectRepayment(id, dto);
+  }
+
+  @Roles('GENERAL_MANAGER')
+  @Patch(':id')
+  @ApiOperation({
+    summary:
+      'Edit a repayment as GM; for approved repayments the loan balances are reversed and reapplied automatically',
+  })
+  updateRepayment(@Param('id') id: string, @Body() dto: UpdateRepaymentDto) {
+    return this.repaymentsService.updateRepayment(id, dto);
+  }
+
+  @Roles('GENERAL_MANAGER')
+  @Post(':id/void')
+  @ApiOperation({
+    summary:
+      'Void (soft-delete) a repayment as GM; an approved repayment has its effect on the loan reversed',
+  })
+  voidRepayment(@Param('id') id: string, @Body() dto: ReviewRepaymentDto) {
+    return this.repaymentsService.voidRepayment(id, dto.note);
   }
 
   @Roles('GENERAL_MANAGER')

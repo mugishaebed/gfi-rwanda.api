@@ -51,7 +51,8 @@ export const LoanStatus = {
   APPROVED: 'APPROVED',
   DISBURSING: 'DISBURSING',
   DISBURSEMENT_FAILED: 'DISBURSEMENT_FAILED',
-  ACTIVE: 'ACTIVE'
+  ACTIVE: 'ACTIVE',
+  CANCELLED: 'CANCELLED'
 } as const
 
 export type LoanStatus = (typeof LoanStatus)[keyof typeof LoanStatus]
@@ -87,7 +88,8 @@ export type DisbursementMethod = (typeof DisbursementMethod)[keyof typeof Disbur
 export const RepaymentStatus = {
   PENDING: 'PENDING',
   APPROVED: 'APPROVED',
-  REJECTED: 'REJECTED'
+  REJECTED: 'REJECTED',
+  VOIDED: 'VOIDED'
 } as const
 
 export type RepaymentStatus = (typeof RepaymentStatus)[keyof typeof RepaymentStatus]

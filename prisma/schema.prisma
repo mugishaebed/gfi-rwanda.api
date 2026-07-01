@@ -262,6 +262,7 @@ enum LoanStatus {
   DISBURSING
   DISBURSEMENT_FAILED
   ACTIVE
+  CANCELLED
 }
 
 enum LoanSource {
@@ -286,6 +287,7 @@ enum RepaymentStatus {
   PENDING
   APPROVED
   REJECTED
+  VOIDED
 }
 
 enum RepaymentSource {

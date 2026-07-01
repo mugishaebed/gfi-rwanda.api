@@ -226,7 +226,13 @@ export class DashboardService {
         )
         .reduce((sum, item) => sum + item.amount, 0);
 
-      const next = this.nextInstallment(schedule, now);
+      // A loan with no outstanding principal is fully settled and owes nothing,
+      // regardless of what calendar dates its schedule still carries.
+      if (loan.outstandingBalance <= 0) {
+        continue;
+      }
+
+      const next = this.nextUnpaidInstallment(schedule, loan.totalRepaidAmount);
       if (next) {
         repaymentsDue.push({
           loanId: loan.id,
@@ -518,17 +524,30 @@ export class DashboardService {
       .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
   }
 
-  private nextInstallment(
+  // Returns the earliest installment not yet covered by approved repayments.
+  // The schedule carries no per-installment paid flag, so settlement is derived
+  // by walking installments in date order and consuming the loan's cumulative
+  // repaid amount against each. Returns null when payments cover the whole
+  // schedule (nothing left due). The reported amount is the still-outstanding
+  // portion of that installment, so a partially paid installment shows only its
+  // remainder.
+  private nextUnpaidInstallment(
     schedule: Array<{ dueDate: Date; amount: number }>,
-    now: Date,
+    totalRepaid: number,
   ): { dueDate: Date; amount: number } | null {
-    if (!schedule.length) {
-      return null;
+    let cumulative = 0;
+    for (const item of schedule) {
+      cumulative += item.amount;
+      // Half-unit tolerance absorbs currency rounding between the schedule
+      // amounts and the recorded repayment totals.
+      if (totalRepaid < cumulative - 0.5) {
+        return {
+          dueDate: item.dueDate,
+          amount: Math.min(item.amount, cumulative - totalRepaid),
+        };
+      }
     }
-    return (
-      schedule.find((item) => item.dueDate.getTime() >= now.getTime()) ??
-      schedule[schedule.length - 1]
-    );
+    return null;
   }
 
   private monthKey(d: Date): string {

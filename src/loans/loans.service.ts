@@ -29,6 +29,7 @@ import {
   ClientLoanRequestDto,
 } from './dto/client-loan-request.dto';
 import { CreateLoanDto } from './dto/create-loan.dto';
+import { UpdateLoanDto } from './dto/update-loan.dto';
 import { formatLoanNumber, withLoanNumber } from './loan-number';
 import { ReviewLoanDto } from './dto/review-loan.dto';
 
@@ -57,15 +58,34 @@ const LOAN_STATUS_TRANSITIONS: Record<LoanStatus, readonly LoanStatus[]> = {
   [LoanStatus.PENDING_OFFICER_REVIEW]: [
     LoanStatus.PENDING_GM_APPROVAL,
     LoanStatus.REJECTED,
+    LoanStatus.CANCELLED,
   ],
-  [LoanStatus.PENDING_GM_APPROVAL]: [LoanStatus.APPROVED, LoanStatus.REJECTED],
+  [LoanStatus.PENDING_GM_APPROVAL]: [
+    LoanStatus.APPROVED,
+    LoanStatus.REJECTED,
+    LoanStatus.CANCELLED,
+  ],
   // APPROVED -> DISBURSING for online loans (MoMo payout); APPROVED -> ACTIVE
   // for manual loans, which are disbursed out-of-band and only recorded.
-  [LoanStatus.APPROVED]: [LoanStatus.DISBURSING, LoanStatus.ACTIVE],
-  [LoanStatus.DISBURSING]: [LoanStatus.ACTIVE, LoanStatus.DISBURSEMENT_FAILED],
-  [LoanStatus.DISBURSEMENT_FAILED]: [LoanStatus.DISBURSING],
-  [LoanStatus.ACTIVE]: [],
+  [LoanStatus.APPROVED]: [
+    LoanStatus.DISBURSING,
+    LoanStatus.ACTIVE,
+    LoanStatus.CANCELLED,
+  ],
+  [LoanStatus.DISBURSING]: [
+    LoanStatus.ACTIVE,
+    LoanStatus.DISBURSEMENT_FAILED,
+    LoanStatus.CANCELLED,
+  ],
+  [LoanStatus.DISBURSEMENT_FAILED]: [
+    LoanStatus.DISBURSING,
+    LoanStatus.CANCELLED,
+  ],
+  // A GM may cancel (soft-delete) an active loan; it leaves the book and its
+  // repayments remain as history.
+  [LoanStatus.ACTIVE]: [LoanStatus.CANCELLED],
   [LoanStatus.REJECTED]: [],
+  [LoanStatus.CANCELLED]: [],
 };
 
 type ClientFacingLoanStatus =
@@ -73,7 +93,8 @@ type ClientFacingLoanStatus =
   | 'active'
   | 'completed'
   | 'overdue'
-  | 'rejected';
+  | 'rejected'
+  | 'cancelled';
 
 @Injectable()
 export class LoansService {
@@ -216,7 +237,9 @@ export class LoansService {
   async getSectorInsights() {
     const grouped = await this.prisma.loan.groupBy({
       by: ['sector', 'status'],
-      where: { sector: { not: null } },
+      // Cancelled loans have left the book, so they're excluded from the status
+      // mix and money totals (they'd otherwise be miscounted as pending).
+      where: { sector: { not: null }, status: { not: LoanStatus.CANCELLED } },
       _count: { _all: true },
       _sum: {
         amount: true,
@@ -295,6 +318,11 @@ export class LoansService {
 
     const where: Prisma.LoanWhereInput = {
       source: LoanSource.STAFF_MANUAL,
+      // Ledger reflects the real loan book: only disbursed loans. Manual loans
+      // go straight to ACTIVE on GM approval (and stay ACTIVE once fully repaid),
+      // so rejected/pending loans — whose outstandingBalance is merely seeded at
+      // creation and never disbursed — are excluded and can't inflate totals.
+      status: LoanStatus.ACTIVE,
       ...(sector ? { sector } : {}),
     };
 
@@ -585,6 +613,104 @@ export class LoansService {
       toStatus: LoanStatus.REJECTED,
       changedBy: reviewedByUserId,
       note: review.note,
+    });
+
+    return this.attachLoanDocuments(await this.findLoanForReviewResponse(id));
+  }
+
+  /**
+   * GM-only soft delete: moves the loan to CANCELLED so it leaves the active book
+   * (dropping out of the ACTIVE-only ledger and outstanding aggregates). Existing
+   * repayments are kept as history. Goes through transitionLoanStatus, so the move
+   * is validated and audited in LoanStatusLog.
+   */
+  async cancelLoan(id: string, review: ReviewLoanDto, reviewedByUserId: string) {
+    await this.transitionLoanStatus({
+      loanId: id,
+      toStatus: LoanStatus.CANCELLED,
+      changedBy: reviewedByUserId,
+      note: review.note,
+    });
+
+    return this.attachLoanDocuments(await this.findLoanForReviewResponse(id));
+  }
+
+  /**
+   * GM-only loan correction. Applies the supplied fields and recomputes the
+   * derived figures — totalInterestExpected from the (possibly new) schedule, and
+   * outstandingBalance while preserving principal already recovered — so the
+   * ledger and dashboards, which read these live, update automatically. The edit
+   * is recorded as a same-status LoanStatusLog entry. REJECTED/CANCELLED loans
+   * are not editable.
+   */
+  async updateLoan(id: string, data: UpdateLoanDto, reviewedByUserId: string) {
+    const { note, repaymentTerms, guarantorInfo, ...scalars } = data;
+
+    await this.prisma.$transaction(async (tx) => {
+      const loan = await tx.loan.findUnique({ where: { id } });
+
+      if (!loan) {
+        throw new NotFoundException('Loan not found');
+      }
+
+      if (
+        loan.status === LoanStatus.REJECTED ||
+        loan.status === LoanStatus.CANCELLED
+      ) {
+        throw new BadRequestException(
+          `A ${loan.status.toLowerCase()} loan cannot be edited`,
+        );
+      }
+
+      // Merge provided values over current ones for recomputation.
+      const amount = scalars.amount ?? loan.amount;
+      const mergedTerms = (repaymentTerms ?? loan.repaymentTerms) as {
+        schedule?: Array<{ amount: number }>;
+      };
+      const totalInterestExpected = this.computeExpectedInterest({
+        amount,
+        repaymentAmountPerMonth:
+          scalars.repaymentAmountPerMonth ?? loan.repaymentAmountPerMonth,
+        repaymentInstallmentsCount:
+          scalars.repaymentInstallmentsCount ?? loan.repaymentInstallmentsCount,
+        repaymentTerms: mergedTerms,
+      });
+
+      // Preserve principal already recovered (outstanding tracks principal, and
+      // was seeded to the original amount, then decremented by approved repayments).
+      const principalPaidSoFar = loan.amount - loan.outstandingBalance;
+      const outstandingBalance = Math.max(amount - principalPaidSoFar, 0);
+
+      await tx.loanStatusLog.create({
+        data: {
+          loanId: loan.id,
+          fromStatus: loan.status,
+          toStatus: loan.status,
+          changedBy: reviewedByUserId,
+          note: note ?? 'Loan edited by general manager',
+        },
+      });
+
+      await tx.loan.update({
+        where: { id },
+        data: {
+          ...scalars,
+          ...(repaymentTerms !== undefined
+            ? {
+                repaymentTerms:
+                  repaymentTerms as unknown as Prisma.InputJsonValue,
+              }
+            : {}),
+          ...(guarantorInfo !== undefined
+            ? {
+                guarantorInfo:
+                  guarantorInfo as unknown as Prisma.InputJsonValue,
+              }
+            : {}),
+          totalInterestExpected,
+          outstandingBalance,
+        },
+      });
     });
 
     return this.attachLoanDocuments(await this.findLoanForReviewResponse(id));
@@ -991,6 +1117,10 @@ export class LoansService {
       return 'rejected';
     }
 
+    if (status === LoanStatus.CANCELLED) {
+      return 'cancelled';
+    }
+
     // The loan is "live" with the client only once disbursement succeeds.
     // completed/overdue remain derived from balance and schedule.
     if (status === LoanStatus.ACTIVE) {
@@ -1083,6 +1213,8 @@ export class LoansService {
         };
       } else if (normalized === 'rejected') {
         where.status = LoanStatus.REJECTED;
+      } else if (normalized === 'cancelled') {
+        where.status = LoanStatus.CANCELLED;
       } else if (
         normalized === 'active' ||
         normalized === 'completed' ||
@@ -1456,6 +1588,8 @@ export class LoansService {
         return 'Completed';
       case 'rejected':
         return 'Rejected';
+      case 'cancelled':
+        return 'Cancelled';
       default:
         return 'Application';
     }
