@@ -38,9 +38,8 @@ export class MomoCollectionsService {
       'MOMO_TARGET_ENVIRONMENT',
       'sandbox',
     );
-    this.callbackHost = this.configService.getOrThrow<string>(
-      'MOMO_CALLBACK_HOST',
-    );
+    this.callbackHost =
+      this.configService.getOrThrow<string>('MOMO_CALLBACK_HOST');
     this.userId = this.configService.getOrThrow<string>(
       'MOMO_COLLECTIONS_USER_ID',
     );
@@ -64,7 +63,8 @@ export class MomoCollectionsService {
     referenceId?: string;
   }): Promise<MomoRequestToPayResult> {
     const referenceId = params.referenceId ?? randomUUID();
-    this.logger.log(`MoMo requestToPay: amount=${Math.round(params.amount)}, currency=${this.currency}, msisdn=${this.normalizeMsisdn(params.phoneNumber)}`);
+    this.logger.log(`
+      MoMo requestToPay: amount=${Math.round(params.amount)}, currency=${this.currency}, msisdn=${this.normalizeMsisdn(params.phoneNumber)}`);
     const token = await this.getAccessToken();
 
     const response = await fetch(
@@ -98,7 +98,8 @@ export class MomoCollectionsService {
       this.logger.error(
         `MoMo requesttopay failed [${response.status}]: ${body}`,
       );
-      throw new Error(`MoMo requesttopay failed with status ${response.status}`);
+      throw new Error(`
+        MoMo requesttopay failed with status ${response.status}`);
     }
 
     return { referenceId };
@@ -142,7 +143,7 @@ export class MomoCollectionsService {
       reason:
         typeof data.reason === 'string'
           ? data.reason
-          : data.reason?.message ?? data.reason?.code,
+          : (data.reason?.message ?? data.reason?.code),
     };
   }
 
@@ -151,9 +152,9 @@ export class MomoCollectionsService {
       return this.cachedToken;
     }
 
-    const credentials = Buffer.from(
-      `${this.userId}:${this.apiKey}`,
-    ).toString('base64');
+    const credentials = Buffer.from(`${this.userId}:${this.apiKey}`).toString(
+      'base64',
+    );
 
     const response = await fetch(`${this.baseUrl}/collection/token/`, {
       method: 'POST',

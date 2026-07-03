@@ -38,9 +38,8 @@ export class MomoDisbursementsService {
       'MOMO_TARGET_ENVIRONMENT',
       'sandbox',
     );
-    this.callbackHost = this.configService.getOrThrow<string>(
-      'MOMO_CALLBACK_HOST',
-    );
+    this.callbackHost =
+      this.configService.getOrThrow<string>('MOMO_CALLBACK_HOST');
     this.userId = this.configService.getOrThrow<string>(
       'MOMO_DISBURSEMENTS_USER_ID',
     );
@@ -65,37 +64,32 @@ export class MomoDisbursementsService {
     const referenceId = randomUUID();
     const token = await this.getAccessToken();
 
-    const response = await fetch(
-      `${this.baseUrl}/disbursement/v1_0/transfer`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'X-Reference-Id': referenceId,
-          'X-Target-Environment': this.targetEnvironment,
-          'Ocp-Apim-Subscription-Key': this.subscriptionKey,
-          'X-Callback-Url': `${this.callbackHost}/loans/momo/callback`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: String(Math.round(params.amount)),
-          currency: this.currency,
-          externalId: params.externalId,
-          payee: {
-            partyIdType: 'MSISDN',
-            partyId: this.normalizeMsisdn(params.phoneNumber),
-          },
-          payerMessage: params.payerMessage,
-          payeeNote: params.payeeNote,
-        }),
+    const response = await fetch(`${this.baseUrl}/disbursement/v1_0/transfer`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'X-Reference-Id': referenceId,
+        'X-Target-Environment': this.targetEnvironment,
+        'Ocp-Apim-Subscription-Key': this.subscriptionKey,
+        'X-Callback-Url': `${this.callbackHost}/loans/momo/callback`,
+        'Content-Type': 'application/json',
       },
-    );
+      body: JSON.stringify({
+        amount: String(Math.round(params.amount)),
+        currency: this.currency,
+        externalId: params.externalId,
+        payee: {
+          partyIdType: 'MSISDN',
+          partyId: this.normalizeMsisdn(params.phoneNumber),
+        },
+        payerMessage: params.payerMessage,
+        payeeNote: params.payeeNote,
+      }),
+    });
 
     if (response.status !== 202) {
       const body = await response.text();
-      this.logger.error(
-        `MoMo transfer failed [${response.status}]: ${body}`,
-      );
+      this.logger.error(`MoMo transfer failed [${response.status}]: ${body}`);
       throw new Error(`MoMo transfer failed with status ${response.status}`);
     }
 
@@ -140,7 +134,7 @@ export class MomoDisbursementsService {
       reason:
         typeof data.reason === 'string'
           ? data.reason
-          : data.reason?.message ?? data.reason?.code,
+          : (data.reason?.message ?? data.reason?.code),
     };
   }
 
@@ -149,9 +143,9 @@ export class MomoDisbursementsService {
       return this.cachedToken;
     }
 
-    const credentials = Buffer.from(
-      `${this.userId}:${this.apiKey}`,
-    ).toString('base64');
+    const credentials = Buffer.from(`${this.userId}:${this.apiKey}`).toString(
+      'base64',
+    );
 
     const response = await fetch(`${this.baseUrl}/disbursement/token/`, {
       method: 'POST',
