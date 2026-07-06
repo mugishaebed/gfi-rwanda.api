@@ -271,7 +271,7 @@ export class LoansController {
   @Patch(':id')
   @ApiOperation({
     summary:
-      'Edit a loan as GM; derived figures (interest expected, outstanding) are recomputed automatically',
+      'Edit a loan as GM; only the disbursed amount and disbursement date (recorded by the GM at approval) can be corrected',
   })
   updateLoan(
     @Param('id') id: string,

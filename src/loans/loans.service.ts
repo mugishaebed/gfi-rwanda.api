@@ -585,6 +585,7 @@ export class LoansService {
       // disbursed amount/date at approval (it isn't known at creation), and
       // approval activates the loan directly.
       const now = new Date();
+      const disbursedAmount = review.disbursedAmount ?? loan.amount;
       await this.transitionLoanStatus({
         loanId: loan.id,
         toStatus: LoanStatus.ACTIVE,
@@ -593,7 +594,11 @@ export class LoansService {
         data: {
           activatedAt: now,
           disbursedAt: review.disbursedAt ?? now,
-          disbursedAmount: review.disbursedAmount ?? loan.amount,
+          disbursedAmount,
+          // The borrower owes what was actually disbursed, not the approved
+          // amount, so outstanding is (re)seeded from the disbursed amount at
+          // disbursement. No repayments exist yet at this point.
+          outstandingBalance: disbursedAmount,
         },
       });
     } else {
@@ -636,15 +641,16 @@ export class LoansService {
   }
 
   /**
-   * GM-only loan correction. Applies the supplied fields and recomputes the
-   * derived figures — totalInterestExpected from the (possibly new) schedule, and
-   * outstandingBalance while preserving principal already recovered — so the
-   * ledger and dashboards, which read these live, update automatically. The edit
-   * is recorded as a same-status LoanStatusLog entry. REJECTED/CANCELLED loans
-   * are not editable.
+   * GM-only correction of the disbursement details the GM recorded at approval:
+   * the disbursed amount and disbursement date. The loan application fields
+   * (amount, terms, collateral, fees, schedule) belong to the client/officer and
+   * are not editable here. Since the borrower owes what was disbursed, changing a
+   * manual loan's disbursed amount also adjusts its outstanding balance (keeping
+   * principal already repaid), which flows through to the ledger and dashboards
+   * automatically. Only active (disbursed) loans qualify.
    */
   async updateLoan(id: string, data: UpdateLoanDto, reviewedByUserId: string) {
-    const { note, repaymentTerms, guarantorInfo, ...scalars } = data;
+    const { note, disbursedAmount, disbursedAt } = data;
 
     await this.prisma.$transaction(async (tx) => {
       const loan = await tx.loan.findUnique({ where: { id } });
@@ -653,33 +659,27 @@ export class LoansService {
         throw new NotFoundException('Loan not found');
       }
 
-      if (
-        loan.status === LoanStatus.REJECTED ||
-        loan.status === LoanStatus.CANCELLED
-      ) {
+      if (loan.status !== LoanStatus.ACTIVE) {
         throw new BadRequestException(
-          `A ${loan.status.toLowerCase()} loan cannot be edited`,
+          'Disbursement details can only be edited on active (disbursed) loans',
         );
       }
 
-      // Merge provided values over current ones for recomputation.
-      const amount = scalars.amount ?? loan.amount;
-      const mergedTerms = (repaymentTerms ?? loan.repaymentTerms) as {
-        schedule?: Array<{ amount: number }>;
-      };
-      const totalInterestExpected = this.computeExpectedInterest({
-        amount,
-        repaymentAmountPerMonth:
-          scalars.repaymentAmountPerMonth ?? loan.repaymentAmountPerMonth,
-        repaymentInstallmentsCount:
-          scalars.repaymentInstallmentsCount ?? loan.repaymentInstallmentsCount,
-        repaymentTerms: mergedTerms,
-      });
-
-      // Preserve principal already recovered (outstanding tracks principal, and
-      // was seeded to the original amount, then decremented by approved repayments).
-      const principalPaidSoFar = loan.amount - loan.outstandingBalance;
-      const outstandingBalance = Math.max(amount - principalPaidSoFar, 0);
+      // Outstanding follows the disbursed amount for manual loans (their
+      // outstanding tracks disbursed principal). Online loans keep the interest
+      // in their balance, so their outstanding is left untouched here.
+      const outstandingUpdate: Prisma.LoanUncheckedUpdateInput = {};
+      if (
+        disbursedAmount !== undefined &&
+        loan.source === LoanSource.STAFF_MANUAL
+      ) {
+        const currentDisbursed = loan.disbursedAmount ?? loan.amount;
+        const principalRepaid = currentDisbursed - loan.outstandingBalance;
+        outstandingUpdate.outstandingBalance = Math.max(
+          disbursedAmount - principalRepaid,
+          0,
+        );
+      }
 
       await tx.loanStatusLog.create({
         data: {
@@ -687,28 +687,16 @@ export class LoansService {
           fromStatus: loan.status,
           toStatus: loan.status,
           changedBy: reviewedByUserId,
-          note: note ?? 'Loan edited by general manager',
+          note: note ?? 'Disbursement details edited by general manager',
         },
       });
 
       await tx.loan.update({
         where: { id },
         data: {
-          ...scalars,
-          ...(repaymentTerms !== undefined
-            ? {
-                repaymentTerms:
-                  repaymentTerms as unknown as Prisma.InputJsonValue,
-              }
-            : {}),
-          ...(guarantorInfo !== undefined
-            ? {
-                guarantorInfo:
-                  guarantorInfo as unknown as Prisma.InputJsonValue,
-              }
-            : {}),
-          totalInterestExpected,
-          outstandingBalance,
+          ...(disbursedAmount !== undefined ? { disbursedAmount } : {}),
+          ...(disbursedAt !== undefined ? { disbursedAt } : {}),
+          ...outstandingUpdate,
         },
       });
     });
